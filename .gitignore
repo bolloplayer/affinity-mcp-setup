@@ -1,0 +1,22 @@
+# Local scratch / working folders
+_scratch/
+
+# OS / editor cruft
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Claude Code local settings (per-machine)
+.claude/settings.local.json
+
+# Image binaries — keep sample assets small or out of git
+*.afphoto
+*.afmacro
+*.tif
+*.tiff
+*.psd
+*.raw
+*.cr2
+*.nef
+*.arw
+*.dng
