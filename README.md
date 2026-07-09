@@ -56,12 +56,11 @@ Claude Desktop is **not** required.
 
 ## Quick start
 
-1. **Enable the MCP server in Affinity.** `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable
-   Affinity MCP`. Leave Affinity open.
+0. **MCP server in Affinity is enabled** — `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable
+   Affinity MCP`, and Affinity stays open.
 
-2. **Copy `.mcp.json`** to the root of the project you want to work in. If you're working directly
-   in a clone of this repo, it's already in place — skip to step 3. (The file has no
-   machine-specific paths, so it can be copied verbatim to any project.)
+1. **Get `.mcp.json` into your project root.** In a clone of this repo it's already there;
+   otherwise copy it verbatim (it has no machine-specific paths):
 
    ```json
    {
@@ -74,46 +73,24 @@ Claude Desktop is **not** required.
    }
    ```
 
-3. **Verify the environment** (optional but recommended). In a PowerShell terminal:
+2. **Verify the environment** (optional but recommended):
 
    ```powershell
    ./verify.ps1
    ```
 
-   If Windows blocks the script ("running scripts is disabled"), run it as:
+   If Windows blocks it ("running scripts is disabled"):
+   `powershell -ExecutionPolicy Bypass -File .\verify.ps1`. Fix anything that fails.
 
-   ```powershell
-   powershell -ExecutionPolicy Bypass -File .\verify.ps1
-   ```
+3. **Start (or restart) Claude Code** in the project folder so it reads `.mcp.json` — either run
+   `claude` in a terminal and approve the `affinity` server when prompted, or reload the VS Code
+   window (`Ctrl+Shift+P → Developer: Reload Window`). Already running? Type `/mcp` to
+   check/reconnect.
 
-   Fix anything that fails before continuing.
-
-4. **Start (or restart) Claude Code** so it reads `.mcp.json`. Two equal options:
-
-   **Terminal CLI** — open a terminal in the project folder and run:
-
-   ```
-   claude
-   ```
-
-   Approve the `affinity` MCP server when prompted. If Claude Code was already running when you
-   copied the config, type `/mcp` to check/reconnect, or exit and relaunch.
-
-   **VS Code extension** — reload the window so the extension re-reads the config:
-
-   ```
-   Ctrl+Shift+P → Developer: Reload Window
-   ```
-
-5. **Confirm it works.** Open a Claude Code chat and ask:
-
-   > *Read the Affinity SDK preamble.*
-
-   Claude will call the `read_sdk_documentation_topic` tool with `filename: "preamble"`. If the
-   preamble text comes back, everything is connected — from here you can simply describe what you
-   want ("add a curves adjustment", "render the current image", "save this script to the library")
-   and Claude drives Affinity through `execute_script`, `render_spread`, `save_script_to_library`,
-   and friends.
+4. **Confirm it works.** In a chat, ask: *"Read the Affinity SDK preamble."* If the preamble text
+   comes back, everything is connected — from here, just describe what you want ("add a curves
+   adjustment", "render the current image", "save this script to the library") and Claude drives
+   Affinity through `execute_script`, `render_spread`, `save_script_to_library`, and friends.
 
 ---
 
