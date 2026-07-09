@@ -59,38 +59,39 @@ Claude Desktop is **not** required.
 0. **MCP server in Affinity is enabled** — `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable
    Affinity MCP`, and Affinity stays open.
 
-1. **Get `.mcp.json` into your project root.** In a clone of this repo it's already there;
-   otherwise copy it verbatim (it has no machine-specific paths):
+1. **In a clone of this repo, start Claude Code:**
 
-   ```json
-   {
-     "mcpServers": {
-       "affinity": {
-         "type": "sse",
-         "url": "http://[::1]:6767/sse"
-       }
-     }
-   }
+   ```
+   claude
    ```
 
-2. **Verify the environment** (optional but recommended):
+   Approve the `affinity` MCP server when prompted.
 
-   ```powershell
-   ./verify.ps1
-   ```
+2. **Run `/mcp`** to check the MCP status — and, if needed, connect.
 
-   If Windows blocks it ("running scripts is disabled"):
-   `powershell -ExecutionPolicy Bypass -File .\verify.ps1`. Fix anything that fails.
+3. **Tell Claude** to run [`examples/color-boost.js`](examples/color-boost.js) on the image you
+   opened in Affinity, and watch the adjustment layer appear.
 
-3. **Start (or restart) Claude Code** in the project folder so it reads `.mcp.json` — either run
-   `claude` in a terminal and approve the `affinity` server when prompted, or reload the VS Code
-   window (`Ctrl+Shift+P → Developer: Reload Window`). Already running? Type `/mcp` to
-   check/reconnect.
+4. **From here on, code away** — describe what you want ("add a curves adjustment", "render the
+   current image", "save this script to the library") and Claude drives Affinity through
+   `execute_script`, `render_spread`, `save_script_to_library`, and friends.
 
-4. **Confirm it works.** In a chat, ask: *"Read the Affinity SDK preamble."* If the preamble text
-   comes back, everything is connected — from here, just describe what you want ("add a curves
-   adjustment", "render the current image", "save this script to the library") and Claude drives
-   Affinity through `execute_script`, `render_spread`, `save_script_to_library`, and friends.
+Something not connecting? Run [`verify.ps1`](verify.ps1) to check the environment
+(`powershell -ExecutionPolicy Bypass -File .\verify.ps1` if Windows blocks scripts).
+
+Working in your own project instead of a clone? Copy this repo's [`.mcp.json`](.mcp.json) to its
+root — it has no machine-specific paths, so it works verbatim on any machine:
+
+```json
+{
+  "mcpServers": {
+    "affinity": {
+      "type": "sse",
+      "url": "http://[::1]:6767/sse"
+    }
+  }
+}
+```
 
 ---
 
