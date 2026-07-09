@@ -25,6 +25,9 @@ between.
   machine (no absolute paths), so it can live in your repo and sync across PCs.
 - A **`verify.ps1`** environment checker that tells you *before* you start Claude Code whether
   the connection will come up.
+- A **[`CLAUDE.md`](CLAUDE.md)** that briefs Claude on the connection internals, so you can ask
+  it to diagnose problems ("why are the Affinity tools missing?") instead of reading protocol
+  docs yourself.
 - **SDK field notes** ([`docs/sdk-notes.md`](docs/sdk-notes.md)) — confirmed behaviours and
   dead-ends so you don't rediscover them the hard way.
 - Minimal, **verified example scripts** ([`examples/`](examples/)) — a read-only connection
@@ -46,11 +49,11 @@ between.
 | Item | Requirement | Notes |
 |---|---|---|
 | Affinity Photo | Installed and **running**, MCP toggle **on** | Enable at `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable Affinity MCP` |
-| IPv6 loopback (`::1`) | Enabled (Windows default) | Affinity binds `[::1]:6767` **only** — IPv4 is refused |
 | Claude Code | Terminal CLI (`claude`) **or** the VS Code extension (`anthropic.claude-code`) | Both read the same `.mcp.json` — pick whichever you work in |
-| Node.js | Not required | Only `verify.ps1`'s optional handshake probe uses it (skipped if absent) |
 
-Claude Desktop is **not** required.
+That's all. No Node.js, no Claude Desktop, no extra software. (Affinity's server listens on IPv6
+loopback, which is on by default in Windows — the technical details live in
+[`CLAUDE.md`](CLAUDE.md), so you can just ask Claude if the connection misbehaves.)
 
 ---
 
@@ -93,43 +96,21 @@ root — it has no machine-specific paths, so it works verbatim on any machine:
 }
 ```
 
----
-
-## Why IPv6 / `[::1]` (not optional)
-
-Affinity binds an IPv6 loopback socket only. Direct probes:
-
-```
-127.0.0.1:6767  →  ECONNREFUSED
-localhost:6767  →  ECONNREFUSED   (resolver may pick IPv4 first)
-[::1]:6767      →  HTTP 200        (SSE handshake)
-```
-
-So the `.mcp.json` URL **must** use `http://[::1]:6767/sse`. If `[::1]` is unreachable, IPv6 is
-disabled at the OS level — check `Get-NetAdapterBinding -ComponentID ms_tcpip6`.
-
-The MCP-over-SSE handshake, for reference:
-
-```
-GET  http://[::1]:6767/sse           Accept: text/event-stream
-   → 200, content-type: text/event-stream
-   → event: endpoint
-   → data:  /message?session_id=<UUID>
-POST http://[::1]:6767/message?session_id=<UUID>   ← JSON-RPC requests
-   ← responses arrive on the SSE stream (event: message)
-```
+Keep the URL exactly as written — Affinity's server only answers on `[::1]` (IPv6 loopback), not
+`localhost` or `127.0.0.1`.
 
 ---
 
 ## Troubleshooting
 
-| Symptom | Cause | Fix |
-|---|---|---|
-| Affinity tools missing but `verify.ps1` is all green | SSE connection detached from the session (e.g. a resumed chat) | Type `/mcp` in the Claude Code prompt → reconnect `affinity`. Try this first |
-| Tools missing at startup | Affinity wasn't running when Claude Code started | Open Affinity, then restart Claude Code (CLI: relaunch `claude`; VS Code: reload the window) |
-| Tools connect but hang | Affinity was restarted after Claude Code connected → stale session | `/mcp` → reconnect, or restart Claude Code |
-| `ECONNREFUSED [::1]:6767` | Affinity not running, or MCP toggle off | Restart Affinity, confirm the MCP toggle |
-| `ECONNREFUSED` on IPv4 only | **Expected** — Affinity is IPv6-only | The URL already uses `[::1]` |
+First move: type `/mcp` in Claude Code and reconnect `affinity` — it fixes most cases (resumed
+chats, Affinity restarted mid-session). If tools are still missing, make sure Affinity was running
+*before* Claude Code started, then restart Claude Code (CLI: relaunch `claude`; VS Code: reload
+the window). `ECONNREFUSED` on `[::1]:6767` means Affinity isn't running or the MCP toggle is off.
+
+For anything deeper, run [`verify.ps1`](verify.ps1) — or just describe the symptom to Claude:
+[`CLAUDE.md`](CLAUDE.md) gives it the full connection internals (IPv6 binding, SSE handshake,
+stale-session causes), so it can diagnose from inside the chat.
 
 ---
 
