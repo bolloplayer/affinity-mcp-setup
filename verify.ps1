@@ -32,8 +32,10 @@ if ($aff) {
 $listening = netstat -ano | Select-String "\[::1\]:6767\s+\[::\]:0\s+LISTENING"
 if ($listening) {
     Pass "Port 6767 listening on [::1] (IPv6 loopback)"
-} else {
+} elseif ($aff) {
     Fail "Nothing listening on [::1]:6767. Affinity is running but its MCP server did not start -- check Edit > Settings > Model Context Protocol > Enable Affinity MCP, then restart Affinity."
+} else {
+    Fail "Nothing listening on [::1]:6767 (expected while Affinity is not running -- fix the check above first)."
 }
 
 # 3. IPv6 SSE handshake reachability (optional — needs Node just for this probe)
@@ -67,8 +69,10 @@ r.end();
     } else {
         Fail "IPv6 SSE probe failed: $status"
     }
-} else {
+} elseif (-not $nodeExe) {
     Info "Skipping SSE handshake probe (Node.js not found -- it is not required for the connection, only for this optional probe)."
+} else {
+    Info "Skipping SSE handshake probe (nothing listening on [::1]:6767 yet)."
 }
 
 # 4. Claude Code present — CLI and/or VS Code extension (best-effort, informational)

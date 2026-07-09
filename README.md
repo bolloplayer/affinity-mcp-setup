@@ -59,8 +59,9 @@ Claude Desktop is **not** required.
 1. **Enable the MCP server in Affinity.** `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable
    Affinity MCP`. Leave Affinity open.
 
-2. **Copy `.mcp.json`** to the root of the project you want to work in (this repo already contains
-   one you can copy verbatim — it has no machine-specific paths):
+2. **Copy `.mcp.json`** to the root of the project you want to work in. If you're working directly
+   in a clone of this repo, it's already in place — skip to step 3. (The file has no
+   machine-specific paths, so it can be copied verbatim to any project.)
 
    ```json
    {
