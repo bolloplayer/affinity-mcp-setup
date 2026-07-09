@@ -49,7 +49,7 @@ between.
 | Item | Requirement | Notes |
 |---|---|---|
 | Affinity Photo | Installed and **running**, MCP toggle **on** | Enable at `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable Affinity MCP` |
-| Claude Code | Terminal CLI (`claude`) **or** the VS Code extension (`anthropic.claude-code`) | Both read the same `.mcp.json` — pick whichever you work in |
+| [Claude Code](https://claude.com/claude-code) | Terminal CLI (`claude`) **or** the VS Code extension (`anthropic.claude-code`) | Both read the same `.mcp.json` — pick whichever you work in ([install instructions](https://docs.claude.com/en/docs/claude-code/setup)) |
 
 That's all. No Node.js, no Claude Desktop, no extra software. (Affinity's server listens on IPv6
 loopback, which is on by default in Windows — the technical details live in
@@ -59,18 +59,26 @@ loopback, which is on by default in Windows — the technical details live in
 
 ## Quick start
 
-0. **MCP server in Affinity is enabled** — `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable
-   Affinity MCP`, and Affinity stays open.
+0. **Open Affinity with your image** and check that the MCP server is enabled:
+   `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable Affinity MCP`. Leave Affinity open.
 
-1. **In a clone of this repo, start Claude Code:**
+1. **Clone this repo and start Claude Code in it:**
 
    ```
+   git clone https://github.com/bolloplayer/affinity-photo-claude-code-windows.git
+   cd affinity-photo-claude-code-windows
    claude
    ```
 
    Approve the `affinity` MCP server when prompted.
 
-2. **Run `/mcp`** to check the MCP status — and, if needed, connect.
+   *Using the VS Code extension instead?* Open the cloned folder in VS Code and open a Claude
+   Code chat from there — the extension reads the same `.mcp.json` and shows the same approval
+   prompt. If the folder was already open in VS Code, reload the window first
+   (`Ctrl+Shift+P → Developer: Reload Window`) so the config is picked up.
+
+2. **Run `/mcp`** to check the MCP status — and, if needed, connect. (Same command in the CLI
+   and in the extension's chat.)
 
 3. **Tell Claude** to run [`examples/color-boost.js`](examples/color-boost.js) on the image you
    opened in Affinity, and watch the adjustment layer appear.
