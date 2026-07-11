@@ -12,10 +12,12 @@ Photo's built-in MCP server** on **Windows**. Nothing else to install, nothing t
 between.
 
 > **Why this repo exists.** Affinity's AI Connector (free beta, Canva-owned) is officially
-> documented for **Claude Desktop**, and most third-party Affinity tooling targets **macOS**
-> and drives the app through AppleScript/UI automation. The combination this repo covers —
-> **Windows + Claude Code + Affinity's real scripting SDK** — is barely documented anywhere,
-> even though it needs no extra software at all.
+> documented for **Claude Desktop** — and that route handles the scripting loop well. But most
+> third-party Affinity tooling targets **macOS** and drives the app through AppleScript/UI
+> automation, and the combination this repo covers — **Windows + Claude Code + Affinity's real
+> scripting SDK** — is barely documented anywhere, even though it needs no extra software at
+> all. What Claude Code adds over the official route isn't the loop; it's the **folder** — see
+> below.
 
 ---
 
@@ -41,6 +43,28 @@ between.
   APIs), not menu clicks.
 - Not another macOS-only tool — this guide targets **Windows**, which existing tooling mostly
   skips. (Affinity exposes the same server on macOS, but only Windows is verified here.)
+
+## Why Claude Code instead of Claude Desktop? The folder.
+
+Claude Desktop with the official connector runs the same describe → run → check → improve loop —
+we verified it end to end. The difference is that a Desktop **chat starts blank every time**,
+while Claude Code works **inside a project folder that remembers**:
+
+```
+my-affinity-project/
+├── .mcp.json     ← the connection — one file, done once, syncs via git
+├── CLAUDE.md     ← your goals & project quirks — Claude reads it every session
+├── scripts/      ← every look Claude writes for you, versioned with history
+├── exports/      ← renders, before/afters, batch output
+└── notes.md      ← what worked and what didn't — knowledge that compounds
+```
+
+Open a new session and Claude already knows the project: the goals from `CLAUDE.md`, last week's
+scripts, the SDK dead-ends already mapped in your notes. And because Claude Code has your
+**shell**, the work doesn't stop at Affinity's edge — the before/after showcase in
+[`examples/`](examples/) was exported from Affinity by script, composited side-by-side with
+PowerShell, and committed to git, all in one request. Scripts, images, config, and knowledge
+live together, so the project gets smarter every session instead of restarting from zero.
 
 ---
 
