@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Script Affinity from VS Code — Claude Code + Affinity MCP on Windows</title>
+<meta name="description" content="Connect Claude Code to Affinity's built-in MCP server on Windows and apply your first AI-scripted adjustment layer in about ten minutes. No Claude Desktop, no Node.">
+<style>
+  :root {
+    --paper: #FAF9F6;
+    --ink: #20242A;
+    --ink-soft: #5A6070;
+    --line: #E3E0D8;
+    --cyan: #0797B4;
+    --magenta: #C42B62;
+    --yellow: #D99A17;
+    --term-bg: #14181D;
+    --term-fg: #D8DEE6;
+    --term-dim: #7C8695;
+    --card: #FFFFFF;
+    --note-bg: color-mix(in srgb, var(--magenta) 7%, var(--card));
+    --measure: 720px;
+    --mono: "Cascadia Code", Consolas, "Courier New", monospace;
+    --sans: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #14181D;
+      --ink: #E7E5DF;
+      --ink-soft: #9AA3B0;
+      --line: #2A3038;
+      --cyan: #2FB8D3;
+      --magenta: #E05587;
+      --yellow: #E5AE3D;
+      --term-bg: #0D1013;
+      --card: #1B2027;
+      --note-bg: color-mix(in srgb, var(--card) 80%, #FFFFFF);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #14181D; --ink: #E7E5DF; --ink-soft: #9AA3B0; --line: #2A3038;
+    --cyan: #2FB8D3; --magenta: #E05587; --yellow: #E5AE3D;
+    --term-bg: #0D1013; --card: #1B2027;
+    --note-bg: color-mix(in srgb, var(--card) 80%, #FFFFFF);
+  }
+  :root[data-theme="light"] {
+    --paper: #FAF9F6; --ink: #20242A; --ink-soft: #5A6070; --line: #E3E0D8;
+    --cyan: #0797B4; --magenta: #C42B62; --yellow: #D99A17;
+    --term-bg: #14181D; --card: #FFFFFF;
+    --note-bg: color-mix(in srgb, var(--magenta) 7%, var(--card));
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 1.06rem;
+    line-height: 1.65;
+  }
+  a { color: var(--cyan); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:hover { color: var(--magenta); }
+  :focus-visible { outline: 2px solid var(--magenta); outline-offset: 2px; }
+  .wrap { max-width: 768px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 64px 24px 48px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .78rem;
+    letter-spacing: .14em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .eyebrow b { font-weight: 600; }
+  .eyebrow .c { color: var(--cyan); }
+  .eyebrow .m { color: var(--magenta); }
+  .eyebrow .y { color: var(--yellow); }
+  h1 {
+    font-size: clamp(2.1rem, 4.6vw, 2.75rem);
+    line-height: 1.08;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+    max-width: var(--measure);
+  }
+  .lede { color: var(--ink-soft); max-width: var(--measure); }
+  .lede + .lede { margin-top: 14px; }
+  .lede b { color: var(--ink); font-weight: 600; }
+  /* ---------- before/after image ---------- */
+  .cmp-img {
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    display: block;
+    border-radius: 10px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.18);
+    margin: 32px auto 0;
+  }
+  .hero .cmp-cap { text-align: center; }
+  /* ---------- copy-to-clipboard button ---------- */
+  .copy-btn {
+    position: absolute; top: 10px; right: 10px;
+    display: grid; place-items: center;
+    width: 28px; height: 28px;
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--term-dim) 45%, transparent);
+    border-radius: 6px;
+    color: var(--term-dim);
+    cursor: pointer;
+    padding: 0;
+  }
+  .copy-btn:hover { color: var(--term-fg); border-color: var(--term-dim); }
+  .copy-btn .ic-check { display: none; }
+  .copy-btn.copied .ic-copy { display: none; }
+  .copy-btn.copied .ic-check { display: block; color: #5BC98C; }
+
+  /* ---------- step-4 figure row: slider + layers panel ---------- */
+  .fig-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    align-items: stretch;
+    max-width: 640px;
+    margin: 20px auto 0;
+  }
+  .fig-row + .cmp-cap { text-align: center; }
+  .fig-row .shot-img {
+    margin: 0; max-width: none; border: 0;
+    width: 100%; height: 100%; object-fit: cover;
+    box-shadow: 0 12px 40px rgba(0,0,0,.18);
+  }
+  /* ---------- before/after slider ---------- */
+  .cmp {
+    position: relative;
+    aspect-ratio: 8 / 9;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,.18);
+    --pos: 50%;
+    touch-action: none;
+  }
+  .cmp-after, .cmp-before {
+    position: absolute; inset: 0;
+    background-image: url("img/before-after.jpg");
+    background-size: 200% 100%;
+  }
+  .cmp-after  { background-position: 100% 0; }
+  .cmp-before { background-position: 0 0; clip-path: inset(0 calc(100% - var(--pos)) 0 0); }
+  .cmp-bar {
+    position: absolute; top: 0; bottom: 0;
+    left: var(--pos);
+    width: 2px; margin-left: -1px;
+    background: #fff;
+    box-shadow: 0 0 6px rgba(0,0,0,.5);
+    pointer-events: none;
+  }
+  .cmp-knob {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: #fff;
+    color: #333;
+    display: grid; place-items: center;
+    font-size: .8rem; letter-spacing: .05em;
+    box-shadow: 0 2px 8px rgba(0,0,0,.4);
+  }
+  .cmp input[type="range"] {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    opacity: 0; cursor: ew-resize;
+    margin: 0;
+  }
+  .cmp-cap {
+    margin-top: 12px;
+    font-size: .85rem;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- sections ---------- */
+  section { border-top: 1px solid var(--line); }
+  section.wrap { padding: 76px 24px 52px; }
+  .kicker {
+    font-family: var(--mono);
+    font-size: .86rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 18px;
+    text-align: right;
+    max-width: var(--measure);
+  }
+  .kicker::before { content: "◆ "; color: var(--yellow); font-size: .85em; }
+  h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 24px;
+    text-wrap: balance;
+  }
+  h2 .stepnum {
+    font-family: var(--mono);
+    font-weight: 400;
+    font-size: 1rem;
+    color: var(--paper);
+    display: inline-grid; place-items: center;
+    width: 2em; height: 2em;
+    border-radius: 50%;
+    margin-right: 14px;
+    vertical-align: .14em;
+  }
+  .s1 .stepnum { background: var(--cyan); }
+  .s2 .stepnum { background: var(--magenta); }
+  .s3 .stepnum { background: var(--yellow); }
+  .s4 .stepnum { background: var(--cyan); }
+  .s5 .stepnum { background: var(--magenta); }
+  section p { max-width: var(--measure); margin-bottom: 16px; }
+  section p:last-child { margin-bottom: 0; }
+  /* ---------- aux sections: troubleshooting & footnotes read as appendix ---------- */
+  section.wrap.aux { padding: 56px 24px 40px; }
+  .aux { font-size: .97rem; }
+  .aux h2 { font-size: 1.25rem; }
+  .kbd-path {
+    font-family: var(--mono);
+    font-size: .9em;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 1px 7px;
+    white-space: nowrap;
+  }
+
+  /* ---------- checklist: compact, low-key ---------- */
+  section.wrap.checklist { padding: 48px 24px 36px; }
+  .checklist h2 { font-size: 1.15rem; }
+  /* ---------- two-column need / don't need ---------- */
+  .needs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: var(--measure); font-size: .92rem; }
+  .needs-col {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+  .needs-col h3 {
+    font-family: var(--mono);
+    font-size: .8rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .needs-yes h3 { color: var(--cyan); }
+  .needs-no h3 { color: var(--magenta); }
+  .needs ul { list-style: none; }
+  .needs li { padding: 4px 0 4px 24px; position: relative; }
+  .needs-yes li::before { content: "✓"; position: absolute; left: 2px; color: var(--cyan); }
+  .needs-no li::before { content: "✕"; position: absolute; left: 2px; color: var(--magenta); }
+  .needs li small { display: block; color: var(--ink-soft); font-size: .85rem; line-height: 1.45; }
+
+  /* ---------- terminal / code blocks ---------- */
+  .term {
+    position: relative;
+    background: var(--term-bg);
+    color: var(--term-fg);
+    font-family: var(--mono);
+    font-size: .88rem;
+    line-height: 1.6;
+    border-radius: 10px;
+    padding: 18px 22px;
+    overflow-x: auto;
+    margin: 18px 0;
+    max-width: var(--measure);
+  }
+  .term.shrink {
+    font-size: .75rem;
+    max-width: 560px;
+    padding: 14px 18px;
+  }
+  .term .dim { color: var(--term-dim); }
+  .term .ok { color: #6BCB77; }
+  .term .bad { color: #E36B6B; }
+  .term .cy { color: #62CFE6; }
+  .term-label {
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 18px 0 -12px;
+  }
+
+  /* ---------- home/code tab switcher (native) ---------- */
+  .tabswitch {
+    display: inline-flex;
+    gap: 4px;
+    background: color-mix(in srgb, var(--ink-soft) 10%, var(--paper));
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 5px;
+    font-size: .95rem;
+    margin: 8px 0 20px;
+  }
+  .tabswitch .tab {
+    padding: 7px 24px;
+    border-radius: 999px;
+    color: var(--ink-soft);
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    white-space: nowrap;
+  }
+  .tabswitch .tab.active {
+    background: var(--card);
+    color: var(--ink);
+    font-weight: 600;
+    box-shadow: 0 1px 5px rgba(0,0,0,.16);
+  }
+  .tabswitch .glyph { font-family: var(--mono); font-size: .82em; opacity: .75; }
+
+  /* ---------- footnote panel ---------- */
+  .note {
+    background: var(--note-bg);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px 28px;
+    max-width: var(--measure);
+    margin: 20px 0;
+  }
+  .note h3 { font-size: 1.05rem; margin-bottom: 10px; }
+  .note p { font-size: .95rem; }
+
+  /* ---------- tip panel ---------- */
+  .tip {
+    border: 1px solid var(--cyan);
+    border-left-width: 5px;
+    border-radius: 10px;
+    padding: 20px 26px;
+    margin: 20px 0;
+    max-width: var(--measure);
+    background: color-mix(in srgb, var(--cyan) 6%, var(--paper));
+  }
+  .tip h3 { font-size: 1.05rem; margin-bottom: 10px; }
+  .tip h3 code { font-family: var(--mono); color: var(--cyan); }
+  .tip p { font-size: .95rem; }
+
+  /* ---------- shortcut panel ---------- */
+  .shortcut {
+    border: 1px solid var(--yellow);
+    border-left-width: 5px;
+    border-radius: 10px;
+    padding: 20px 26px;
+    margin: 20px 0;
+    max-width: var(--measure);
+    background: color-mix(in srgb, var(--yellow) 7%, var(--paper));
+  }
+  .shortcut h3 { font-size: 1.05rem; margin-bottom: 10px; }
+  .shortcut h3 code { font-family: var(--mono); color: var(--yellow); }
+  .shortcut p { font-size: .95rem; }
+
+  /* ---------- screenshots ---------- */
+  .shot-img { border-radius: 10px; max-width: var(--measure); width: 100%; height: auto; display: block; margin: 20px 0; border: 1px solid var(--line); }
+
+  /* ---------- troubleshooting table ---------- */
+  .tbl-scroll { overflow-x: auto; margin-top: 8px; max-width: var(--measure); }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: .93rem; }
+  th, td { text-align: left; padding: 13px 16px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.55; }
+  th { font-family: var(--mono); font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+  td code { font-family: var(--mono); font-size: .88em; }
+
+  /* ---------- footer ---------- */
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 36px 0 56px;
+    color: var(--ink-soft);
+    font-size: .9rem;
+  }
+  footer .links { display: flex; flex-wrap: wrap; gap: 10px 26px; margin-bottom: 16px; }
+
+  /* ---------- theme switch ---------- */
+  .theme-btn {
+    position: fixed;
+    top: 18px; right: 18px;
+    z-index: 10;
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+    display: grid; place-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,.12);
+  }
+  .theme-btn:hover { border-color: var(--yellow); }
+
+  @media (max-width: 800px) {
+    .hero { padding: 40px 24px 32px; }
+    .needs { grid-template-columns: 1fr; }
+    body { font-size: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<button class="theme-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme">☾</button>
+
+<header class="hero wrap">
+  <p class="eyebrow"><b>Affinity</b> · <b>Claude Code</b> · <b>Windows</b> &nbsp;|&nbsp; <span class="m">−C</span> <span class="c">+M</span> <span class="y">+Y</span></p>
+  <h1>Script Affinity from VS Code.</h1>
+  <p class="lede">Affinity 3.2 ships a built-in MCP server, and the
+  <a href="https://www.affinity.studio/help/ai-connector-setup/">official guide</a> pairs it with Claude
+  Desktop. That route works — the Claude Desktop notes at the bottom of this page cover it. This guide takes the other
+  door: <b>Claude Code in VS Code</b> (or a plain terminal), where your project lives in a folder that
+  Claude reads by itself.</p>
+  <p class="lede">And it isn't complicated. Once a folder on your Desktop holds a few small text files, the
+  rest is: open the folder → check the connection → run the script. All in all, about ten minutes to your
+  first AI-written adjustment layer.</p>
+  <img class="cmp-img" src="img/before-after.jpg"
+       alt="Street with geraniums, before and after Color Boost, side by side">
+  <p class="cmp-cap">One Selective Colour layer — written, applied, and tuned by Claude, shown here at 75% opacity.</p>
+</header>
+
+<section class="wrap checklist">
+  <p class="kicker">Checklist</p>
+  <h2>What you need</h2>
+  <div class="needs">
+    <div class="needs-col needs-yes">
+      <h3>Bring this</h3>
+      <ul>
+        <li>Affinity 3.2 or later <small>the MCP server ships inside it</small></li>
+        <li>Claude Code <small>any paid Claude plan; added to VS Code in step 3</small></li>
+        <li>Windows 10 / 11 <small>this guide is Windows-specific on purpose</small></li>
+        <li>A photo you like <small>the loop is more fun with your own image open</small></li>
+      </ul>
+    </div>
+    <div class="needs-col needs-no">
+      <h3>Skip this</h3>
+      <ul>
+        <li>Git or coding skills <small>the whole setup is a folder and three text files — Claude writes the code</small></li>
+        <li>Node.js <small>a common misdiagnosis for connection problems — it's never the fix</small></li>
+        <li>Plugins or installers <small>nothing gets added to Affinity itself</small></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="wrap s1">
+  <p class="kicker">In Affinity</p>
+  <h2><span class="stepnum">1</span>Switch on Affinity's server</h2>
+  <p>In Affinity, open <span class="kbd-path">Edit ▸ Settings ▸ Model Context Protocol</span> and enable
+  <b>Enable Affinity MCP</b>. That's the whole server-side setup — Affinity now listens for a client on port 6767.
+  Leave Affinity running and open your favorite photo.</p>
+</section>
+
+<section class="wrap s2">
+  <p class="kicker">On your Desktop</p>
+  <h2><span class="stepnum">2</span>Make your project folder</h2>
+  <p>A project is just a folder on your <b>Desktop</b> holding a few small text files — the connection,
+  Claude's briefing, the script. This is the shape you're after:</p>
+
+  <p class="term-label">what you get</p>
+  <div class="term shrink"><pre>affinity-photo-claude-code-windows/
+├── .mcp.json          <span class="dim">← the connection — ready to use, don't edit</span>
+├── CLAUDE.md          <span class="dim">← Claude's briefing, read at every session start</span>
+├── examples/          <span class="dim">← color-boost.js lives here</span>
+├── docs/              <span class="dim">← SDK field notes from real sessions</span>
+└── verify.ps1         <span class="dim">← connection checker, for when things won't connect</span></pre></div>
+
+  <p>The quickest route is git: clone the companion repo straight onto your Desktop and that exact folder
+  appears — connection file, Color Boost script, Claude's briefing, and a diagnostic tool, all included:</p>
+
+  <p class="term-label">terminal</p>
+  <div class="term"><button class="copy-btn" type="button" aria-label="Copy commands to clipboard" data-copy="cd ~\Desktop&#10;git clone https://github.com/bolloplayer/affinity-photo-claude-code-windows.git"><svg class="ic-copy" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="ic-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></button><pre><span class="dim">&gt;</span> cd ~\Desktop
+<span class="dim">&gt;</span> git clone https://github.com/bolloplayer/affinity-photo-claude-code-windows.git</pre></div>
+
+  <div class="shortcut">
+    <h3>No git? Build the folder by hand</h3>
+    <p>A project is just a folder with three small text files — Notepad is enough. Create a folder on your
+    Desktop (say, <code>my-affinity-project</code>) and add:</p>
+    <p><b>1 · The connection</b> — a file named <code>.mcp.json</code> with exactly this content
+    (keep the URL as written):</p>
+    <div class="term"><button class="copy-btn" type="button" aria-label="Copy .mcp.json to clipboard"><svg class="ic-copy" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="ic-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></button><pre>{
+  <span class="cy">"mcpServers"</span>: {
+    <span class="cy">"affinity"</span>: {
+      <span class="cy">"type"</span>: <span class="ok">"sse"</span>,
+      <span class="cy">"url"</span>: <span class="ok">"http://[::1]:6767/sse"</span>
+    }
+  }
+}</pre></div>
+    <p><b>2 · Claude's briefing</b> — a file named <code>CLAUDE.md</code>, read automatically at the start of
+    every session. Three lines are enough to begin; it grows with your project:</p>
+    <div class="term"><button class="copy-btn" type="button" aria-label="Copy CLAUDE.md to clipboard"><svg class="ic-copy" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="ic-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></button><pre style="white-space:pre-wrap;overflow-wrap:anywhere"># My Affinity project
+
+- Affinity's MCP server is configured in .mcp.json — never change the URL to localhost.
+- Read the Affinity SDK "preamble" doc once per session, before running any script.
+- Scripts and exports live in this folder. Start with color-boost.js.</pre></div>
+    <p><b>3 · The script</b> — download
+    <a href="https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main/examples/color-boost.js">color-boost.js</a>
+    (right-click → <em>Save link as…</em>) and put it in the folder.</p>
+  </div>
+
+  <div class="tip">
+    <h3>Why the <code>Desktop</code>? Affinity insists</h3>
+    <p>Affinity sandboxes its scripts: they can read and write files <em>only on the Windows Desktop</em>.
+    The MCP connection itself works from
+    any folder — but the moment a script exports something, a render, a batch result, the before/after images in
+    this guide, the file can only land on the Desktop. Keep the project at
+    <code>C:\Users\&lt;you&gt;\Desktop\…</code> and exports drop straight into your own folder tree instead of
+    scattering loose on the Desktop.</p>
+  </div>
+</section>
+
+<section class="wrap s3">
+  <p class="kicker">In VS Code</p>
+  <h2><span class="stepnum">3</span>Open the folder and check the connection</h2>
+  <p>Install <a href="https://code.visualstudio.com/">VS Code</a> (free) if you don't have it, and add the
+  <b>Claude Code</b> extension: Extensions panel → search <span class="kbd-path">Claude Code</span> (publisher
+  Anthropic) → Install. Then, with Affinity already running: <span class="kbd-path">File ▸ Open Folder…</span> →
+  pick your project folder → open a Claude Code chat, and approve the <b>affinity</b> server when it asks.</p>
+  <p>Type <span class="kbd-path">/mcp</span> — you should see the <b>affinity</b> server connected, with tools
+  like <span class="kbd-path">execute_script</span> and <span class="kbd-path">render_spread</span>. That's the
+  whole setup: from here on you just talk.</p>
+  <p>Prefer a plain terminal? Same thing: <span class="kbd-path">cd</span> into the folder, run
+  <span class="kbd-path">claude</span>, type <span class="kbd-path">/mcp</span>.</p>
+
+  <img class="shot-img" src="img/step3-mcp.jpg" style="max-width:360px;margin-inline:auto" alt="Claude Code /mcp view: Affinity MCP Server connected and authenticated at http://[::1]:6767/sse with 11 tools">
+
+  <p>Not connecting? The troubleshooting table at the bottom of this page covers the usual causes. (If you
+  cloned the companion repo, it also includes <span class="kbd-path">verify.ps1</span>, which checks each link
+  in the chain — Affinity process, port listening, handshake — and tells you which one is broken.)</p>
+</section>
+
+<section class="wrap s4">
+  <p class="kicker">The payoff</p>
+  <h2><span class="stepnum">4</span>Run Color Boost</h2>
+  <p>Open a photo in Affinity. In Claude Code, ask:</p>
+
+  <p class="term-label">prompt</p>
+  <div class="term"><button class="copy-btn" type="button" aria-label="Copy prompt to clipboard" data-copy="Read the SDK preamble, then run color-boost.js on the open document and render the result."><svg class="ic-copy" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="ic-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></button><pre><span class="dim">&gt;</span> Read the SDK preamble, then run color-boost.js on the
+  open document and render the result.</pre></div>
+
+  <p>Claude reads Affinity's own SDK documentation over the connection, executes the script, and renders the
+  spread back to itself to confirm it worked. In Affinity you'll see one new adjustment layer appear:
+  <b>Color Boost</b> — a Selective Colour layer that enriches all six colour ranges with classic CMY complement
+  logic while leaving whites, greys, and blacks untouched. It's an ordinary layer: undoable, deletable, yours.</p>
+
+  <div class="fig-row">
+    <div class="cmp" id="cmp">
+      <div class="cmp-after" role="img" aria-label="Street with geraniums, after Color Boost"></div>
+      <div class="cmp-before"></div>
+      <div class="cmp-bar"><div class="cmp-knob" aria-hidden="true">◂▸</div></div>
+      <input type="range" min="0" max="100" value="50" step="0.5"
+             aria-label="Compare before and after Color Boost">
+    </div>
+    <img class="shot-img" src="img/step4-layers.jpg"
+         alt="Affinity Layers panel showing the Color Boost adjustment layer above the Background layer">
+  </div>
+  <p class="cmp-cap">Drag the handle to compare. On the right: the Color Boost layer as Affinity shows it.</p>
+</section>
+
+<section class="wrap s5">
+  <p class="kicker">Iterate</p>
+  <h2><span class="stepnum">5</span>Make it yours</h2>
+  <p>The layer's opacity is the master strength control. The script defaults to a subtle 25%; the hero image up top
+  is the same layer at 75%. Drag it in Affinity, or just say so: <em>"set the Color Boost layer to 60% and render it."</em>
+  Re-running the script replaces its own layer, so you can iterate without stacking duplicates.</p>
+  <p>Better yet, chain the whole workflow into one request. This is a real prompt from the session that
+  built this page — and everything after it happened in one go:</p>
+
+  <img class="shot-img" src="img/step4-chat.jpg"
+       alt="Claude Code prompt: Run the color boost script at 75% opacity on the image I've opened in Affinity. Evaluate the result. Save the boosted image to the IMG subfolder, then build a before/after JPEG that shows the effect.">
+
+  <p>Claude re-ran the script at 75%, rendered the spread and judged the result (flagging that the geranium
+  reds were nearing saturation clipping), exported the full-resolution image into <span class="kbd-path">IMG/</span>,
+  exported a "before" frame, and composited the labeled before/after JPEG with PowerShell — script, evaluation,
+  files, and folder in a single instruction. That's the part no chat app can follow you into.</p>
+
+  <p>And that's the real point. Color Boost is one small script — but the loop you just ran is general.
+  Describe any look — a warm matte film grade, a punchy product-shot cleanup, a batch watermark — and Claude
+  writes the script, applies it, looks at the render, and refines it. Keep the good ones in your repo.
+  They run forever, with or without Claude.</p>
+</section>
+
+<section class="wrap aux">
+  <p class="kicker">Troubleshooting</p>
+  <h2>When it doesn't connect</h2>
+  <div class="note">
+  <div class="tbl-scroll">
+  <table>
+    <tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
+    <tr>
+      <td>Affinity tools missing, but everything checks green</td>
+      <td>SSE connection detached (e.g. a resumed chat)</td>
+      <td><code>/mcp</code> → reconnect <b>affinity</b>. Try this first.</td>
+    </tr>
+    <tr>
+      <td>Tools missing at startup</td>
+      <td>Affinity wasn't running when Claude Code started</td>
+      <td>Open Affinity, restart Claude Code</td>
+    </tr>
+    <tr>
+      <td>Tools connect but hang</td>
+      <td>Affinity restarted after Claude Code connected — stale session</td>
+      <td><code>/mcp</code> → reconnect, or restart Claude Code</td>
+    </tr>
+    <tr>
+      <td><code>ECONNREFUSED [::1]:6767</code></td>
+      <td>Affinity not running, or the MCP toggle is off</td>
+      <td>Restart Affinity, re-check the setting from step 1</td>
+    </tr>
+  </table>
+  </div>
+  </div>
+</section>
+
+<section class="wrap aux">
+  <p class="kicker">OG: Claude Desktop</p>
+  <h2>The Claude Desktop side</h2>
+
+  <div class="note">
+    <h3>The official route: Claude Desktop</h3>
+    <p>Open Claude Desktop and you'll find two tabs.</p>
+    <div class="tabswitch" role="img" aria-label="Claude Desktop's tab switcher with Home selected">
+      <span class="tab active"><span class="glyph">⌂</span> Home</span><span class="tab"><span class="glyph">&lt;/&gt;</span> Code</span>
+    </div>
+    <p>The <b>Home</b> tab is the chat: it talks to Affinity through the official connector, and it handles the
+    scripting loop well. Open a session, tell it to connect to the Affinity server, then connect a folder to the
+    session. Now begin crafting your image: add adjustments, make scripts, save results into your folder — and
+    keep a <code>notes.md</code> of your findings and progress for the next session.</p>
+    <div class="tabswitch" role="img" aria-label="Claude Desktop's tab switcher with Code selected">
+      <span class="tab"><span class="glyph">⌂</span> Home</span><span class="tab active"><span class="glyph">&lt;/&gt;</span> Code</span>
+    </div>
+    <p>The <b>Code</b> tab is Claude Code — the same agent this guide runs in VS Code. Inside the Desktop app it
+    inherits the Affinity connector: instruct it once to <em>"connect to the Affinity server"</em>, pick the
+    Affinity Connector in the dialog, and it works without any <code>.mcp.json</code> (verified, even from an
+    empty folder).</p>
+  </div>
+
+  <div class="note">
+    <h3>Home vs Code, side by side</h3>
+    <div class="tbl-scroll">
+    <table>
+      <tr><th></th><th>Home tab (chat)</th><th>Claude Code</th></tr>
+      <tr>
+        <td><b>Your project folder</b></td>
+        <td>Connect it to the chat — it persists on disk and reconnects in new sessions</td>
+        <td>Opens the folder and works inside it</td>
+      </tr>
+      <tr>
+        <td><b>Project notes (<code>CLAUDE.md</code>)</b></td>
+        <td>Must instruct it to read your notes — nothing loads by itself</td>
+        <td>Read automatically, every session</td>
+      </tr>
+      <tr>
+        <td><b>Shell, git, batch tools</b></td>
+        <td>Isolated Linux sandbox — git, Node, Python, but not your Windows PowerShell; git can be fragile across the folder mount</td>
+        <td>Your real machine: PowerShell, git, any CLI you have</td>
+      </tr>
+      <tr>
+        <td><b>Browsing your files</b></td>
+        <td>No file tree — ask Claude to list the folder</td>
+        <td>Your own tools: Explorer, editor, terminal</td>
+      </tr>
+    </table>
+    </div>
+  </div>
+
+  <div class="note">
+    <h3>Why Code in a terminal window?</h3>
+    <p>That changes how sessions feel. A chat starts blank every time; a folder <em>remembers</em>. New session,
+    and Claude already knows your goals from <span class="kbd-path">CLAUDE.md</span>, finds last week's scripts, and picks up
+    where you stopped. And because it has your shell, the work doesn't end at Affinity's edge — the before/after image at
+    the top of this page was exported from Affinity by script, composited by PowerShell, and committed to git, in one request.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a href="https://github.com/bolloplayer/affinity-photo-claude-code-windows">Companion repo — config, scripts, verify.ps1</a>
+      <a href="https://github.com/JiriKrblich/Affinity-Community-Scripts">Affinity Community Scripts</a>
+      <a href="https://affinityhub.js.org/">Affinity Hub</a>
+    </div>
+    <p>Independent community guide. Not affiliated with Serif, Canva, or Anthropic. MIT licensed, like the repo.</p>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var cmp = document.getElementById('cmp');
+    var range = cmp.querySelector('input[type="range"]');
+    range.addEventListener('input', function () {
+      cmp.style.setProperty('--pos', range.value + '%');
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll('.copy-btn'), function (b) {
+      b.addEventListener('click', function () {
+        var pre = b.parentNode.querySelector('pre');
+        var text = b.getAttribute('data-copy') || pre.textContent;
+        navigator.clipboard.writeText(text).then(function () {
+          b.classList.add('copied');
+          setTimeout(function () { b.classList.remove('copied'); }, 1500);
+        });
+      });
+    });
+
+    var btn = document.getElementById('themeBtn');
+    var root = document.documentElement;
+    function effective() {
+      return root.dataset.theme ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    }
+    function paint() { btn.textContent = effective() === 'dark' ? '☀' : '☾'; }
+    try {
+      var saved = localStorage.getItem('theme');
+      if (saved === 'dark' || saved === 'light') root.dataset.theme = saved;
+    } catch (e) {}
+    paint();
+    btn.addEventListener('click', function () {
+      var next = effective() === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = next;
+      try { localStorage.setItem('theme', next); } catch (e) {}
+      paint();
+    });
+  })();
+</script>
+
+</body>
+</html>

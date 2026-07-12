@@ -46,9 +46,11 @@ between.
 
 ## Why Claude Code instead of Claude Desktop? The folder.
 
-Claude Desktop with the official connector runs the same describe → run → check → improve loop —
-we verified it end to end. The difference is that a Desktop **chat starts blank every time**,
-while Claude Code works **inside a project folder that remembers**:
+Claude Desktop has two tabs. **Home** is the chat: it talks to Affinity through the official
+connector and runs the same describe → run → check → improve loop — we verified it end to end,
+but you re-attach your files every conversation and it doesn't read `CLAUDE.md` on its own.
+**Code** is Claude Code — the same agent you get in VS Code or a terminal — and it works
+**inside a project folder that remembers**:
 
 ```
 my-affinity-project/
@@ -73,7 +75,7 @@ live together, so the project gets smarter every session instead of restarting f
 | Item | Requirement | Notes |
 |---|---|---|
 | Affinity Photo | Installed and **running**, MCP toggle **on** | Enable at `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable Affinity MCP` |
-| [Claude Code](https://claude.com/claude-code) | Terminal CLI (`claude`) **or** the VS Code extension (`anthropic.claude-code`) | Both read the same `.mcp.json` — pick whichever you work in ([install instructions](https://docs.claude.com/en/docs/claude-code/setup)) |
+| [Claude Code](https://claude.com/claude-code) | Terminal CLI (`claude`), the VS Code extension (`anthropic.claude-code`), **or** the **Code tab** in the Claude Desktop app | All three read the same `.mcp.json` — pick whichever you work in ([install instructions](https://docs.claude.com/en/docs/claude-code/setup)) |
 
 That's all. No Node.js, no Claude Desktop, no extra software. (Affinity's server listens on IPv6
 loopback, which is on by default in Windows — the technical details live in
@@ -113,6 +115,12 @@ loopback, which is on by default in Windows — the technical details live in
 
 Something not connecting? Run [`verify.ps1`](verify.ps1) to check the environment
 (`powershell -ExecutionPolicy Bypass -File .\verify.ps1` if Windows blocks scripts).
+
+**Using the Code tab inside the Claude Desktop app?** The Affinity connector you set up for the
+Home tab serves the Code tab too — ask Claude to *"connect to the Affinity server"*, then search
+for the **Affinity Connector** in the dialog it shows and approve the connection; no `.mcp.json`
+needed (verified from an empty folder). The file below remains required for the terminal CLI and
+the VS Code extension.
 
 Working in your own project instead of a clone? Copy this repo's [`.mcp.json`](.mcp.json) to its
 root — it has no machine-specific paths, so it works verbatim on any machine:

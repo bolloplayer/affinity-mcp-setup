@@ -49,3 +49,16 @@ Ran the full loop: real Affinity export → sandbox composite → git commit ins
 5. **Verified match, not assumed:** `git ls-tree` blob hashes for both new files matched `git hash-object` run directly against the on-disk files. Commit `1b609a6` is confirmed to contain exactly the bytes sitting in `IMG/`.
 
 **Verdict:** the shell/git side of the workflow works, but isn't friction-free — a Windows↔Linux mounted folder can leave the git index in a state plain `git commit` can't recover from on its own (lock file permission mismatch across the mount boundary). The `GIT_INDEX_FILE` + manual plumbing workaround is reliable and repairs the repo for future normal `git` use, but it's not something a non-technical user would find unprompted. Worth a callout in the tutorial rather than a claim that "git commit just works" from Desktop.
+
+**Follow-up finding:** the stale `.git/index.lock`, `.git/HEAD.lock`, and `.git/refs/heads/main.lock` from the first corrupted attempt could never be unlinked from the sandbox side (`Operation not permitted` every time) — they're still sitting there. That means every *subsequent* commit in this session also hit "Unable to create .lock: File exists" and needed the same manual workaround, including overwriting `.git/refs/heads/main` directly with `echo <sha> >` instead of `git update-ref`, since even `update-ref` couldn't create its own lock. This isn't a one-time fix — it's a standing condition of this repo in this sandbox until the lock files are cleared from the Windows side directly (outside the sandbox's reach).
+
+## UI finding (2026-07-11) — no VS Code-style file tree in Cowork
+
+Asked directly whether Desktop/Cowork has a folder/file-tree view like VS Code's Explorer sidebar. Checked the official docs (support.claude.com, claude.com tutorials) rather than guessing:
+
+- **No persistent file-tree sidebar.** Cowork's sidebar shows plan progress and the sources/files a task is drawing from as it runs — not a navigable folder tree of the connected directory.
+- **Finished files appear as cards** you open or download (what `present_files` produces in this chat), not as entries in a browsable tree.
+- **To actually see folder contents**, you ask Claude to list them (e.g. "what's in this folder") — same as the `Glob` calls used earlier in Track B — there's no UI-level browse-by-yourself option inside Cowork.
+- **The closer match is the separate "Code" tab** in the same desktop app (Claude Code, not Cowork) — built more like an IDE with diffs and a project view. Not confirmed whether it has a literal file tree either; that's a separate, unverified claim.
+
+**Practical implication:** if the tutorial implies Desktop gives you an IDE-like project browser, that's overstated. What Desktop/Cowork actually gives you is folder *access* (read/write via the mount) plus the ability to ask Claude to enumerate/inspect it — not a visual file explorer.
