@@ -38,6 +38,9 @@ then check it's reachable from a CLI in step 2.
 | | | | | |
 | **Gemini** (Google) | ❌ **Gemini Web** (`gemini.google.com`) | ✅\* **Antigravity 2.0 / IDE** | ✅ **`agy` CLI** (Antigravity) | `.agents/mcp_config.json` (`serverUrl` field) |
 | | | | | |
+| | | | | |
+| ⎯⎯⎯ *Not a vendor ecosystem — a multi-model harness that can drive any of the models above* ⎯⎯⎯ | | | | |
+| | | | | |
 | **OpenCode** (Multi-model) | — *(N/A — Local harness)* | ✅\* **OpenCode Desktop App** | ✅ **`opencode` CLI / TUI** | Native SSE (`opencode.jsonc` or CLI) |
 
 <br>
