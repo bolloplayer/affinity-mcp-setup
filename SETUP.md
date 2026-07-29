@@ -328,14 +328,25 @@ of time to save a turn.
 > **3 — Write your own look.** The real loop, and where this starts paying off.
 >
 > ```
-> Using examples/color-boost-two-layer.js as the template, write me a new adjustment script —
-> <say what you want: a warm film look, a punchy black and white, a soft matte fade>. Read the
-> SDK docs you need first, keep it idempotent so re-running replaces its own layers, and put
-> the parameters at the top.
+> Write me a new adjustment script, closely modelled on examples/color-boost-two-layer.js.
+> Same shape: two layers, one for colour and one for tone, parameters at the top, idempotent
+> so re-running replaces its own layers. Read the SDK docs you need first — don't guess at
+> API calls.
 >
-> Then run it, render before and after, and show me both. Tell me how the code differs from
-> color-boost-two-layer.js and why. If it needs fixing, fix it and tell me what was wrong.
+> Suggest three or four looks it could be and let me pick, then run it and show me the before
+> and after. Finish with a short summary of how close it stayed to the original: how much of
+> the structure carried over, and how the result compares to the plain colour boost.
 > ```
+>
+> If the user picks this, **offer them a few concrete looks to choose from** rather than asking
+> what they want — a warm film look, a punchy mono conversion, a soft matte fade — with a line
+> each on what it does and which suits the photo they have open. Someone new to this has no idea
+> what the SDK can reach for.
+>
+> The point of the exercise is that the template holds: same two-layer structure, same habits, a
+> different look. Say plainly in the summary where it followed the original and where it had to
+> depart — and if it departed because an SDK call didn't exist, that is worth recording with
+> `add_sdk_hint`.
 
 > **4 — Use Affinity from every folder, not just this one.** Setup put the connection in this
 > folder. This promotes it machine-wide, so you never do it again.
