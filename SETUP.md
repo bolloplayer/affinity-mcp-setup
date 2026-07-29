@@ -18,6 +18,12 @@ through its real JavaScript scripting SDK (`execute_script`, `render_spread`,
    connection is attempted.
 2. **The MCP toggle is on:** `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable Affinity MCP`.
    If the user just flipped it, restart Affinity.
+3. **The project folder sits under the Desktop** — `C:\Users\<you>\Desktop\my-project`. The MCP
+   connection works from anywhere, but Affinity sandboxes **script** file access to the Desktop
+   tree (`app.userDesktopPath`). A script that exports a render, writes a batch result or saves a
+   file returns `NOT_ALLOWED` outside it. The verification sequence below does not need this —
+   `render_spread` returns bytes over MCP — but the user's real work will. If the folder is
+   elsewhere, say so now rather than after the first failed export.
 
 The endpoint is always:
 
@@ -81,13 +87,49 @@ The sequence that works:
 1. Write `.mcp.json` (above).
 2. Run [`verify.ps1`](verify.ps1) — it confirms the endpoint, tools, and open document from
    outside the session, so you know the config is good before restarting.
-3. **Stop and tell the user to restart Claude Code in this folder** (`claude`, or reload the VS
+3. **Leave a resume note** — see below. The session that comes back has none of your context.
+4. **Stop and tell the user to restart Claude Code in this folder** (`claude`, or reload the VS
    Code window). Approve the project server when prompted.
-4. In the new session, `/mcp` shows `affinity` and the verification sequence in §3 runs on the
+5. In the new session, `/mcp` shows `affinity` and the verification sequence in §3 runs on the
    real tools.
 
 Do not work around a missing server by writing your own SSE client. It appears to work, proves
 nothing about the user's actual configuration, and costs far more time than the restart.
+
+#### The resume note — do not skip this
+
+A restart is a new session with an **empty context**. It will not know that a setup was underway,
+what you already did, or that a verification sequence is waiting. Left to itself it greets the user
+and does nothing, and the user has to explain the whole thing again.
+
+Claude Code reads **`CLAUDE.md` from the project folder at startup**, automatically. That is the
+handoff channel. Before you tell the user to restart, write one:
+
+- **If the folder has no `CLAUDE.md`** (a fresh project), create it.
+- **If one already exists**, append a section — never overwrite the user's own instructions.
+
+Keep it short and imperative, so the next session acts instead of summarising:
+
+```markdown
+## Affinity MCP setup — resume here
+
+State: `.mcp.json` was written in this folder and `verify.ps1` passed. The connection
+could not be used in the session that wrote it, because Claude Code loads `.mcp.json`
+only at startup. This session is the restart.
+
+Do this now, without waiting to be asked:
+
+1. Confirm the `affinity` MCP tools are present (11 of them).
+2. `read_sdk_documentation_topic({ filename: "preamble" })` — the gate is per connection.
+3. Run the verification sequence in SETUP.md §3, steps 3–6: inspect the document,
+   `render_spread` for the "before", run `examples/color-boost.js`, render the "after",
+   then show the user both and confirm the layer count rose.
+
+Delete this section once the user has seen the before/after.
+```
+
+Then tell the user, in your final message before they restart, exactly what to type — a plain
+"continue" is enough once the note is in place, but say it explicitly rather than assuming.
 
 ### OpenCode
 
@@ -217,6 +259,8 @@ layer's opacity in Affinity. From here they can ask for anything — "add a curv
 | Symptom | Cause | Fix |
 |---|---|---|
 | **Tools missing right after you wrote `.mcp.json`** | The config did not exist when the session started, so the server was never registered. `/mcp` cannot reconnect it | Restart Claude Code in that folder. Expected, not a fault — see the Claude Code section |
+| **The restarted session does nothing / doesn't know about the setup** | A restart starts with an empty context. Without a resume note there is nothing telling it a verification was pending | Write the setup state into the folder's `CLAUDE.md` **before** asking for the restart — Claude Code loads it at startup. See "The resume note" above |
+| `NOT_ALLOWED` from a script doing file I/O | Affinity sandboxes script filesystem access to the Desktop tree | Move the project under `C:\Users\<you>\Desktop\`. Not a permissions bug — a location rule |
 | Tools missing, everything else healthy | SSE stream detached (resumed chat, Affinity restarted mid-session) | Reconnect the MCP server first — in Claude Code, `/mcp`. Restarting the whole CLI is rarely necessary |
 | `The preamble documentation topic has not yet been read` | The gate is per SSE connection; the preamble was read on a different one | Call `read_sdk_documentation_topic({ filename: "preamble" })` again on the current connection |
 | Tools missing at startup | Affinity wasn't running when the harness started | Open Affinity, restart the harness |
