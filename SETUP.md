@@ -148,9 +148,16 @@ Do this now, without waiting to be asked:
    `render_spread` for the "before", run `examples/color-boost-two-layer.js`, render the "after",
    then show the user both and confirm the layer count rose.
 4. Finish with step 7 — offer the user the three follow-up prompts, verbatim, and stop.
-
-Delete this section once the user has seen the before/after.
+5. Then delete this whole "Affinity MCP setup — resume here" section from CLAUDE.md.
+   It is scaffolding for one restart, not project documentation. If nothing else is
+   left in the file, delete the file too.
 ```
+
+**The note is disposable, and it has to say so.** It exists to survive one restart. Left behind, it
+tells every future session to re-run a verification the user already watched, and it re-adds the
+`Boost` and `Clean` layers to whatever document happens to be open. That is the failure mode: a
+stale instruction that keeps executing. Make the deletion step part of the note itself, as above —
+the session that acts on it is the one that must remove it.
 
 #### What to tell the user before they restart
 
@@ -286,13 +293,13 @@ Ctrl+Z or by deleting the `Color Boost` layer.
 renders side by side against the original. This is the payoff: it proves the whole chain — config,
 transport, protocol, SDK, document write — and shows them what the setup is actually for.
 
-At 25% opacity the difference is real but subtle, and on a downscaled render it can be hard to see.
-Confirm it rather than asserting it: re-run `inspect-document.js` to show the layer count went up
-with `Color Boost` on top, and if you want a number, compare the two renders pixelwise (a gentle
-boost lands around 3/255 mean absolute difference). Never describe a change you have not verified.
+Confirm the change rather than asserting it: re-run `inspect-document.js` to show the layer count
+rose with `Boost` and `Clean` on top, and give a number — compare the two renders pixelwise.
+Never describe a change you have not verified.
 
-Then tell them the effect is tunable: raise `OPACITY` at the top of the script, or drag the
-layer's opacity in Affinity.
+Then tell them it is tunable: `BOOST_OPACITY` and `CLEAN_OPACITY` at the top of the script, or just
+drag either layer's opacity in Affinity. Point out that the two layers are independent — the colour
+and the tone can be adjusted, or switched off, separately.
 
 **Step 7 — hand them their next three moves.** The setup is done and the user is now sitting in an
 environment they have never used. Do not end with "let me know what you'd like to do next" — they
@@ -309,6 +316,9 @@ anything.
 > List every Affinity tool you can see, with a one-line description of each. Then read the
 > SDK preamble and run examples/inspect-document.js, and tell me the Affinity version, which
 > document is open, and its layer stack.
+>
+> Then tidy up: delete the "Affinity MCP setup — resume here" section from CLAUDE.md if it's
+> still there. Setup is finished and that note will otherwise re-run itself every session.
 > ```
 
 > **2 — Run the boost on another image.** Open a different photo in Affinity first.
@@ -318,6 +328,9 @@ anything.
 > after, show me both, and confirm both layers actually landed — layer count and names, plus the
 > mean pixel difference between the two renders. Finish with a short summary: what the script
 > changed, at what opacity, and how to undo it.
+>
+> Then tidy up: delete the "Affinity MCP setup — resume here" section from CLAUDE.md if it's
+> still there. Setup is finished and that note will otherwise re-run itself every session.
 > ```
 
 > **3 — Write your own look.** This is the real loop, and where the project starts paying off.
@@ -331,9 +344,16 @@ anything.
 > Then run it, render before and after, and show me the comparison. Report back on two things:
 > how the code differs from color-boost-two-layer.js and why, and what the visual difference actually is
 > — measured, not asserted. If it needs fixing, fix it and tell me what was wrong.
+>
+> Then tidy up: delete the "Affinity MCP setup — resume here" section from CLAUDE.md if it's
+> still there. Setup is finished and that note will otherwise re-run itself every session.
 > ```
 
 Offer them plainly and stop. Let the user pick — do not run one on their behalf.
+
+Whichever one they pick, the CLAUDE.md cleanup happens — that is why the line is in all three. It
+is deliberately repeated rather than left to the note alone, because the note's own last step is
+the easiest thing for a session to skip once the user has started talking about something else.
 
 ---
 
