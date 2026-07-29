@@ -34,6 +34,16 @@ POST http://[::1]:6767/message?session_id=<UUID>   ← JSON-RPC requests
    ← responses arrive on the SSE stream (event: message)
 ```
 
+Two details that matter when reading this stream directly (`verify.ps1`'s probe does both):
+
+- **Frames are separated by CRLF**, so the terminator is `\r\n\r\n`. Splitting on `\n\n` never
+  matches, the `endpoint` event is never seen, and the client hangs with no error — the GET still
+  returned 200, which makes it look like a server problem. Normalise line endings before splitting.
+- The stream emits periodic `event: heartbeat` frames. Ignore them; they are not JSON-RPC.
+
+Note that a `200` on the GET only means the endpoint answered. It arrives before any MCP session
+exists, so it is not evidence that `initialize` will succeed or that any tool is reachable.
+
 ## Node.js: not a requirement
 
 Nothing in the integration needs Node. The only optional use is `verify.ps1`'s SSE handshake
@@ -48,6 +58,7 @@ optional handshake probe, Claude Code present). If scripts are blocked:
 
 | Symptom | Cause | Fix |
 |---|---|---|
+| Tools missing in the session that created `.mcp.json` | The file is read at startup; a mid-session write registers nothing, and `/mcp` cannot reconnect a server that was never loaded | Restart Claude Code in that folder. Do not hand-roll an SSE client instead |
 | Affinity tools missing but `verify.ps1` all green | SSE connection detached (e.g. resumed chat) | `/mcp` → reconnect `affinity`. Try this first |
 | Tools missing at startup | Affinity wasn't running when Claude Code started | Open Affinity, restart Claude Code |
 | Tools connect but hang | Affinity restarted after Claude Code connected → stale session | `/mcp` → reconnect, or restart Claude Code |
@@ -57,7 +68,10 @@ optional handshake probe, Claude Code present). If scripts are blocked:
 
 - Read the `preamble` doc (`read_sdk_documentation_topic`, `filename: "preamble"`) once per
   session **before** any `execute_script` call — the server requires it, and the response carries
-  accumulated SDK hints from prior sessions.
+  accumulated SDK hints from prior sessions. The gate is tracked per SSE connection, so a
+  reconnect means reading it again.
+- `render_spread` takes `document_session_uuid` (from `doc.sessionUuid`) plus a zero-based
+  `spread_index`, and returns **JPEG** bytes regardless of the document format.
 - Record non-obvious SDK discoveries back with `add_sdk_hint`.
 - Confirmed API shapes and known dead-ends live in `docs/sdk-notes.md`; example scripts in
   `examples/` (see `examples/README.md`).

@@ -11,6 +11,13 @@ only that initialization version:
 - Affinity-facing version: `2025-11-25`
 - All other JSON-RPC messages: passed through unchanged
 
+## SSE framing — CRLF, not LF
+
+Affinity separates SSE frames with **CRLF (`\r\n`)**. A parser that splits the stream on `"\n\n"`
+never completes a frame, so it misses the `endpoint` event and the connection appears to hang with
+no error to go on. The bridge splits on `/\r?\n/` and is unaffected; anyone writing another client
+against this server should do the same.
+
 ## Smoke test
 
 Keep Affinity running with its MCP server enabled, then run:

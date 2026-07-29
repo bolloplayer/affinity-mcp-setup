@@ -37,7 +37,7 @@ should fix, and none of them is.
 | **Use `[::1]`, never `localhost` or `127.0.0.1`** | Affinity binds an **IPv6 loopback socket only**. `127.0.0.1:6767` returns `ECONNREFUSED` — that is expected behaviour, not a broken install. `localhost` depends on the resolver's IPv4/IPv6 preference and may silently fail. |
 | **The transport is SSE, and only SSE** | Probed exhaustively: `/mcp`, `/`, `/streamable`, `/http` all return `404`. There is **no Streamable HTTP endpoint**. Any guide claiming a one-line `url = …` form for a Streamable-HTTP-only client is wrong. |
 | **Affinity accepts MCP protocol `2025-11-25` only** | A client initializing with an older version gets `-32602 Unsupported protocol version`. This is not a URL, IPv6 or config error. See the Codex section. |
-| **Read the `preamble` doc before your first `execute_script`** | The server requires it. The response also carries accumulated SDK hints that materially reduce hallucinated API calls. Call `read_sdk_documentation_topic` with `filename: "preamble"`. |
+| **Read the `preamble` doc before your first `execute_script`** | The server requires it, and the gate is **per connection**, not per machine or per day: a new SSE session starts un-gated and `execute_script` returns `The preamble documentation topic has not yet been read` until you call it again. The response also carries accumulated SDK hints that materially reduce hallucinated API calls. Call `read_sdk_documentation_topic` with `filename: "preamble"`. |
 | **Put the connection in the config file — never write ad-hoc connection code** | A config entry is read at startup, every session, forever. If the user has to reconnect manually each time, the config step was skipped. |
 
 **Node.js is not required** for the connection itself — with exactly one exception, the Codex
@@ -70,7 +70,24 @@ every machine and can be committed:
 }
 ```
 
-Then `/mcp` in the session to confirm, or reconnect if the tools are missing.
+**If you just created this file, the Affinity tools do not exist in your current session.**
+Claude Code reads `.mcp.json` at startup, from the folder it was launched in. Writing the file
+mid-session does not retroactively load the server, and `/mcp` cannot reconnect a server that was
+never registered. This is the single most common way the setup stalls: the agent writes a correct
+config, finds it has no tools, and concludes something is broken.
+
+The sequence that works:
+
+1. Write `.mcp.json` (above).
+2. Run [`verify.ps1`](verify.ps1) — it confirms the endpoint, tools, and open document from
+   outside the session, so you know the config is good before restarting.
+3. **Stop and tell the user to restart Claude Code in this folder** (`claude`, or reload the VS
+   Code window). Approve the project server when prompted.
+4. In the new session, `/mcp` shows `affinity` and the verification sequence in §3 runs on the
+   real tools.
+
+Do not work around a missing server by writing your own SSE client. It appears to work, proves
+nothing about the user's actual configuration, and costs far more time than the restart.
 
 ### OpenCode
 
@@ -138,6 +155,10 @@ The bridge can be dropped only once Codex and Affinity share a protocol version 
 
 Do not report success until a script has actually executed. Connection state alone proves nothing.
 
+Run this in a session that started **after** the config file existed — see the restart note in the
+Claude Code section above. If you wrote `.mcp.json` earlier in this same session, stop here and ask
+the user to restart; the steps below cannot pass without the real tools.
+
 **Step 1 — the tools are there.** List your MCP tools and confirm the Affinity server's tools
 appear (there are 11, including `read_sdk_documentation_topic`, `execute_script` and
 `render_spread`). If the harness reports "connected" but no tools appear, the handshake failed —
@@ -161,7 +182,8 @@ Top layers  : 1
 ```
 
 **Step 4 — capture the "before".** Call `render_spread` and keep the image. This is the
-comparison baseline.
+comparison baseline. It takes the document's `sessionUuid` (step 3 prints it) and a zero-based
+`spread_index`, and returns **JPEG** — don't save the bytes as `.png`.
 
 **Step 5 — a real edit.** Run [`examples/color-boost.js`](examples/color-boost.js) via
 `execute_script`. It adds one Selective Colour adjustment layer that saturates all six colour
@@ -171,11 +193,18 @@ ranges, at a deliberately gentle 25% layer opacity. It prints:
 Color Boost added — strength 1, opacity 25%
 ```
 
-Re-running replaces the layer rather than stacking, so iteration is safe.
+Re-running replaces the layer rather than stacking, so iteration is safe. Tell the user this step
+modifies the document they have open — it adds one non-destructive adjustment layer, removable with
+Ctrl+Z or by deleting the `Color Boost` layer.
 
 **Step 6 — capture the "after" and compare.** Call `render_spread` again and show the user both
 renders side by side against the original. This is the payoff: it proves the whole chain — config,
 transport, protocol, SDK, document write — and shows them what the setup is actually for.
+
+At 25% opacity the difference is real but subtle, and on a downscaled render it can be hard to see.
+Confirm it rather than asserting it: re-run `inspect-document.js` to show the layer count went up
+with `Color Boost` on top, and if you want a number, compare the two renders pixelwise (a gentle
+boost lands around 3/255 mean absolute difference). Never describe a change you have not verified.
 
 Then tell them the effect is tunable: raise `OPACITY` at the top of the script, or drag the
 layer's opacity in Affinity. From here they can ask for anything — "add a curves adjustment",
@@ -187,7 +216,9 @@ layer's opacity in Affinity. From here they can ask for anything — "add a curv
 
 | Symptom | Cause | Fix |
 |---|---|---|
+| **Tools missing right after you wrote `.mcp.json`** | The config did not exist when the session started, so the server was never registered. `/mcp` cannot reconnect it | Restart Claude Code in that folder. Expected, not a fault — see the Claude Code section |
 | Tools missing, everything else healthy | SSE stream detached (resumed chat, Affinity restarted mid-session) | Reconnect the MCP server first — in Claude Code, `/mcp`. Restarting the whole CLI is rarely necessary |
+| `The preamble documentation topic has not yet been read` | The gate is per SSE connection; the preamble was read on a different one | Call `read_sdk_documentation_topic({ filename: "preamble" })` again on the current connection |
 | Tools missing at startup | Affinity wasn't running when the harness started | Open Affinity, restart the harness |
 | `ECONNREFUSED [::1]:6767` | Affinity not running, or the MCP toggle is off | Start Affinity; confirm the toggle; restart Affinity if it was just changed |
 | `ECONNREFUSED 127.0.0.1:6767` | Expected — wrong address family | Use `[::1]`. This is not a fault |
@@ -196,8 +227,12 @@ layer's opacity in Affinity. From here they can ask for anything — "add a curv
 | `user cancelled MCP tool call` (`codex exec`) | Non-interactive approval policy; Affinity's tools publish no safety annotations | Use the interactive TUI. Not a bridge failure |
 | Script runs but the layer lands inside a group | Affinity parents new layers into a topmost group | `color-boost.js` detects and corrects this — copy its approach |
 
-On Windows, [`verify.ps1`](verify.ps1) checks the plumbing independently: Affinity running, port
-`[::1]:6767` listening, optional SSE handshake probe. If scripts are blocked:
+On Windows, [`verify.ps1`](verify.ps1) checks everything independently of any harness, and is the
+fastest way to tell a config problem from an Affinity problem. With Node.js present it performs the
+real MCP handshake — `initialize` at `2025-11-25`, `tools/list`, reads the preamble, and runs one
+read-only script — so it also confirms the tools work and a document is open. Without Node it falls
+back to the plumbing checks (process, port, `.mcp.json`) and says so. Run it **before** starting the
+session. If scripts are blocked:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\verify.ps1
