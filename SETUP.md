@@ -325,28 +325,26 @@ of time to save a turn.
 > and after and show me both, then tell me in a line or two what changed and how to undo it.
 > ```
 
-> **3 — Write your own look.** The real loop, and where this starts paying off.
+> **3 — Write the script yourself.** The real loop, and where this starts paying off.
 >
 > ```
-> Write me a new adjustment script, closely modelled on examples/color-boost-two-layer.js.
-> Same shape: two layers, one for colour and one for tone, parameters at the top, idempotent
-> so re-running replaces its own layers. Read the SDK docs you need first — don't guess at
-> API calls.
+> Write your own two-layer colour-boost script for the photo I have open — a Boost layer for
+> colour and a Clean layer for tone, the same idea as examples/color-boost-two-layer.js. Work
+> from the SDK docs rather than copying it; don't guess at API calls.
 >
-> Suggest three or four looks it could be and let me pick, then run it and show me the before
-> and after. Finish with a short summary of how close it stayed to the original: how much of
-> the structure carried over, and how the result compares to the plain colour boost.
+> Then run it, render before and after, and show me both. Finish with a short summary
+> comparing it to the original: how close the code came, and how close the result looks.
 > ```
 >
-> If the user picks this, **offer them a few concrete looks to choose from** rather than asking
-> what they want — a warm film look, a punchy mono conversion, a soft matte fade — with a line
-> each on what it does and which suits the photo they have open. Someone new to this has no idea
-> what the SDK can reach for.
+> Write it from the SDK documentation, not by copying the example — the comparison at the end is
+> only worth anything if the code was arrived at independently. Read the original afterwards, to
+> compare against.
 >
-> The point of the exercise is that the template holds: same two-layer structure, same habits, a
-> different look. Say plainly in the summary where it followed the original and where it had to
-> depart — and if it departed because an SDK call didn't exist, that is worth recording with
-> `add_sdk_hint`.
+> The summary is the point. Two short paragraphs: **the code** — same structure, same API calls,
+> anything done differently and whether that was a better idea or a worse one; and **the result**
+> — do the two renders look like the same effect. Where you had to depart because an SDK call did
+> not exist or behaved unexpectedly, say so, and record it with `add_sdk_hint` so the next session
+> inherits it.
 
 > **4 — Use Affinity from every folder, not just this one.** Setup put the connection in this
 > folder. This promotes it machine-wide, so you never do it again.
