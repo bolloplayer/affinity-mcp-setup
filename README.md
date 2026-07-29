@@ -17,11 +17,8 @@ then paste this into your agent:
 > Set up a connection to Affinity Photo's MCP server on Windows.
 >
 > Follow `github.com/bolloplayer/affinity-photo-claude-code-windows` — read its `SETUP.md` and do
-> what it says for the harness you're running in, including the verification sequence at the end.
->
-> If something fails, use `SETUP.md`'s troubleshooting section. Don't invent a workaround it
-> doesn't describe — if you're stuck, stop and tell me what you tried and where `SETUP.md` stopped
-> matching what you found.
+> what it says for the harness you're running in, including the verification at the end. If you get
+> stuck, tell me where the doc stopped matching what you found.
 
 That's it. Your agent reads **[`SETUP.md`](SETUP.md)**, registers the connection, proves it works
 without touching anything of yours — then offers you a short menu: leave it there, run a

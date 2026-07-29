@@ -671,13 +671,16 @@
     <p>The repo carries a setup sheet written for an agent rather than a person. Open Affinity, switch on the
     server as in step 1, then paste this to whichever AI you use:</p>
     <div class="term"><pre>Set up a connection to Affinity Photo's MCP server on Windows.
-Take inspiration from github.com/bolloplayer/affinity-photo-claude-code-windows
-— read its SETUP.md, write the config for the harness you're running in,
-then run its verification sequence and show me the before/after.</pre></div>
-    <p>It will register the connection, read Affinity's SDK preamble, run the same
-    <a href="https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main/examples/color-boost.js">Color
-    Boost</a> script this guide uses, and show you the result beside your original — which also proves the
-    whole chain works, end to end.</p>
+
+Follow github.com/bolloplayer/affinity-photo-claude-code-windows — read its
+SETUP.md and do what it says for the harness you're running in, including the
+verification at the end. If you get stuck, tell me where the doc stopped
+matching what you found.</pre></div>
+    <p>It writes the config, fetches the scripts it needs, and asks you to restart once. After that it
+    proves the connection without touching anything of yours, then offers you a short menu: leave it there,
+    run the <a href="https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main/examples/color-boost-two-layer.js">two-layer
+    Color Boost</a> on your open photo and see the before/after, write a look of your own, or make the
+    connection machine-wide so you never set it up again.</p>
   </div>
 
   <div class="note">
