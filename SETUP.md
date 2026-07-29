@@ -322,9 +322,7 @@ of time to save a turn.
 >
 > ```
 > Run examples/color-boost-two-layer.js on the image I have open in Affinity. Render before
-> and after, show me both, and confirm both layers landed — layer count and names, plus the
-> mean pixel difference between the two renders. Finish with a short summary: what changed,
-> at what opacity, and how to undo it.
+> and after and show me both, then tell me in a line or two what changed and how to undo it.
 > ```
 
 > **3 — Write your own look.** The real loop, and where this starts paying off.
@@ -335,9 +333,8 @@ of time to save a turn.
 > SDK docs you need first, keep it idempotent so re-running replaces its own layers, and put
 > the parameters at the top.
 >
-> Then run it, render before and after, and show me the comparison. Report on two things: how
-> the code differs from color-boost-two-layer.js and why, and what the visual difference
-> actually is — measured, not asserted. If it needs fixing, fix it and tell me what was wrong.
+> Then run it, render before and after, and show me both. Tell me how the code differs from
+> color-boost-two-layer.js and why. If it needs fixing, fix it and tell me what was wrong.
 > ```
 
 > **4 — Use Affinity from every folder, not just this one.** Setup put the connection in this
@@ -382,9 +379,12 @@ delete `Boost` and `Clean` in the Layers panel.
 renders side by side against the original. This is the payoff: it proves the whole chain — config,
 transport, protocol, SDK, document write — and shows them what the setup is actually for.
 
-Confirm the change rather than asserting it: re-run `inspect-document.js` to show the layer count
-rose with `Boost` and `Clean` on top, and give a number — compare the two renders pixelwise.
-Never describe a change you have not verified.
+The script prints its own success line and you can see both renders, so that is your
+confirmation — describe what you can actually see in them, and don't go hunting for a number. A
+pixel-difference calculation is several extra round-trips to restate something already visible.
+
+The one case worth a check is a **suspiciously unchanged** pair of renders: that usually means the
+baseline wasn't clean (see step 4), not that the script failed.
 
 Then tell them it is tunable: `BOOST_OPACITY` and `CLEAN_OPACITY` at the top of the script, or just
 drag either layer's opacity in Affinity. Point out that the two layers are independent — the colour
