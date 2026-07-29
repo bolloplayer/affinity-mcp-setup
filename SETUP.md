@@ -258,11 +258,76 @@ all other JSON-RPC messages pass through unchanged.
    startup_timeout_sec = 30
    ```
 
-4. Check with `codex mcp list`, then start a genuinely fresh Codex process or task. Note that
-   `enabled` only means the config was loaded — successful tool discovery is what proves the
-   handshake.
+4. Check with `codex mcp list`, then **restart Codex** — see "The restart is unavoidable here too"
+   below, and leave the resume note *before* you ask for it. Note that `enabled` only means the
+   config was loaded — successful tool discovery is what proves the handshake.
 
 The bridge can be dropped only once Codex and Affinity share a protocol version and transport.
+
+#### Getting the repo — expect the network to be blocked
+
+Codex sandboxes network access. Your first attempt to fetch anything — the raw URLs above, a
+`git clone`, even a web search for this page — fails with a connection error that looks like the
+user's network is down:
+
+```text
+fatal: unable to access 'https://github.com/...': Failed to connect to github.com port 443 after 84 ms
+```
+
+**That is the sandbox, not their connection** — the timing gives it away, since 84 ms is too fast to
+have left the machine. Ask for approval to run `git clone` and say why you need it. Do not conclude
+the repo is unreachable, and do not improvise the script contents from memory.
+
+Clone into the workspace folder, then use paths **relative to where Codex is running**. If you
+cloned into `my-project\affinity-photo-claude-code-windows\`, the inspection script is
+`affinity-photo-claude-code-windows/examples/inspect-document.js`, not the bare `examples/...` path
+§3 uses.
+
+Once the bridge is configured, `node .\bridge\smoke-test.mjs` proves the whole chain from outside
+Codex — it initializes through the bridge, lists the real tools and reads the preamble, without
+touching the document. That is this section's equivalent of `verify.ps1`.
+
+#### The restart is unavoidable here too
+
+Everything in "The restart is unavoidable. Plan for it." above applies to Codex, for the same
+reason: **Codex reads `config.toml` at startup.** The entry you just wrote does not exist in the
+process that wrote it, and no command loads it live.
+
+This is where a Codex run actually stalls. In testing, the model wrote a correct config, verified
+the bridge end to end, saw no Affinity tools in its own session, concluded the CLI was faulty, and
+went off to fetch the Codex manual to debug it. Everything was already working. **A successful
+smoke test plus no visible tools is the signature of this, and it means restart — not diagnose.**
+
+The handoff channel is **`AGENTS.md` in the workspace root**, which Codex reads at startup, exactly
+as Claude Code reads `CLAUDE.md`. Write it before you ask for the restart, using the same shape as
+the resume note above — current state, the three Part A steps, offer the four choices, touch
+nothing until the user picks, and delete yourself when done.
+
+Put it in the folder the user will run `codex` from. If they cloned this repo into a subfolder,
+that is the **parent**, not the clone.
+
+Write it with UTF-8 and read it back the same way. `Get-Content` on a UTF-8 file without
+`-Encoding utf8` decodes it as the ANSI codepage and turns every em dash into `â€"`. It is
+cosmetic and it changes nothing about the setup, but do not "fix" the file in response to it.
+
+#### One change to the §3 menu
+
+Offer the four choices as written, with a single exception: **option 4 does not apply to Codex.**
+It offers to promote a project-scoped server to user scope, which is a Claude Code distinction.
+`%USERPROFILE%\.codex\config.toml` is already user-level, so Affinity works from every folder from
+the moment it is written. Tell the user that rather than offering them an upgrade they already
+have.
+
+Option 1's `/mcp` suggestion is likewise a Claude Code command — drop that line and use
+`codex mcp list` instead.
+
+> **Verified 29 July 2026** — gpt-5.6-sol, Codex CLI 0.145.0, from a clean `config.toml` with no
+> Affinity entry. Following this document it recovered from the sandbox block, checked §0's
+> prerequisites unprompted, wrote a correct config entry without disturbing unrelated settings,
+> verified the bridge, and — once told about `AGENTS.md` — carried a resume note across the restart
+> and passed Part A on the other side (Affinity 3.2.3.4646, one document, `[0] Background`), then
+> deleted the note and offered the menu without touching the document. The restart was the only
+> step it did not get right unaided, which is what the two subsections above are for.
 
 ---
 
