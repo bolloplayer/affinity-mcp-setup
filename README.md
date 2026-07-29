@@ -35,7 +35,7 @@ http://[::1]:6767/sse
 
 | Harness | Config file | Transport |
 |---|---|---|
-| **Claude Code** — CLI, VS Code, Desktop Code tab | `.mcp.json` in the project | SSE native |
+| **Claude Code** — CLI, VS Code, Desktop Code tab | `claude mcp add --scope user`, or `.mcp.json` | SSE native |
 | **Codex** — CLI, ChatGPT Codex tab | `~/.codex/config.toml` | stdio [bridge](bridge/) → SSE |
 | **Antigravity** (`agy`) — Gemini | `.agents/mcp_config.json` (`serverUrl`) | SSE native |
 | **OpenCode** — any model | `opencode.jsonc` or one CLI command | SSE native |

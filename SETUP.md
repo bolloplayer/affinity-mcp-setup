@@ -58,15 +58,26 @@ Identify which harness you are running inside, then write **only** that row's fi
 
 | Harness | Config file | Transport |
 |---|---|---|
-| **Claude Code** (CLI, VS Code ext, Desktop Code tab) | `.mcp.json` in the project folder | SSE native |
+| **Claude Code** (CLI, VS Code ext, Desktop Code tab) | `claude mcp add --scope user` (or `.mcp.json`) | SSE native |
 | **Codex** (CLI, ChatGPT Codex tab, IDE extension) | `~/.codex/config.toml` | stdio bridge → SSE |
 | **Antigravity** (`agy`, Gemini) | `.agents/mcp_config.json` in the workspace | SSE native |
 | **OpenCode** (any model) | `opencode.jsonc`, or one CLI command | SSE native |
 
 ### Claude Code
 
-Create `.mcp.json` in the project root. No machine-specific paths — this file is identical on
-every machine and can be committed:
+**Register it once for the whole machine — not per project.** Affinity's endpoint is the same
+URL in every folder, so a per-project file is the wrong shape for it. One command:
+
+```
+claude mcp add --transport sse --scope user affinity http://[::1]:6767/sse
+```
+
+`--scope user` writes to `~/.claude.json`, so **every** project on this machine gets the server
+from then on. Check it with `claude mcp list` — it reports a health status, and `✔ Connected`
+means Affinity answered.
+
+Prefer a committed, per-project config instead — a shared team repo, say? Write `.mcp.json` in
+the project root. It has no machine-specific paths, so it works verbatim anywhere:
 
 ```json
 {
@@ -76,22 +87,33 @@ every machine and can be committed:
 }
 ```
 
-**If you just created this file, the Affinity tools do not exist in your current session.**
-Claude Code reads `.mcp.json` at startup, from the folder it was launched in. Writing the file
-mid-session does not retroactively load the server, and `/mcp` cannot reconnect a server that was
-never registered. This is the single most common way the setup stalls: the agent writes a correct
-config, finds it has no tools, and concludes something is broken.
+Both forms need the same restart, once. Read on — this is where the setup usually stalls.
+
+#### The restart is unavoidable. Plan for it.
+
+**Whichever form you used, the Affinity tools do not exist in your current session.** Claude Code
+loads MCP configuration at startup. Writing config mid-session registers nothing, and `/mcp`
+cannot reconnect a server that was never registered — it retries *failed* servers and handles
+OAuth, which is a different thing. A project server added this way reports
+`⏸ Pending approval (run claude to approve)` until a new session picks it up.
+
+This is the single most common way the setup stalls: the agent writes a correct config, finds it
+has no tools, concludes something is broken, and starts debugging a transport that was fine.
 
 The sequence that works:
 
-1. Write `.mcp.json` (above).
-2. Run [`verify.ps1`](verify.ps1) — it confirms the endpoint, tools, and open document from
-   outside the session, so you know the config is good before restarting.
+1. Register the server — the `claude mcp add` command above, or `.mcp.json`.
+2. Run [`verify.ps1`](verify.ps1) — it confirms the endpoint, tools and open document from
+   outside the session, so you know the config is good before anyone restarts anything.
 3. **Leave a resume note** — see below. The session that comes back has none of your context.
-4. **Stop and tell the user to restart Claude Code in this folder** (`claude`, or reload the VS
-   Code window). Approve the project server when prompted.
+4. **Stop and tell the user to restart Claude Code** (`claude`, or reload the VS Code window).
+   Approve the server when prompted.
 5. In the new session, `/mcp` shows `affinity` and the verification sequence in §3 runs on the
    real tools.
+
+With user scope that restart is a one-time cost for the whole machine: every later project has
+the server from its first message, and there is no "was Claude launched in the right folder?"
+failure mode.
 
 Do not work around a missing server by writing your own SSE client. It appears to work, proves
 nothing about the user's actual configuration, and costs far more time than the restart.
@@ -113,8 +135,9 @@ Keep it short and imperative, so the next session acts instead of summarising:
 ```markdown
 ## Affinity MCP setup — resume here
 
-State: `.mcp.json` was written in this folder and `verify.ps1` passed. The connection
-could not be used in the session that wrote it, because Claude Code loads `.mcp.json`
+State: the `affinity` MCP server was registered (user scope via `claude mcp add`,
+or `.mcp.json` in this folder) and `verify.ps1` passed. The connection could not be
+used in the session that registered it, because Claude Code loads MCP configuration
 only at startup. This session is the restart.
 
 Do this now, without waiting to be asked:
@@ -258,7 +281,8 @@ layer's opacity in Affinity. From here they can ask for anything — "add a curv
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| **Tools missing right after you wrote `.mcp.json`** | The config did not exist when the session started, so the server was never registered. `/mcp` cannot reconnect it | Restart Claude Code in that folder. Expected, not a fault — see the Claude Code section |
+| **Tools missing right after you registered the server** | MCP config is loaded at startup. A server added mid-session was never registered, and `/mcp` only retries *failed* servers — it cannot load a new one | Restart Claude Code. Expected, not a fault — see the Claude Code section |
+| `⏸ Pending approval (run claude to approve)` in `claude mcp list` | A project-scoped server from `.mcp.json` is waiting for interactive approval | Start a session and approve it. Confirms the config is valid, not broken |
 | **The restarted session does nothing / doesn't know about the setup** | A restart starts with an empty context. Without a resume note there is nothing telling it a verification was pending | Write the setup state into the folder's `CLAUDE.md` **before** asking for the restart — Claude Code loads it at startup. See "The resume note" above |
 | `NOT_ALLOWED` from a script doing file I/O | Affinity sandboxes script filesystem access to the Desktop tree | Move the project under `C:\Users\<you>\Desktop\`. Not a permissions bug — a location rule |
 | Tools missing, everything else healthy | SSE stream detached (resumed chat, Affinity restarted mid-session) | Reconnect the MCP server first — in Claude Code, `/mcp`. Restarting the whole CLI is rarely necessary |
