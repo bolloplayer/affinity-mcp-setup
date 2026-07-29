@@ -147,6 +147,7 @@ Do this now, without waiting to be asked:
 3. Run the verification sequence in SETUP.md §3, steps 3–6: inspect the document,
    `render_spread` for the "before", run `examples/color-boost.js`, render the "after",
    then show the user both and confirm the layer count rose.
+4. Finish with step 7 — offer the user the three follow-up prompts, verbatim, and stop.
 
 Delete this section once the user has seen the before/after.
 ```
@@ -286,8 +287,48 @@ with `Color Boost` on top, and if you want a number, compare the two renders pix
 boost lands around 3/255 mean absolute difference). Never describe a change you have not verified.
 
 Then tell them the effect is tunable: raise `OPACITY` at the top of the script, or drag the
-layer's opacity in Affinity. From here they can ask for anything — "add a curves adjustment",
-"sharpen this for print" — and iterate describe → run → check → improve.
+layer's opacity in Affinity.
+
+**Step 7 — hand them their next three moves.** The setup is done and the user is now sitting in an
+environment they have never used. Do not end with "let me know what you'd like to do next" — they
+don't yet know what there *is* to do. End by offering these three, as ready-to-paste prompts, in
+this order. Reproduce them literally; the point is that the user can copy one without composing
+anything.
+
+> **1 — Check the connection.** Fastest way to see what you're connected to.
+>
+> First type `/mcp` yourself — that one is a Claude Code command, not something I can run. It
+> lists the `affinity` server and its status. Then paste:
+>
+> ```
+> List every Affinity tool you can see, with a one-line description of each. Then read the
+> SDK preamble and run examples/inspect-document.js, and tell me the Affinity version, which
+> document is open, and its layer stack.
+> ```
+
+> **2 — Run the boost on another image.** Open a different photo in Affinity first.
+>
+> ```
+> Run examples/color-boost.js on the image I now have open in Affinity. Render before and
+> after, show me both, and confirm the layer actually landed — layer count and name, plus the
+> mean pixel difference between the two renders. Finish with a short summary: what the script
+> changed, at what opacity, and how to undo it.
+> ```
+
+> **3 — Write your own look.** This is the real loop, and where the project starts paying off.
+>
+> ```
+> Using examples/color-boost.js as the template, write me a new adjustment script — <say what
+> you want: a warm film look, a punchy black and white, a soft matte fade>. Read the SDK docs
+> you need first, keep it idempotent so re-running replaces its own layer, and put the
+> parameters at the top.
+>
+> Then run it, render before and after, and show me the comparison. Report back on two things:
+> how the code differs from color-boost.js and why, and what the visual difference actually is
+> — measured, not asserted. If it needs fixing, fix it and tell me what was wrong.
+> ```
+
+Offer them plainly and stop. Let the user pick — do not run one on their behalf.
 
 ---
 
