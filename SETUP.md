@@ -58,36 +58,17 @@ Identify which harness you are running inside, then write **only** that row's fi
 
 | Harness | Config file | Transport |
 |---|---|---|
-| **Claude Code** (CLI, VS Code ext, Desktop Code tab) | `claude mcp add --scope user` (or `.mcp.json`) | SSE native |
+| **Claude Code** (CLI, VS Code ext, Desktop Code tab) | `.mcp.json` in the project folder | SSE native |
 | **Codex** (CLI, ChatGPT Codex tab, IDE extension) | `~/.codex/config.toml` | stdio bridge → SSE |
 | **Antigravity** (`agy`, Gemini) | `.agents/mcp_config.json` in the workspace | SSE native |
 | **OpenCode** (any model) | `opencode.jsonc`, or one CLI command | SSE native |
 
 ### Claude Code
 
-**Register it once for the whole machine — not per project.** Affinity's endpoint is the same
-URL in every folder, so a per-project file is the wrong shape for it. One command:
-
-```
-claude mcp add --transport sse --scope user affinity http://[::1]:6767/sse
-```
-
-`--scope user` writes to `~/.claude.json`, so **every** project on this machine gets the server
-from then on. Check it with `claude mcp list` — it reports a health status, and `✔ Connected`
-means Affinity answered.
-
-**Ask the user which they want before writing anything** — one sentence each, then do as they say:
-
-- **This machine, every folder** (the command above). Set up once, never again. Best for anyone
-  who intends to use Affinity from more than one project.
-- **This folder only** (`.mcp.json` below). A file they can delete, nothing touched outside the
-  project. Best for a throwaway test folder, or a repo where the config should be committed and
-  shared with a team.
-
-If they express no preference, use user scope — but say which you chose and how to switch.
-
-The per-project form: write `.mcp.json` in the project root. It has no machine-specific paths, so
-it works verbatim anywhere:
+**Write `.mcp.json` in the project folder. Do not ask the user which scope they want** — a config
+file in their own folder is the smallest, most reversible thing that works, and they can promote it
+to machine-wide later from the menu in §3 once they have seen it working. Deciding scope is not a
+question to put to someone who has not connected yet.
 
 ```json
 {
@@ -97,7 +78,33 @@ it works verbatim anywhere:
 }
 ```
 
-Both forms need the same restart, once. Read on — this is where the setup usually stalls.
+No machine-specific paths, so the file works verbatim on any machine and can be committed.
+
+<details><summary>Machine-wide instead — the upgrade, not the default</summary>
+
+`claude mcp add --transport sse --scope user affinity http://[::1]:6767/sse` writes to
+`~/.claude.json`, so every project on the machine gets the server. Check with `claude mcp list`;
+`✔ Connected` means Affinity answered. Offer this **after** the connection is proven — it is
+option 4 of the menu in §3 — not during first setup.
+
+</details>
+
+#### Fetch the files you need
+
+An empty project folder has none of the repo's scripts, and the steps below run two of them. Before
+the restart, download what you need into the folder — no clone required:
+
+```
+https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main/examples/inspect-document.js
+https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main/examples/color-boost-two-layer.js
+https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main/verify.ps1
+```
+
+Put the two scripts in `examples/` and `verify.ps1` in the folder root. If you cannot write files or
+fetch URLs, say so and ask the user to clone the repo instead — do not skip ahead and improvise the
+script contents from memory.
+
+Now read on. This next part is where the setup usually stalls.
 
 #### The restart is unavoidable. Plan for it.
 
@@ -110,20 +117,27 @@ OAuth, which is a different thing. A project server added this way reports
 This is the single most common way the setup stalls: the agent writes a correct config, finds it
 has no tools, concludes something is broken, and starts debugging a transport that was fine.
 
-The sequence that works:
+**The whole setup therefore has two parts, and the restart is the door between them:**
 
-1. Register the server — the `claude mcp add` command above, or `.mcp.json`.
-2. Run [`verify.ps1`](verify.ps1) — it confirms the endpoint, tools and open document from
+| | | |
+|---|---|---|
+| **Part 1** — this session | write `.mcp.json`, fetch the scripts, run `verify.ps1`, leave the resume note | no Affinity tools exist yet |
+| **↓ restart** | the user quits and relaunches; this is the only way across | |
+| **Part 2** — the next session | §3: prove the connection, then offer the menu | Affinity tools are live |
+
+Nothing in Part 2 can be done early, and nothing in Part 1 needs the tools. Get Part 1 completely
+finished — config, scripts, `verify.ps1`, note — so the restart happens once and the next session
+has everything it needs.
+
+The Part 1 sequence:
+
+1. Write `.mcp.json` in the project folder.
+2. Fetch `examples/inspect-document.js`, `examples/color-boost-two-layer.js` and `verify.ps1`.
+3. Run [`verify.ps1`](verify.ps1) — it confirms the endpoint, tools and open document from
    outside the session, so you know the config is good before anyone restarts anything.
-3. **Leave a resume note** — see below. The session that comes back has none of your context.
-4. **Stop and tell the user to restart Claude Code** (`claude`, or reload the VS Code window).
-   Approve the server when prompted.
-5. In the new session, `/mcp` shows `affinity` and the verification sequence in §3 runs on the
-   real tools.
-
-With user scope that restart is a one-time cost for the whole machine: every later project has
-the server from its first message, and there is no "was Claude launched in the right folder?"
-failure mode.
+4. **Leave a resume note** — see below. The session that comes back has none of your context.
+5. **Tell the user to restart Claude Code** (`claude`, or reload the VS Code window), approving
+   the server when prompted, and to type "continue".
 
 Do not work around a missing server by writing your own SSE client. It appears to work, proves
 nothing about the user's actual configuration, and costs far more time than the restart.
@@ -150,16 +164,17 @@ or `.mcp.json` in this folder) and `verify.ps1` passed. The connection could not
 used in the session that registered it, because Claude Code loads MCP configuration
 only at startup. This session is the restart.
 
-Do this now, without waiting to be asked — but only Part A. It is read-only.
+You are Part 2. Part 1 (config, scripts, verify.ps1) is done. Do this now, without
+waiting to be asked — but only Part A of §3. It is read-only.
 
 1. Confirm the `affinity` MCP tools are present (11 of them).
 2. `read_sdk_documentation_topic({ filename: "preamble" })` — the gate is per connection.
 3. Run `examples/inspect-document.js` and report the Affinity version, the open
    document and its layer stack.
 
-Then STOP and offer the user the four choices from SETUP.md §3. Do not run the
-colour-boost script, or anything else that writes to their document, until they
-pick it. Follow SETUP.md from that point — do not invent your own step list.
+Then hand over: offer the user the four choices from SETUP.md §3 and let them pick.
+Do not run the colour-boost script, or anything else that writes to their document,
+until they ask. Follow SETUP.md from that point — do not invent your own step list.
 
 Delete this section once you have offered the choices; the file too if nothing else
 is left in it. Do not state what has or hasn't been done to the document — check the
@@ -288,14 +303,15 @@ Top layers  : 1
   [0] Background
 ```
 
-### STOP HERE and offer the choice
+### Hand over to the user here
 
-**The connection is proven. Do not carry straight on into step 4.** Everything below modifies a
-photo the user has open, and they have not agreed to that yet. This is also the moment they find
-their footing in a tool they have never used, so give them the map rather than a finished result.
+The connection is proven, and that is a good place to pause. Everything below this point changes a
+photo the user has open, so it is theirs to ask for. It is also the moment they get their bearings
+in something they have never used — more useful than a finished result they didn't choose.
 
 Report what Part A established — Affinity version, which document is open, its layer stack — then
-offer these four, verbatim, and **stop**. Do not pick one. Do not run one "to save time".
+offer these four, verbatim, and let them pick. Don't choose one for them, and don't run one ahead
+of time to save a turn.
 
 > **1 — Just check the connection.** Already done, above. Nothing was changed.
 >
@@ -324,8 +340,8 @@ offer these four, verbatim, and **stop**. Do not pick one. Do not run one "to sa
 > actually is — measured, not asserted. If it needs fixing, fix it and tell me what was wrong.
 > ```
 
-> **4 — Use Affinity from every folder, not just this one.** If the connection was set up per
-> project, this makes it machine-wide, so you never do the setup again.
+> **4 — Use Affinity from every folder, not just this one.** Setup put the connection in this
+> folder. This promotes it machine-wide, so you never do it again.
 >
 > ```
 > Register the Affinity MCP server at user scope instead of just this folder, then tell me what
