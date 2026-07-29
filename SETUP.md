@@ -329,22 +329,25 @@ of time to save a turn.
 >
 > ```
 > Write your own two-layer colour-boost script for the photo I have open — a Boost layer for
-> colour and a Clean layer for tone, the same idea as examples/color-boost-two-layer.js. Work
-> from the SDK docs rather than copying it; don't guess at API calls.
+> colour and a Clean layer for tone, the same idea as examples/color-boost-two-layer.js, but
+> reach for different adjustments than it does. Read the SDK docs to pick them; don't guess at
+> API calls.
 >
 > Then run it, render before and after, and show me both. Finish with a short summary
-> comparing it to the original: how close the code came, and how close the result looks.
+> comparing it to the original: how the two approaches differ, and how close the results look.
 > ```
 >
-> Write it from the SDK documentation, not by copying the example — the comparison at the end is
-> only worth anything if the code was arrived at independently. Read the original afterwards, to
-> compare against.
+> **You have already read `color-boost-two-layer.js` by this point** — you fetched it in Part 1 and
+> most likely ran it. Don't claim the structure was arrived at independently; it wasn't. Say plainly
+> which parts are the original's (the idempotent delete-by-name, the group-insertion guard, the
+> selection/opacity dance) and spend the comparison on the part that is genuinely yours: **which
+> adjustments you chose and why.**
 >
-> The summary is the point. Two short paragraphs: **the code** — same structure, same API calls,
-> anything done differently and whether that was a better idea or a worse one; and **the result**
-> — do the two renders look like the same effect. Where you had to depart because an SDK call did
-> not exist or behaved unexpectedly, say so, and record it with `add_sdk_hint` so the next session
-> inherits it.
+> The summary is the point. Two short paragraphs: **the approach** — which adjustments, what they
+> buy, what the original's choice does better; and **the result** — do the two renders read as the
+> same family of effect. Where an SDK call did not exist or behaved unexpectedly, say so and record
+> it with `add_sdk_hint` so the next session inherits it. If that call is refused, put it in
+> `docs/sdk-notes.md` instead — do not let the finding evaporate.
 
 > **4 — Use Affinity from every folder, not just this one.** Setup put the connection in this
 > folder. This promotes it machine-wide, so you never do it again.
