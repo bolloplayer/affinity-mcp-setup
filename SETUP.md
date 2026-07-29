@@ -21,9 +21,9 @@ through its real JavaScript scripting SDK (`execute_script`, `render_spread`,
 3. **The project folder sits under the Desktop** — `C:\Users\<you>\Desktop\my-project`. The MCP
    connection works from anywhere, but Affinity sandboxes **script** file access to the Desktop
    tree (`app.userDesktopPath`). A script that exports a render, writes a batch result or saves a
-   file returns `NOT_ALLOWED` outside it. The verification sequence below does not need this —
-   `render_spread` returns bytes over MCP — but the user's real work will. If the folder is
-   elsewhere, say so now rather than after the first failed export.
+   file returns `NOT_ALLOWED` outside it. The verification sequence below never writes a file, so it
+   does not need this — but the user's real work will. If the folder is elsewhere, say so now rather
+   than after the first failed export.
 
 The endpoint is always:
 
@@ -85,7 +85,7 @@ No machine-specific paths, so the file works verbatim on any machine and can be 
 `claude mcp add --transport sse --scope user affinity http://[::1]:6767/sse` writes to
 `~/.claude.json`, so every project on the machine gets the server. Check with `claude mcp list`;
 `✔ Connected` means Affinity answered. Offer this **after** the connection is proven — it is
-option 4 of the menu in §3 — not during first setup.
+option 3 of the menu in §3 — not during first setup.
 
 </details>
 
@@ -172,7 +172,7 @@ waiting to be asked — but only Part A of §3. It is read-only.
 3. Run `examples/inspect-document.js` and report the Affinity version, the open
    document and its layer stack.
 
-Then hand over: offer the user the four choices from SETUP.md §3 and let them pick.
+Then hand over: offer the user the three choices from SETUP.md §3 and let them pick.
 Do not run the colour-boost script, or anything else that writes to their document,
 until they ask. Follow SETUP.md from that point — do not invent your own step list.
 
@@ -300,7 +300,7 @@ smoke test plus no visible tools is the signature of this, and it means restart 
 
 The handoff channel is **`AGENTS.md` in the workspace root**, which Codex reads at startup, exactly
 as Claude Code reads `CLAUDE.md`. Write it before you ask for the restart, using the same shape as
-the resume note above — current state, the three Part A steps, offer the four choices, touch
+the resume note above — current state, the three Part A steps, offer the three choices, touch
 nothing until the user picks, and delete yourself when done.
 
 Put it in the folder the user will run `codex` from. If they cloned this repo into a subfolder,
@@ -312,20 +312,20 @@ cosmetic and it changes nothing about the setup, but do not "fix" the file in re
 
 #### One change to the §3 menu
 
-Offer the four choices as written, with a single exception: **option 4 does not apply to Codex.**
+Offer the three choices as written, with a single exception: **option 3 does not apply to Codex.**
 It offers to promote a project-scoped server to user scope, which is a Claude Code distinction.
 `%USERPROFILE%\.codex\config.toml` is already user-level, so Affinity works from every folder from
 the moment it is written. Tell the user that rather than offering them an upgrade they already
 have.
 
-Option 1's `/mcp` suggestion is likewise a Claude Code command — drop that line and use
+If the user asks how to check the connection themselves, `/mcp` is a Claude Code command — give
 `codex mcp list` instead.
 
-Option 3 needs no change — it is a blind fidelity test for every harness — but note that cloning
-the repo puts **three** answers on disk, not one: `color-boost-two-layer.js` plus
-`openai-color-boost-two-layer.js` and `test-color-boost.js` from earlier runs. Harnesses that fetch
-only the two named scripts never see the latter two. Leave all three sealed until your own script
-has run.
+Option 2 needs no change, but note that a clone gives you more than the two scripts a fetching
+harness sees: `openai-color-boost-two-layer.js` and `test-color-boost.js` are earlier models'
+colour-boost attempts. They are not black-and-white conversions and they are not a template for one —
+read `color-boost-two-layer.js` for structure if you want a model, and write the conversion itself
+from the SDK docs.
 
 > **Verified 29 July 2026** — gpt-5.6-sol, Codex CLI 0.145.0, from a clean `config.toml` with no
 > Affinity entry. Following this document it recovered from the sandbox block, checked §0's
@@ -381,75 +381,65 @@ photo the user has open, so it is theirs to ask for. It is also the moment they 
 in something they have never used — more useful than a finished result they didn't choose.
 
 Report what Part A established — Affinity version, which document is open, its layer stack — then
-offer these four, verbatim, and let them pick. Don't choose one for them, and don't run one ahead
-of time to save a turn.
+offer these three, verbatim, and let them pick. Don't choose one for them, and don't run one ahead
+of time to save a turn. Close by telling them they can also stop here and nothing will be changed —
+that is a real answer, not a failure to choose.
 
-> **1 — Just check the connection.** Already done, above. Nothing was changed.
->
-> Type `/mcp` yourself to see the `affinity` server and its status — that one is a Claude Code
-> command, not something I can run.
-
-> **2 — See what it can do (adds two layers to your open photo).**
+> **1 — Run the colour boost script.** I add it to Affinity's Script View and run it on your open
+> image, then tell you the name it's listed under. Switch to Affinity and see the result yourself.
 >
 > ```
-> Run examples/color-boost-two-layer.js on the image I have open in Affinity. Render before
-> and after and show me both, then tell me in a line or two what changed and how to undo it.
+> Add examples/color-boost-two-layer.js to Affinity's script library, check it really landed
+> there, then run it on the image I have open. Tell me the name it's saved under and how to undo
+> it. Don't render the image or describe the result — I'll look in Affinity.
 > ```
 
-> **3 — Write the script yourself.** The real loop, and where this starts paying off.
+**Option 1 ends at the user's screen, not in your output.** Save with `save_script_to_library`,
+confirm with `list_library_scripts` — the write's own response is not proof, and you are about to
+send someone looking for it — then run it. **Do not call `render_spread` and do not describe the
+result:** they are seconds away from the document itself, at full resolution.
+
+Then close briefly: *switch to Affinity and see the result*, the name the script is listed under, how
+to undo the edit (Ctrl+Z, or delete `Boost` and `Clean`), and that option 2 is worth coming back for.
+Leave the rest of the Script View for them to discover — re-running and tidying up are obvious once
+they are in there, and spelling them out turns a two-line handover into a manual. Do not start
+option 2 for them.
+
+> **2 — Have me write one from scratch.** The real loop, and where this starts paying off. No supplied
+> script this time: I write a black-and-white conversion against the SDK, add it to your Script View
+> and run it. Switch to Affinity and see the result yourself.
 >
 > ```
-> Write a two-layer colour-boost script for the photo I have open, matching this specification,
-> then run it, render before and after, and show me both.
->
-> - Two Selective Colour adjustment layers, named Boost and Clean, with Boost above Clean.
-> - Clean moves only the black channel: lift the whites, open the midtones slightly, keep the
->   blacks solid. It must not touch colour.
-> - Boost moves only the six chromatic ranges — neutrals stay out of it. Per range, add that
->   range's own primary inks and subtract its complement.
-> - Both layers sit at reduced opacity, driven by named constants at the top of the file.
-> - Re-running replaces this script's own two layers and leaves every other layer alone.
->
-> Work from the SDK docs, not from the existing script — don't open
-> examples/color-boost-two-layer.js until yours has run. Then compare them and tell me how close
-> you got.
+> Write a black-and-white conversion script for the photo I have open. Work from the SDK docs —
+> don't guess at API calls. Save it to Affinity's script library, check it landed there, then run
+> it. Tell me the name it's saved under and how to undo it. Don't render the image or describe the
+> result — I'll look in Affinity.
 > ```
 
-**Option 3 is a fidelity test, and it only works if you write it blind.** The specification above
-describes `examples/color-boost-two-layer.js` exactly, and that file is already on disk — you
-fetched it in Part 1. Fetching it was fine; **opening it before your own script has run is not.**
-Nothing enforces this but you, and reading it first turns the exercise into transcription and
-throws the measurement away.
+**Option 2 is option 1's handover with one difference: the script is yours.** Same ending — save,
+confirm with `list_library_scripts`, run, name it, send them to Affinity. No renders, no description
+of the result.
 
-Two ways the run can be contaminated before it starts. Say so plainly if either applies, and treat
-the comparison as informational rather than a result:
+The difference is the writing. Use `read_sdk_documentation_topic` and `search_sdk_hints` before
+reaching for an API call you are not sure of; a hallucinated method here is the most common way this
+option fails. Two properties make the difference between a script worth keeping and a one-shot, so
+build both in:
 
-- The user picked option 2 first, so you have already run the original and seen its output.
-- You are in a harness that cloned the whole repo. Then `openai-color-boost-two-layer.js` and
-  `test-color-boost.js` are sitting there too — previous models' answers to this same task. Leave
-  all three sealed.
+- **Non-destructive** — an adjustment layer, not a pixel operation. The user's original stays intact
+  underneath and the effect can be switched off.
+- **Idempotent** — delete your own layer by name before adding it, so a second run replaces rather
+  than stacks, and every other layer is left alone.
 
-Only once your script has run, open `color-boost-two-layer.js` and compare. These six are where a
-from-scratch attempt tends to diverge, and they are what the comparison is for:
+One trap worth knowing before you hit it: **if the top of the layer stack is a group, the builder
+parents your new layer inside it.** Detect it by the root layer count not changing after the insert,
+then move the layer back out. Missing this fails silently — the script reports success while the
+adjustment lands on one group instead of the image.
 
-1. **Idempotency** — does it delete its own `Boost`/`Clean` by name before adding, leaving other
-   layers untouched, so a re-run tunes instead of stacking?
-2. **The group-insertion guard** — if the top of the layer stack is a group, the builder parents the
-   new layer *inside* it. The original detects this by the root layer count not changing, then moves
-   the layer back out. Missing it fails **silently**: the script reports success while the
-   adjustment lands on one group instead of the image.
-3. **`isRelative = true`** on the Selective Colour parameters.
-4. **The weights round-trip** — reading `parameters.weights`, mutating, and assigning the array
-   back, rather than writing through it in place.
-5. **The opacity dance** — setting `doc.selection`, applying opacity, then clearing the selection.
-6. **Insertion order** — `Clean` added first, so `Boost` ends up above it.
+Where an SDK call did not exist or behaved unexpectedly, say so and record it with `add_sdk_hint` so
+the next session inherits it. If that call is refused, put it in `docs/sdk-notes.md` instead — do not
+let the finding evaporate.
 
-Report which of the six you got unaided, which you missed, and whether the two renders read as the
-same effect. Where an SDK call did not exist or behaved unexpectedly, say so and record it with
-`add_sdk_hint` so the next session inherits it. If that call is refused, put it in
-`docs/sdk-notes.md` instead — do not let the finding evaporate.
-
-> **4 — Use Affinity from every folder, not just this one.** Setup put the connection in this
+> **3 — Use Affinity from every folder, not just this one.** Setup put the connection in this
 > folder. This promotes it machine-wide, so you never do it again.
 >
 > ```
@@ -457,61 +447,54 @@ same effect. Where an SDK call did not exist or behaved unexpectedly, say so and
 > to delete and whether I need to restart.
 > ```
 
-If they pick 2 or 3, the remaining steps below are how you run it. If they pick 4, see the Claude
-Code section. If they pick 1, you are done — say so and stop.
+If they pick 1 or 2, the remaining steps below are how you run it. If they pick 3, see the Claude
+Code section. If they choose to stop instead, you are done — say so plainly and don't talk them into
+an edit.
 
 ### Part B — only if the user asked for it
 
-**Step 4 — capture the "before".** Call `render_spread` and keep the image. This is the
-comparison baseline. It takes the document's `sessionUuid` (step 3 prints it) and a zero-based
-`spread_index`, and returns **JPEG** — don't save the bytes as `.png`.
+Both options end the same way — a script in the user's Script View, run once on their open document,
+and the user looking at the result in Affinity rather than at a render from you. Only the authorship
+differs.
 
-Check the layer stack from step 3 first. If `Boost` and `Clean` are already there from an earlier
-run, this render is **not** a clean baseline — it already contains the effect, and comparing
-against it will show no difference. Delete those two layers, re-render, and say why you did.
+**Step 4 — put the script in the library and run it.**
 
-**Step 5 — a real edit.** **If the user picked option 3, run *their* script here — the one you
-wrote — and do not open the reference script yet.** The rest of this step describes the reference
-script because option 2 runs it; the render-and-compare steps around it are the same either way.
-
-For option 2, run [`examples/color-boost-two-layer.js`](examples/color-boost-two-layer.js) via
-`execute_script`. It adds **two** Selective Colour adjustment layers — `Boost`, which saturates the
-six colour ranges, over `Clean`, which lifts the highlights and keeps the blacks solid. It prints:
+For **option 1**, that script is
+[`examples/color-boost-two-layer.js`](examples/color-boost-two-layer.js). It adds two Selective
+Colour adjustment layers — `Boost`, which saturates the six colour ranges, over `Clean`, which lifts
+the highlights and keeps the blacks solid — and prints:
 
 ```
 Two-layer Color Boost added — Boost (strength 0.6, opacity 40%) over Clean (strength 0.25, opacity 30%)
 ```
 
-Two layers rather than one is the point worth making to the user: each is a separate control, so
-the colour and the tone can be tuned or switched off independently. That is the shape to copy when
+Two layers rather than one is the point worth making to the user: each is a separate control, so the
+colour and the tone can be tuned or switched off independently. That is the shape to copy when
 building their own looks — one layer per idea.
 
-Re-running replaces its own two layers rather than stacking, so iteration is safe. Both are
-non-destructive adjustment layers: the pixels are untouched, and the user can undo with Ctrl+Z or
-delete `Boost` and `Clean` in the Layers panel.
+For **option 2**, it is the black-and-white script you just wrote.
 
-**Step 6 — capture the "after" and compare.** Call `render_spread` again and show the user both
-renders side by side against the original. This is the payoff: it proves the whole chain — config,
-transport, protocol, SDK, document write — and shows them what the setup is actually for.
+Either way, all three parts have to happen: `save_script_to_library`, then `list_library_scripts` to
+confirm the name really is there, then `execute_script` to run it. Saving alone changes nothing on
+the image; running alone leaves them nothing to keep.
 
-The script prints its own success line and you can see both renders, so that is your
-confirmation — describe what you can actually see in them, and don't go hunting for a number. A
-pixel-difference calculation is several extra round-trips to restate something already visible.
+The script's own success line is your confirmation that it worked. **You will not see the result, and
+that is deliberate** — the user is looking at the document itself. If the script throws, say so and
+show the error; do not reach for `render_spread` to find out what happened.
 
-The one case worth a check is a **suspiciously unchanged** pair of renders: that usually means the
-baseline wasn't clean (see step 4), not that the script failed.
+**Step 5 — hand over.** Tell them to switch to Affinity and see the result, give the name the script
+is listed under, and say how to undo the edit — Ctrl+Z, or delete the layers it added. Then, if they
+came from option 1, tell them option 2 is worth coming back for, and offer the menu again when they
+return. Don't start it for them.
 
-Then tell them it is tunable: `BOOST_OPACITY` and `CLEAN_OPACITY` at the top of the script, or just
-drag either layer's opacity in Affinity. Point out that the two layers are independent — the colour
-and the tone can be adjusted, or switched off, separately.
+**Step 6 — clean up.** Delete the resume note now that its job is done: remove the "Affinity MCP
+setup — resume here" section from `CLAUDE.md`, and the file too if nothing else is left in it. Left
+behind it re-runs this whole sequence on every future session, against whatever document happens to
+be open.
 
-**Step 7 — clean up, and hand back.** Delete the resume note now that its job is done: remove the
-"Affinity MCP setup — resume here" section from `CLAUDE.md`, and the file too if nothing else is
-left in it. Left behind it re-runs this whole sequence on every future session, against whatever
-document happens to be open.
-
-Then remind the user of the choices they did not take — option 3 in particular, writing the script
-against the SDK yourself, is where the project starts paying off. Do not start it for them.
+Then remind the user of the choices they did not take — option 2 in particular, having the script
+written against the SDK rather than supplied, is where the project starts paying off. Do not start it
+for them.
 
 ---
 
