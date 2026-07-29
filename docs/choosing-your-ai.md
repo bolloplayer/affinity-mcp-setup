@@ -34,7 +34,7 @@ then check it's reachable from a CLI in step 2.
 | :--- | :--- | :--- | :--- | :--- |
 | **Claude** (Anthropic) | ✅ **Claude Desktop (Home tab)** | ✅ **Claude Desktop (Code / Cowork)** | ✅ **`claude` CLI** (Claude Code) | Official connector or `.mcp.json` |
 | | | | | |
-| **OpenAI** | ❌ **ChatGPT App (Chat tab)** / Web | ✅ **ChatGPT App (Codex tab)** | ✅ **`codex` CLI** | `~/.codex/config.toml` & custom stdio bridge |
+| **GPT** (OpenAI) | ❌ **ChatGPT App (Chat tab)** / Web | ✅ **ChatGPT App (Codex tab)** | ✅ **`codex` CLI** | `~/.codex/config.toml` & custom stdio bridge |
 | | | | | |
 | **Gemini** (Google) | ❌ **Gemini Web** (`gemini.google.com`) | ✅\* **Antigravity 2.0 / IDE** | ✅ **`agy` CLI** (Antigravity) | `.agents/mcp_config.json` (`serverUrl` field) |
 | | | | | |
@@ -224,7 +224,7 @@ nothing, since the original connection was never removed. The real test was then
 **brand-new Cowork session, started with only `empty-mcp-test/` (empty, no `.mcp.json`) connected
 from the first message**. Result: the Affinity MCP server was reachable immediately, the SDK preamble
 loaded, and a test script executed without error — one document was open (untitled, unsaved), and the
-sandboxed filesystem root came back as `C:\Users\fons\Desktop` (matching the "Desktop-only" script
+sandboxed filesystem root came back as `C:\Users\<you>\Desktop` (matching the "Desktop-only" script
 I/O sandbox described elsewhere in this doc). **Conclusion: Cowork ("Code" tab) does not need a
 project `.mcp.json` — it reaches Affinity through the same app-level connector as the Home tab.** A
 project's own `.mcp.json` (as in the main project folder) is therefore redundant when the official

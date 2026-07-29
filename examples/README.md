@@ -1,7 +1,11 @@
 # Examples
 
-Small, self-contained SDK scripts you run via the `execute_script` MCP tool (or paste into a Claude
-Code chat and ask Claude to run). Read the `preamble` doc once per session first.
+Small, self-contained SDK scripts you run via the `execute_script` MCP tool — from any harness that
+reaches Affinity (Claude Code, Codex, Antigravity, OpenCode). Read the `preamble` doc once per
+session first; the server requires it.
+
+Together these two scripts are the connection test in [`../SETUP.md`](../SETUP.md): the read-only
+one proves the transport, the boost proves the whole chain down to a document write.
 
 | Script | What it does | Modifies the document? |
 |---|---|---|
@@ -10,7 +14,7 @@ Code chat and ask Claude to run). Read the `preamble` doc once per session first
 
 ## Running an example
 
-From a Claude Code chat with Affinity open, ask Claude to run the file, or call the tool directly:
+From an agent session with Affinity open, ask it to run the file, or call the tool directly:
 
 ```
 execute_script({ script: "<contents of the .js file>" })
@@ -37,6 +41,16 @@ Color Boost added — strength 1, opacity 25%
 
 The effect is deliberately gentle at the default 25% layer opacity — raise `OPACITY` at the top of
 the file (or drag the layer's opacity in Affinity) to taste.
+
+### Seeing the difference
+
+Call `render_spread` **before** running `color-boost.js` and again after, then put the two renders
+side by side. That comparison is the point: it shows the user what they just gained, and it proves
+config, transport, protocol, SDK and document write all work — which a "connected" status message
+does not.
+
+Re-running the script replaces its own layer instead of stacking, so you can adjust `OPACITY`,
+re-run, and re-render as often as you like.
 
 ## Adding your own
 
