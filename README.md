@@ -19,9 +19,24 @@ then paste this into your agent:
 > config for the harness you're running in, then run its verification sequence and show me the
 > before/after.
 
-That's it. Your agent reads **[`SETUP.md`](SETUP.md)**, writes its own config file, connects,
-and proves it worked by running a colour-boost script on your open image and showing you the
-result next to the original.
+That's it. Your agent reads **[`SETUP.md`](SETUP.md)**, registers the connection, and proves it
+worked by running a colour-boost script on your open image and showing you the result next to the
+original.
+
+> ### ⚠️ Expect one restart — it is not a failure
+>
+> Partway through, your agent will **stop and ask you to restart it**. That is supposed to happen.
+>
+> Every one of these tools loads its MCP configuration **once, at startup**. The agent has just
+> written that configuration, so the connection cannot exist in the session that created it —
+> there is no command that loads it live, in any of them.
+>
+> Quit, start it again in the same folder, approve the `affinity` server if prompted, and say
+> **"continue"**. Your agent leaves itself a note, so the new session picks up where it stopped
+> and goes straight to the before/after.
+>
+> **It is once.** For Claude Code the server is registered for your whole machine, so every
+> future project has it from the first message.
 
 Prefer to do it by hand? `SETUP.md` reads perfectly well as a human document too.
 

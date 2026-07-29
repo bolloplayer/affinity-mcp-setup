@@ -674,10 +674,25 @@
 Take inspiration from github.com/bolloplayer/affinity-photo-claude-code-windows
 — read its SETUP.md, write the config for the harness you're running in,
 then run its verification sequence and show me the before/after.</pre></div>
-    <p>It will write its own config, connect, read Affinity's SDK preamble, run the same
+    <p>It will register the connection, read Affinity's SDK preamble, run the same
     <a href="https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main/examples/color-boost.js">Color
     Boost</a> script this guide uses, and show you the result beside your original — which also proves the
     whole chain works, end to end.</p>
+  </div>
+
+  <div class="note">
+    <h3>⚠️ Expect one restart — it isn't a failure</h3>
+    <p>Partway through, your AI will <b>stop and ask you to restart it</b>. That's supposed to happen, and
+    it catches everyone the first time.</p>
+    <p>Every one of these tools reads its MCP configuration <b>once, at startup</b>. Your AI has just
+    written that configuration — so the connection cannot exist in the session that created it. There's no
+    command that loads it live, in any of them. <code>/mcp</code> won't do it either: it reconnects servers
+    that are already registered, and this one isn't yet.</p>
+    <p>Quit, start it again in the same folder, approve the <b>affinity</b> server if you're asked, and say
+    <em>"continue"</em>. Your AI leaves itself a note before it stops, so the new session knows exactly
+    where it was and goes straight on to the before/after.</p>
+    <p>And it's <b>once</b>. With Claude Code the server is registered for your whole machine, so every
+    project you open afterwards has Affinity from its first message.</p>
   </div>
 
   <div class="note">

@@ -151,8 +151,22 @@ Do this now, without waiting to be asked:
 Delete this section once the user has seen the before/after.
 ```
 
-Then tell the user, in your final message before they restart, exactly what to type — a plain
-"continue" is enough once the note is in place, but say it explicitly rather than assuming.
+#### What to tell the user before they restart
+
+Your final message before the restart is the one place this can go wrong for them. To a user, an
+agent that stops mid-task looks like an agent that failed — and a failure they caused. Say all
+four of these, plainly:
+
+1. **It worked.** The connection is registered and `verify.ps1` passed. Nothing is broken.
+2. **Why the restart is needed** — Claude Code reads MCP configuration only at startup, so the
+   server you just registered cannot load into this session. One sentence; no protocol detail.
+3. **Exactly what to do**: quit, run `claude` again in this folder, approve the `affinity` server
+   if prompted, then type "continue".
+4. **That it is once** — with user scope, every future project has Affinity from its first
+   message.
+
+Do not end on a bare "please restart Claude Code". Users read that as the setup having failed,
+and some will start over from scratch rather than restart.
 
 ### OpenCode
 
