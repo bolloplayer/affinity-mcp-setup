@@ -14,14 +14,19 @@ otherwise cost an afternoon.
 Open Affinity Photo, enable `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable Affinity MCP`,
 then paste this into your agent:
 
-> Set up a connection to Affinity Photo's MCP server on Windows. Take inspiration from
-> `github.com/bolloplayer/affinity-photo-claude-code-windows` — read its `SETUP.md`, write the
-> config for the harness you're running in, then run its verification sequence and show me the
-> before/after.
+> Set up a connection to Affinity Photo's MCP server on Windows.
+>
+> Follow `github.com/bolloplayer/affinity-photo-claude-code-windows` — read its `SETUP.md` and do
+> what it says for the harness you're running in, including the verification sequence at the end.
+>
+> If something fails, use `SETUP.md`'s troubleshooting section. Don't invent a workaround it
+> doesn't describe — if you're stuck, stop and tell me what you tried and where `SETUP.md` stopped
+> matching what you found.
 
-That's it. Your agent reads **[`SETUP.md`](SETUP.md)**, registers the connection, and proves it
-worked by running a colour-boost script on your open image and showing you the result next to the
-original.
+That's it. Your agent reads **[`SETUP.md`](SETUP.md)**, registers the connection, proves it works
+without touching anything of yours — then offers you a short menu: leave it there, run a
+colour-boost on your open photo and see the before/after, write a look of your own, or make the
+connection machine-wide.
 
 > ### ⚠️ Expect one restart — it is not a failure
 >
@@ -35,8 +40,8 @@ original.
 > **"continue"**. Your agent leaves itself a note, so the new session picks up where it stopped
 > and goes straight to the before/after.
 >
-> **It is once.** For Claude Code the server is registered for your whole machine, so every
-> future project has it from the first message.
+> **It is once for this folder.** And once you've seen it working, your agent offers to register
+> Affinity machine-wide, so you never do the setup again in any project.
 
 Prefer to do it by hand? `SETUP.md` reads perfectly well as a human document too.
 
@@ -65,7 +70,7 @@ Affinity accepts **MCP protocol `2025-11-25`** alone, which is why Codex needs a
 | | |
 |---|---|
 | **[`SETUP.md`](SETUP.md)** | The instruction sheet — per-harness config, the rules not to "fix", the verification sequence, troubleshooting |
-| **[`examples/`](examples/)** | A read-only connection check and a one-layer **Color Boost** you can run on any photo |
+| **[`examples/`](examples/)** | A read-only connection check, and a two-layer **Color Boost** you can run on any photo |
 | **[`bridge/`](bridge/)** | The Codex protocol bridge, plus its smoke test |
 | **[`verify.ps1`](verify.ps1)** | Checks the plumbing before you start — Affinity running, port listening, handshake |
 | **[`CLAUDE.md`](CLAUDE.md)** | Connection internals, so Claude can diagnose problems from inside the chat |
