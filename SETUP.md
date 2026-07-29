@@ -321,6 +321,49 @@ have.
 Option 1's `/mcp` suggestion is likewise a Claude Code command — drop that line and use
 `codex mcp list` instead.
 
+#### Option 3, for Codex: replicate rather than depart
+
+The shared option 3 asks for **different** adjustments than the reference script uses, which
+measures taste. Here it is inverted into a fidelity test — same target for every model, so runs can
+be scored against each other. If the user picks 3, use this instead:
+
+> Write a two-layer colour-boost script for the photo I have open, matching this specification,
+> then run it, render before and after, and show me both.
+>
+> - Two Selective Colour adjustment layers, named `Boost` and `Clean`, with `Boost` above `Clean`.
+> - **Clean** moves only the black channel: lift the whites, open the midtones slightly, keep the
+>   blacks solid. It must not touch colour.
+> - **Boost** moves only the six chromatic ranges — neutrals stay out of it. Per range, add that
+>   range's own primary inks and subtract its complement.
+> - Both layers sit at reduced opacity, driven by named constants at the top of the file.
+> - Re-running replaces this script's own two layers and leaves every other layer alone.
+
+**The point is that you write it blind.** `examples/color-boost-two-layer.js` is the same script,
+and it is sitting in the clone you just made — along with `openai-color-boost-two-layer.js` and
+`test-color-boost.js`, which are previous models' answers to this exact task. **Do not open any of
+them until your own script has run.** Work from the specification and the SDK documentation.
+Reading them first turns this into transcription and throws the measurement away.
+
+Only then open `color-boost-two-layer.js` and compare. These are the places a from-scratch attempt
+tends to diverge, and they are what the comparison is for:
+
+1. **Idempotency** — does it delete its own `Boost`/`Clean` by name before adding, leaving other
+   layers untouched, so a re-run tunes instead of stacking?
+2. **The group-insertion guard** — if the top of the layer stack is a group, the builder parents
+   the new layer *inside* it. The original detects this by the root layer count not changing, then
+   moves the layer back out. Missing this is silent: the script reports success and the adjustment
+   applies to one group instead of the image.
+3. **`isRelative = true`** on the Selective Colour parameters.
+4. **The weights round-trip** — reading `parameters.weights`, mutating, and assigning the array
+   back, rather than writing through it in place.
+5. **The opacity dance** — setting `doc.selection`, applying opacity, then clearing the selection.
+6. **Insertion order** — `Clean` added first so `Boost` ends up above it.
+
+Report honestly: which of the six it got unaided, which it missed, and whether the two renders read
+as the same effect. If you did look at the original first, say so — a contaminated run that admits
+it is still useful; one that doesn't is worse than no run at all. Record anything the SDK did not
+support, or supported differently than you expected, with `add_sdk_hint`.
+
 > **Verified 29 July 2026** — gpt-5.6-sol, Codex CLI 0.145.0, from a clean `config.toml` with no
 > Affinity entry. Following this document it recovered from the sandbox block, checked §0's
 > prerequisites unprompted, wrote a correct config entry without disturbing unrelated settings,
