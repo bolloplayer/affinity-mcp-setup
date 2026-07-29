@@ -4,13 +4,17 @@ Small, self-contained SDK scripts you run via the `execute_script` MCP tool — 
 reaches Affinity (Claude Code, Codex, Antigravity, OpenCode). Read the `preamble` doc once per
 session first; the server requires it.
 
-Together these two scripts are the connection test in [`../SETUP.md`](../SETUP.md): the read-only
-one proves the transport, the boost proves the whole chain down to a document write.
+`inspect-document.js` and `color-boost-two-layer.js` are the connection test in
+[`../SETUP.md`](../SETUP.md): the read-only one proves the transport, the boost proves the whole
+chain down to a document write.
 
 | Script | What it does | Modifies the document? |
 |---|---|---|
 | [`inspect-document.js`](inspect-document.js) | Prints app + current-document info (version, spreads, layers). A good "is the connection live?" first call. | No — read-only |
-| [`color-boost.js`](color-boost.js) | Adds one Selective Colour adjustment layer that saturates all six colour ranges (classic CMY complement logic). Neutrals stay untouched. | Yes — adds one adjustment layer; re-running replaces it (undoable) |
+| [`color-boost-two-layer.js`](color-boost-two-layer.js) | **The demo.** Adds `Boost` (saturates the six colour ranges) over `Clean` (lifts highlights, keeps blacks solid) as two independently tunable layers. | Yes — adds two adjustment layers; re-running replaces its own (undoable) |
+| [`color-boost.js`](color-boost.js) | The single-layer original: one Selective Colour layer, all six ranges, neutrals untouched. Simpler to read. | Yes — adds one adjustment layer; re-running replaces it (undoable) |
+| [`openai-color-boost-two-layer.js`](openai-color-boost-two-layer.js) | Codex's own two-layer variant, kept verbatim as the record of that test. Much fainter (strength `0.12`). | Yes — adds two adjustment layers |
+| [`test-color-boost.js`](test-color-boost.js) | Two-layer variant with `(Test)` suffixes, used for the Antigravity verification. | Yes — adds two adjustment layers |
 
 ## Running an example
 
@@ -33,28 +37,37 @@ Top layers  : 1
   [0] Background
 ```
 
-Expected output for `color-boost.js`:
+Expected output for `color-boost-two-layer.js`:
 
 ```
-Color Boost added — strength 1, opacity 25%
+Two-layer Color Boost added — Boost (strength 0.6, opacity 40%) over Clean (strength 0.25, opacity 30%)
 ```
 
-The effect is deliberately gentle at the default 25% layer opacity — raise `OPACITY` at the top of
-the file (or drag the layer's opacity in Affinity) to taste.
+Every parameter sits at the top of the file. `BOOST_OPACITY` and `CLEAN_OPACITY` are the master
+"how much" controls — or just drag either layer's opacity in Affinity.
+
+### Why two layers
+
+One layer per idea. `Boost` carries the colour, `Clean` carries the tone, and neither touches the
+other's territory — `Boost` leaves neutrals alone, `Clean` only moves the black channel. So you can
+switch off the cleanup and keep the colour, or halve the boost without flattening the contrast.
+
+That separation is the habit worth copying when you build your own looks. A single layer doing four
+things at once can only be tuned as one lump.
 
 ### Seeing the difference
 
-Call `render_spread` **before** running `color-boost.js` and again after, then put the two renders
-side by side. That comparison is the point: it shows the user what they just gained, and it proves
-config, transport, protocol, SDK and document write all work — which a "connected" status message
-does not.
+Call `render_spread` **before** running the script and again after, then put the two renders side by
+side. That comparison is the point: it shows what you just gained, and it proves config, transport,
+protocol, SDK and document write all work — which a "connected" status message does not.
 
-Re-running the script replaces its own layer instead of stacking, so you can adjust `OPACITY`,
-re-run, and re-render as often as you like.
+Re-running replaces only this script's own `Boost` and `Clean` layers and leaves everything else
+alone, so you can tune, re-run and re-render as often as you like.
 
 ## Adding your own
 
-`color-boost.js` is the template: one adjustment layer, parameters at the top, idempotent
-re-runs. Build your own looks (contrast, sharpen, dehaze, …) the same way with Claude against the
-SDK, check the result with `render_spread`, and keep the ones that earn their place. See
-[`../docs/sdk-notes.md`](../docs/sdk-notes.md) for confirmed API shapes and known limitations.
+`color-boost-two-layer.js` is the template: parameters at the top, one layer per idea, undoable
+document commands, idempotent re-runs, a concise success message. Build your own looks (contrast,
+sharpen, dehaze, …) the same way against the SDK, check the result with `render_spread`, and keep
+the ones that earn their place. See [`../docs/sdk-notes.md`](../docs/sdk-notes.md) for confirmed API
+shapes and known limitations.

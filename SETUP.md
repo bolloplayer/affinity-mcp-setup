@@ -145,7 +145,7 @@ Do this now, without waiting to be asked:
 1. Confirm the `affinity` MCP tools are present (11 of them).
 2. `read_sdk_documentation_topic({ filename: "preamble" })` — the gate is per connection.
 3. Run the verification sequence in SETUP.md §3, steps 3–6: inspect the document,
-   `render_spread` for the "before", run `examples/color-boost.js`, render the "after",
+   `render_spread` for the "before", run `examples/color-boost-two-layer.js`, render the "after",
    then show the user both and confirm the layer count rose.
 4. Finish with step 7 — offer the user the three follow-up prompts, verbatim, and stop.
 
@@ -265,13 +265,18 @@ Top layers  : 1
 comparison baseline. It takes the document's `sessionUuid` (step 3 prints it) and a zero-based
 `spread_index`, and returns **JPEG** — don't save the bytes as `.png`.
 
-**Step 5 — a real edit.** Run [`examples/color-boost.js`](examples/color-boost.js) via
-`execute_script`. It adds one Selective Colour adjustment layer that saturates all six colour
-ranges, at a deliberately gentle 25% layer opacity. It prints:
+**Step 5 — a real edit.** Run
+[`examples/color-boost-two-layer.js`](examples/color-boost-two-layer.js) via `execute_script`. It
+adds **two** Selective Colour adjustment layers — `Boost`, which saturates the six colour ranges,
+over `Clean`, which lifts the highlights and keeps the blacks solid. It prints:
 
 ```
-Color Boost added — strength 1, opacity 25%
+Two-layer Color Boost added — Boost (strength 0.6, opacity 40%) over Clean (strength 0.25, opacity 30%)
 ```
+
+Two layers rather than one is the point worth making to the user: each is a separate control, so
+the colour and the tone can be tuned or switched off independently. That is the shape to copy when
+building their own looks — one layer per idea.
 
 Re-running replaces the layer rather than stacking, so iteration is safe. Tell the user this step
 modifies the document they have open — it adds one non-destructive adjustment layer, removable with
@@ -309,8 +314,8 @@ anything.
 > **2 — Run the boost on another image.** Open a different photo in Affinity first.
 >
 > ```
-> Run examples/color-boost.js on the image I now have open in Affinity. Render before and
-> after, show me both, and confirm the layer actually landed — layer count and name, plus the
+> Run examples/color-boost-two-layer.js on the image I now have open in Affinity. Render before and
+> after, show me both, and confirm both layers actually landed — layer count and names, plus the
 > mean pixel difference between the two renders. Finish with a short summary: what the script
 > changed, at what opacity, and how to undo it.
 > ```
@@ -318,13 +323,13 @@ anything.
 > **3 — Write your own look.** This is the real loop, and where the project starts paying off.
 >
 > ```
-> Using examples/color-boost.js as the template, write me a new adjustment script — <say what
+> Using examples/color-boost-two-layer.js as the template, write me a new adjustment script — <say what
 > you want: a warm film look, a punchy black and white, a soft matte fade>. Read the SDK docs
 > you need first, keep it idempotent so re-running replaces its own layer, and put the
 > parameters at the top.
 >
 > Then run it, render before and after, and show me the comparison. Report back on two things:
-> how the code differs from color-boost.js and why, and what the visual difference actually is
+> how the code differs from color-boost-two-layer.js and why, and what the visual difference actually is
 > — measured, not asserted. If it needs fixing, fix it and tell me what was wrong.
 > ```
 
@@ -348,7 +353,7 @@ Offer them plainly and stop. Let the user pick — do not run one on their behal
 | `-32602 Unsupported protocol version` | Client initialized with an older MCP version | Codex: use the bridge. Others: check the harness's MCP version support |
 | Config says `enabled` / `connected`, no tools | Config loaded, handshake failed | Check the startup log for the protocol error. Do not substitute a hand-written SSE client for the real test |
 | `user cancelled MCP tool call` (`codex exec`) | Non-interactive approval policy; Affinity's tools publish no safety annotations | Use the interactive TUI. Not a bridge failure |
-| Script runs but the layer lands inside a group | Affinity parents new layers into a topmost group | `color-boost.js` detects and corrects this — copy its approach |
+| Script runs but the layer lands inside a group | Affinity parents new layers into a topmost group | `color-boost-two-layer.js` detects and corrects this — copy its `addSelectiveColourLayer` helper |
 
 On Windows, [`verify.ps1`](verify.ps1) checks everything independently of any harness, and is the
 fastest way to tell a config problem from an Affinity problem. With Node.js present it performs the
@@ -378,8 +383,9 @@ The fix is context, not a bigger model:
 - Read the `preamble` every session, before the first script.
 - Record non-obvious discoveries back with `add_sdk_hint` so the next session inherits them.
 - Confirmed API shapes and mapped dead-ends live in [`docs/sdk-notes.md`](docs/sdk-notes.md).
-- [`examples/color-boost.js`](examples/color-boost.js) is the template for a well-behaved script:
-  parameters at the top, undoable document commands, idempotent re-runs, a concise success message.
+- [`examples/color-boost-two-layer.js`](examples/color-boost-two-layer.js) is the template for a
+  well-behaved script: parameters at the top, one layer per idea, undoable document commands,
+  idempotent re-runs, a concise success message.
 
 Expect simple scripts (one adjustment layer, set parameters, set opacity) to work first try, and
 complex ones (pixel buffers, render engine, file I/O) to need a review pass on the specific API
