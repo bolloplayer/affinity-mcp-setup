@@ -76,8 +76,18 @@ claude mcp add --transport sse --scope user affinity http://[::1]:6767/sse
 from then on. Check it with `claude mcp list` — it reports a health status, and `✔ Connected`
 means Affinity answered.
 
-Prefer a committed, per-project config instead — a shared team repo, say? Write `.mcp.json` in
-the project root. It has no machine-specific paths, so it works verbatim anywhere:
+**Ask the user which they want before writing anything** — one sentence each, then do as they say:
+
+- **This machine, every folder** (the command above). Set up once, never again. Best for anyone
+  who intends to use Affinity from more than one project.
+- **This folder only** (`.mcp.json` below). A file they can delete, nothing touched outside the
+  project. Best for a throwaway test folder, or a repo where the config should be committed and
+  shared with a team.
+
+If they express no preference, use user scope — but say which you chose and how to switch.
+
+The per-project form: write `.mcp.json` in the project root. It has no machine-specific paths, so
+it works verbatim anywhere:
 
 ```json
 {
@@ -140,17 +150,20 @@ or `.mcp.json` in this folder) and `verify.ps1` passed. The connection could not
 used in the session that registered it, because Claude Code loads MCP configuration
 only at startup. This session is the restart.
 
-Do this now, without waiting to be asked:
+Do this now, without waiting to be asked — but only Part A. It is read-only.
 
 1. Confirm the `affinity` MCP tools are present (11 of them).
 2. `read_sdk_documentation_topic({ filename: "preamble" })` — the gate is per connection.
-3. Run the verification sequence in SETUP.md §3, steps 3–6: inspect the document,
-   `render_spread` for the "before", run `examples/color-boost-two-layer.js`, render the "after",
-   then show the user both and confirm the layer count rose.
-4. Finish with step 7 — offer the user the three follow-up prompts, verbatim, and stop.
-5. Then delete this whole "Affinity MCP setup — resume here" section from CLAUDE.md.
-   It is scaffolding for one restart, not project documentation. If nothing else is
-   left in the file, delete the file too.
+3. Run `examples/inspect-document.js` and report the Affinity version, the open
+   document and its layer stack.
+
+Then STOP and offer the user the four choices from SETUP.md §3. Do not run the
+colour-boost script, or anything else that writes to their document, until they
+pick it. Follow SETUP.md from that point — do not invent your own step list.
+
+Delete this section once you have offered the choices; the file too if nothing else
+is left in it. Do not state what has or hasn't been done to the document — check the
+layer stack yourself, because this note may be out of date.
 ```
 
 **The note is disposable, and it has to say so.** It exists to survive one restart. Left behind, it
@@ -246,6 +259,13 @@ Run this in a session that started **after** the config file existed — see the
 Claude Code section above. If you wrote `.mcp.json` earlier in this same session, stop here and ask
 the user to restart; the steps below cannot pass without the real tools.
 
+The sequence is in **two halves, and the split is deliberate**. Steps 1–3 are read-only: run them
+without asking, because they change nothing and they prove the connection. Everything after that
+writes to a photo the user has open, so it is **their** call — see "Stop here and offer the
+choice" below. Do not run the whole thing as one sweep.
+
+### Part A — prove the connection (read-only, run it)
+
 **Step 1 — the tools are there.** List your MCP tools and confirm the Affinity server's tools
 appear (there are 11, including `read_sdk_documentation_topic`, `execute_script` and
 `render_spread`). If the harness reports "connected" but no tools appear, the handshake failed —
@@ -268,9 +288,62 @@ Top layers  : 1
   [0] Background
 ```
 
+### STOP HERE and offer the choice
+
+**The connection is proven. Do not carry straight on into step 4.** Everything below modifies a
+photo the user has open, and they have not agreed to that yet. This is also the moment they find
+their footing in a tool they have never used, so give them the map rather than a finished result.
+
+Report what Part A established — Affinity version, which document is open, its layer stack — then
+offer these four, verbatim, and **stop**. Do not pick one. Do not run one "to save time".
+
+> **1 — Just check the connection.** Already done, above. Nothing was changed.
+>
+> Type `/mcp` yourself to see the `affinity` server and its status — that one is a Claude Code
+> command, not something I can run.
+
+> **2 — See what it can do (adds two layers to your open photo).**
+>
+> ```
+> Run examples/color-boost-two-layer.js on the image I have open in Affinity. Render before
+> and after, show me both, and confirm both layers landed — layer count and names, plus the
+> mean pixel difference between the two renders. Finish with a short summary: what changed,
+> at what opacity, and how to undo it.
+> ```
+
+> **3 — Write your own look.** The real loop, and where this starts paying off.
+>
+> ```
+> Using examples/color-boost-two-layer.js as the template, write me a new adjustment script —
+> <say what you want: a warm film look, a punchy black and white, a soft matte fade>. Read the
+> SDK docs you need first, keep it idempotent so re-running replaces its own layers, and put
+> the parameters at the top.
+>
+> Then run it, render before and after, and show me the comparison. Report on two things: how
+> the code differs from color-boost-two-layer.js and why, and what the visual difference
+> actually is — measured, not asserted. If it needs fixing, fix it and tell me what was wrong.
+> ```
+
+> **4 — Use Affinity from every folder, not just this one.** If the connection was set up per
+> project, this makes it machine-wide, so you never do the setup again.
+>
+> ```
+> Register the Affinity MCP server at user scope instead of just this folder, then tell me what
+> to delete and whether I need to restart.
+> ```
+
+If they pick 2 or 3, the remaining steps below are how you run it. If they pick 4, see the Claude
+Code section. If they pick 1, you are done — say so and stop.
+
+### Part B — only if the user asked for it
+
 **Step 4 — capture the "before".** Call `render_spread` and keep the image. This is the
 comparison baseline. It takes the document's `sessionUuid` (step 3 prints it) and a zero-based
 `spread_index`, and returns **JPEG** — don't save the bytes as `.png`.
+
+Check the layer stack from step 3 first. If `Boost` and `Clean` are already there from an earlier
+run, this render is **not** a clean baseline — it already contains the effect, and comparing
+against it will show no difference. Delete those two layers, re-render, and say why you did.
 
 **Step 5 — a real edit.** Run
 [`examples/color-boost-two-layer.js`](examples/color-boost-two-layer.js) via `execute_script`. It
@@ -285,9 +358,9 @@ Two layers rather than one is the point worth making to the user: each is a sepa
 the colour and the tone can be tuned or switched off independently. That is the shape to copy when
 building their own looks — one layer per idea.
 
-Re-running replaces the layer rather than stacking, so iteration is safe. Tell the user this step
-modifies the document they have open — it adds one non-destructive adjustment layer, removable with
-Ctrl+Z or by deleting the `Color Boost` layer.
+Re-running replaces its own two layers rather than stacking, so iteration is safe. Both are
+non-destructive adjustment layers: the pixels are untouched, and the user can undo with Ctrl+Z or
+delete `Boost` and `Clean` in the Layers panel.
 
 **Step 6 — capture the "after" and compare.** Call `render_spread` again and show the user both
 renders side by side against the original. This is the payoff: it proves the whole chain — config,
@@ -301,59 +374,13 @@ Then tell them it is tunable: `BOOST_OPACITY` and `CLEAN_OPACITY` at the top of 
 drag either layer's opacity in Affinity. Point out that the two layers are independent — the colour
 and the tone can be adjusted, or switched off, separately.
 
-**Step 7 — hand them their next three moves.** The setup is done and the user is now sitting in an
-environment they have never used. Do not end with "let me know what you'd like to do next" — they
-don't yet know what there *is* to do. End by offering these three, as ready-to-paste prompts, in
-this order. Reproduce them literally; the point is that the user can copy one without composing
-anything.
+**Step 7 — clean up, and hand back.** Delete the resume note now that its job is done: remove the
+"Affinity MCP setup — resume here" section from `CLAUDE.md`, and the file too if nothing else is
+left in it. Left behind it re-runs this whole sequence on every future session, against whatever
+document happens to be open.
 
-> **1 — Check the connection.** Fastest way to see what you're connected to.
->
-> First type `/mcp` yourself — that one is a Claude Code command, not something I can run. It
-> lists the `affinity` server and its status. Then paste:
->
-> ```
-> List every Affinity tool you can see, with a one-line description of each. Then read the
-> SDK preamble and run examples/inspect-document.js, and tell me the Affinity version, which
-> document is open, and its layer stack.
->
-> Then tidy up: delete the "Affinity MCP setup — resume here" section from CLAUDE.md if it's
-> still there. Setup is finished and that note will otherwise re-run itself every session.
-> ```
-
-> **2 — Run the boost on another image.** Open a different photo in Affinity first.
->
-> ```
-> Run examples/color-boost-two-layer.js on the image I now have open in Affinity. Render before and
-> after, show me both, and confirm both layers actually landed — layer count and names, plus the
-> mean pixel difference between the two renders. Finish with a short summary: what the script
-> changed, at what opacity, and how to undo it.
->
-> Then tidy up: delete the "Affinity MCP setup — resume here" section from CLAUDE.md if it's
-> still there. Setup is finished and that note will otherwise re-run itself every session.
-> ```
-
-> **3 — Write your own look.** This is the real loop, and where the project starts paying off.
->
-> ```
-> Using examples/color-boost-two-layer.js as the template, write me a new adjustment script — <say what
-> you want: a warm film look, a punchy black and white, a soft matte fade>. Read the SDK docs
-> you need first, keep it idempotent so re-running replaces its own layer, and put the
-> parameters at the top.
->
-> Then run it, render before and after, and show me the comparison. Report back on two things:
-> how the code differs from color-boost-two-layer.js and why, and what the visual difference actually is
-> — measured, not asserted. If it needs fixing, fix it and tell me what was wrong.
->
-> Then tidy up: delete the "Affinity MCP setup — resume here" section from CLAUDE.md if it's
-> still there. Setup is finished and that note will otherwise re-run itself every session.
-> ```
-
-Offer them plainly and stop. Let the user pick — do not run one on their behalf.
-
-Whichever one they pick, the CLAUDE.md cleanup happens — that is why the line is in all three. It
-is deliberately repeated rather than left to the note alone, because the note's own last step is
-the easiest thing for a session to skip once the user has started talking about something else.
+Then remind the user of the choices they did not take — option 3 in particular, writing their own
+look, is where the project starts paying off. Do not start it for them.
 
 ---
 
