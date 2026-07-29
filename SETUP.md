@@ -321,48 +321,11 @@ have.
 Option 1's `/mcp` suggestion is likewise a Claude Code command — drop that line and use
 `codex mcp list` instead.
 
-#### Option 3, for Codex: replicate rather than depart
-
-The shared option 3 asks for **different** adjustments than the reference script uses, which
-measures taste. Here it is inverted into a fidelity test — same target for every model, so runs can
-be scored against each other. If the user picks 3, use this instead:
-
-> Write a two-layer colour-boost script for the photo I have open, matching this specification,
-> then run it, render before and after, and show me both.
->
-> - Two Selective Colour adjustment layers, named `Boost` and `Clean`, with `Boost` above `Clean`.
-> - **Clean** moves only the black channel: lift the whites, open the midtones slightly, keep the
->   blacks solid. It must not touch colour.
-> - **Boost** moves only the six chromatic ranges — neutrals stay out of it. Per range, add that
->   range's own primary inks and subtract its complement.
-> - Both layers sit at reduced opacity, driven by named constants at the top of the file.
-> - Re-running replaces this script's own two layers and leaves every other layer alone.
-
-**The point is that you write it blind.** `examples/color-boost-two-layer.js` is the same script,
-and it is sitting in the clone you just made — along with `openai-color-boost-two-layer.js` and
-`test-color-boost.js`, which are previous models' answers to this exact task. **Do not open any of
-them until your own script has run.** Work from the specification and the SDK documentation.
-Reading them first turns this into transcription and throws the measurement away.
-
-Only then open `color-boost-two-layer.js` and compare. These are the places a from-scratch attempt
-tends to diverge, and they are what the comparison is for:
-
-1. **Idempotency** — does it delete its own `Boost`/`Clean` by name before adding, leaving other
-   layers untouched, so a re-run tunes instead of stacking?
-2. **The group-insertion guard** — if the top of the layer stack is a group, the builder parents
-   the new layer *inside* it. The original detects this by the root layer count not changing, then
-   moves the layer back out. Missing this is silent: the script reports success and the adjustment
-   applies to one group instead of the image.
-3. **`isRelative = true`** on the Selective Colour parameters.
-4. **The weights round-trip** — reading `parameters.weights`, mutating, and assigning the array
-   back, rather than writing through it in place.
-5. **The opacity dance** — setting `doc.selection`, applying opacity, then clearing the selection.
-6. **Insertion order** — `Clean` added first so `Boost` ends up above it.
-
-Report honestly: which of the six it got unaided, which it missed, and whether the two renders read
-as the same effect. If you did look at the original first, say so — a contaminated run that admits
-it is still useful; one that doesn't is worse than no run at all. Record anything the SDK did not
-support, or supported differently than you expected, with `add_sdk_hint`.
+Option 3 needs no change — it is a blind fidelity test for every harness — but note that cloning
+the repo puts **three** answers on disk, not one: `color-boost-two-layer.js` plus
+`openai-color-boost-two-layer.js` and `test-color-boost.js` from earlier runs. Harnesses that fetch
+only the two named scripts never see the latter two. Leave all three sealed until your own script
+has run.
 
 > **Verified 29 July 2026** — gpt-5.6-sol, Codex CLI 0.145.0, from a clean `config.toml` with no
 > Affinity entry. Following this document it recovered from the sandbox block, checked §0's
@@ -436,26 +399,55 @@ of time to save a turn.
 > **3 — Write the script yourself.** The real loop, and where this starts paying off.
 >
 > ```
-> Write your own two-layer colour-boost script for the photo I have open — a Boost layer for
-> colour and a Clean layer for tone, the same idea as examples/color-boost-two-layer.js, but
-> reach for different adjustments than it does. Read the SDK docs to pick them; don't guess at
-> API calls.
+> Write a two-layer colour-boost script for the photo I have open, matching this specification,
+> then run it, render before and after, and show me both.
 >
-> Then run it, render before and after, and show me both. Finish with a short summary
-> comparing it to the original: how the two approaches differ, and how close the results look.
+> - Two Selective Colour adjustment layers, named Boost and Clean, with Boost above Clean.
+> - Clean moves only the black channel: lift the whites, open the midtones slightly, keep the
+>   blacks solid. It must not touch colour.
+> - Boost moves only the six chromatic ranges — neutrals stay out of it. Per range, add that
+>   range's own primary inks and subtract its complement.
+> - Both layers sit at reduced opacity, driven by named constants at the top of the file.
+> - Re-running replaces this script's own two layers and leaves every other layer alone.
+>
+> Work from the SDK docs, not from the existing script — don't open
+> examples/color-boost-two-layer.js until yours has run. Then compare them and tell me how close
+> you got.
 > ```
->
-> **You have already read `color-boost-two-layer.js` by this point** — you fetched it in Part 1 and
-> most likely ran it. Don't claim the structure was arrived at independently; it wasn't. Say plainly
-> which parts are the original's (the idempotent delete-by-name, the group-insertion guard, the
-> selection/opacity dance) and spend the comparison on the part that is genuinely yours: **which
-> adjustments you chose and why.**
->
-> The summary is the point. Two short paragraphs: **the approach** — which adjustments, what they
-> buy, what the original's choice does better; and **the result** — do the two renders read as the
-> same family of effect. Where an SDK call did not exist or behaved unexpectedly, say so and record
-> it with `add_sdk_hint` so the next session inherits it. If that call is refused, put it in
-> `docs/sdk-notes.md` instead — do not let the finding evaporate.
+
+**Option 3 is a fidelity test, and it only works if you write it blind.** The specification above
+describes `examples/color-boost-two-layer.js` exactly, and that file is already on disk — you
+fetched it in Part 1. Fetching it was fine; **opening it before your own script has run is not.**
+Nothing enforces this but you, and reading it first turns the exercise into transcription and
+throws the measurement away.
+
+Two ways the run can be contaminated before it starts. Say so plainly if either applies, and treat
+the comparison as informational rather than a result:
+
+- The user picked option 2 first, so you have already run the original and seen its output.
+- You are in a harness that cloned the whole repo. Then `openai-color-boost-two-layer.js` and
+  `test-color-boost.js` are sitting there too — previous models' answers to this same task. Leave
+  all three sealed.
+
+Only once your script has run, open `color-boost-two-layer.js` and compare. These six are where a
+from-scratch attempt tends to diverge, and they are what the comparison is for:
+
+1. **Idempotency** — does it delete its own `Boost`/`Clean` by name before adding, leaving other
+   layers untouched, so a re-run tunes instead of stacking?
+2. **The group-insertion guard** — if the top of the layer stack is a group, the builder parents the
+   new layer *inside* it. The original detects this by the root layer count not changing, then moves
+   the layer back out. Missing it fails **silently**: the script reports success while the
+   adjustment lands on one group instead of the image.
+3. **`isRelative = true`** on the Selective Colour parameters.
+4. **The weights round-trip** — reading `parameters.weights`, mutating, and assigning the array
+   back, rather than writing through it in place.
+5. **The opacity dance** — setting `doc.selection`, applying opacity, then clearing the selection.
+6. **Insertion order** — `Clean` added first, so `Boost` ends up above it.
+
+Report which of the six you got unaided, which you missed, and whether the two renders read as the
+same effect. Where an SDK call did not exist or behaved unexpectedly, say so and record it with
+`add_sdk_hint` so the next session inherits it. If that call is refused, put it in
+`docs/sdk-notes.md` instead — do not let the finding evaporate.
 
 > **4 — Use Affinity from every folder, not just this one.** Setup put the connection in this
 > folder. This promotes it machine-wide, so you never do it again.
@@ -478,10 +470,13 @@ Check the layer stack from step 3 first. If `Boost` and `Clean` are already ther
 run, this render is **not** a clean baseline — it already contains the effect, and comparing
 against it will show no difference. Delete those two layers, re-render, and say why you did.
 
-**Step 5 — a real edit.** Run
-[`examples/color-boost-two-layer.js`](examples/color-boost-two-layer.js) via `execute_script`. It
-adds **two** Selective Colour adjustment layers — `Boost`, which saturates the six colour ranges,
-over `Clean`, which lifts the highlights and keeps the blacks solid. It prints:
+**Step 5 — a real edit.** **If the user picked option 3, run *their* script here — the one you
+wrote — and do not open the reference script yet.** The rest of this step describes the reference
+script because option 2 runs it; the render-and-compare steps around it are the same either way.
+
+For option 2, run [`examples/color-boost-two-layer.js`](examples/color-boost-two-layer.js) via
+`execute_script`. It adds **two** Selective Colour adjustment layers — `Boost`, which saturates the
+six colour ranges, over `Clean`, which lifts the highlights and keeps the blacks solid. It prints:
 
 ```
 Two-layer Color Boost added — Boost (strength 0.6, opacity 40%) over Clean (strength 0.25, opacity 30%)
@@ -515,8 +510,8 @@ and the tone can be adjusted, or switched off, separately.
 left in it. Left behind it re-runs this whole sequence on every future session, against whatever
 document happens to be open.
 
-Then remind the user of the choices they did not take — option 3 in particular, writing their own
-look, is where the project starts paying off. Do not start it for them.
+Then remind the user of the choices they did not take — option 3 in particular, writing the script
+against the SDK yourself, is where the project starts paying off. Do not start it for them.
 
 ---
 
