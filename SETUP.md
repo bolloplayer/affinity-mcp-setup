@@ -121,7 +121,7 @@ has no tools, concludes something is broken, and starts debugging a transport th
 
 | | | |
 |---|---|---|
-| **Part 1** — this session | write `.mcp.json`, fetch the scripts, run `verify.ps1`, leave the resume note | no Affinity tools exist yet |
+| **Part 1** — this session | write `.mcp.json`, fetch the scripts, run `verify.ps1`, leave the handoff note | no Affinity tools exist yet |
 | **↓ restart** | the user quits and relaunches; this is the only way across | |
 | **Part 2** — the next session | §3: prove the connection, then offer the menu | Affinity tools are live |
 
@@ -135,14 +135,14 @@ The Part 1 sequence:
 2. Fetch `examples/inspect-document.js`, `examples/color-boost-two-layer.js` and `verify.ps1`.
 3. Run [`verify.ps1`](verify.ps1) — it confirms the endpoint, tools and open document from
    outside the session, so you know the config is good before anyone restarts anything.
-4. **Leave a resume note** — see below. The session that comes back has none of your context.
+4. **Leave a handoff note** — see below. The session that comes back has none of your context.
 5. **Tell the user to restart Claude Code** (`claude`, or reload the VS Code window), approving
    the server when prompted, and to type "continue".
 
 Do not work around a missing server by writing your own SSE client. It appears to work, proves
 nothing about the user's actual configuration, and costs far more time than the restart.
 
-#### The resume note — do not skip this
+#### The handoff note — do not skip this
 
 A restart is a new session with an **empty context**. It will not know that a setup was underway,
 what you already did, or that a verification sequence is waiting. Left to itself it greets the user
@@ -157,7 +157,7 @@ handoff channel. Before you tell the user to restart, write one:
 Keep it short and imperative, so the next session acts instead of summarising:
 
 ```markdown
-## Affinity MCP setup — resume here
+## Affinity MCP setup — continue here
 
 State: the `affinity` MCP server was registered (user scope via `claude mcp add`,
 or `.mcp.json` in this folder) and `verify.ps1` passed. The connection could not be
@@ -280,7 +280,7 @@ reconstructed `verify.ps1` even printed an invented success line. The colour-boo
 with **zero** `executeCommand` calls, so it drove nothing at all. If you find yourself typing out the
 body of a file you just read, stop: clone instead, or ask the user to.
 
-#### Step 3 — write the resume note. Do not skip this
+#### Step 3 — write the handoff note. Do not skip this
 
 The restart in step 4 starts a session with an **empty context**. Without a note it greets the user
 and does nothing, and they have to explain the whole setup again. In testing this step was the one
@@ -290,7 +290,7 @@ Write **`AGENTS.md`** in the workspace root — the folder the user runs `agy` f
 imperative so the next session acts instead of summarising:
 
 ```markdown
-## Affinity MCP setup — resume here
+## Affinity MCP setup — continue here
 
 State: `.agents/mcp_config.json` is written and the repo is cloned. The connection could
 not be used in the session that wrote the config, because MCP configuration loads at
@@ -405,7 +405,7 @@ Both options end the same way, and only the authorship differs:
 
 Then hand over: switch to Affinity and see the result, the name it is listed under, and how to undo
 (Ctrl+Z, or delete the layers it added). If they came from option 1, mention option 2 is worth coming
-back for. Finally, delete the resume note from step 3 — left behind, it re-runs this whole sequence on
+back for. Finally, delete the handoff note from step 3 — left behind, it re-runs this whole sequence on
 every future session.
 
 **No renders, and no describing the result.** The user is seconds from the document itself at full
@@ -476,7 +476,7 @@ all other JSON-RPC messages pass through unchanged.
    ```
 
 4. Check with `codex mcp list`, then **restart Codex** — see "The restart is unavoidable here too"
-   below, and leave the resume note *before* you ask for it. Note that `enabled` only means the
+   below, and leave the handoff note *before* you ask for it. Note that `enabled` only means the
    config was loaded — successful tool discovery is what proves the handshake.
 
 The bridge can be dropped only once Codex and Affinity share a protocol version and transport.
@@ -517,7 +517,7 @@ smoke test plus no visible tools is the signature of this, and it means restart 
 
 The handoff channel is **`AGENTS.md` in the workspace root**, which Codex reads at startup, exactly
 as Claude Code reads `CLAUDE.md`. Write it before you ask for the restart, using the same shape as
-the resume note above — current state, the three Part A steps, offer the three choices, touch
+the handoff note above — current state, the three Part A steps, offer the three choices, touch
 nothing until the user picks, and delete yourself when done.
 
 Put it in the folder the user will run `codex` from. If they cloned this repo into a subfolder,
@@ -547,7 +547,7 @@ from the SDK docs.
 > **Verified 29 July 2026** — gpt-5.6-sol, Codex CLI 0.145.0, from a clean `config.toml` with no
 > Affinity entry. Following this document it recovered from the sandbox block, checked §0's
 > prerequisites unprompted, wrote a correct config entry without disturbing unrelated settings,
-> verified the bridge, and — once told about `AGENTS.md` — carried a resume note across the restart
+> verified the bridge, and — once told about `AGENTS.md` — carried a handoff note across the restart
 > and passed Part A on the other side (Affinity 3.2.3.4646, one document, `[0] Background`), then
 > deleted the note and offered the menu without touching the document. The restart was the only
 > step it did not get right unaided, which is what the two subsections above are for.
@@ -704,8 +704,8 @@ is listed under, and say how to undo the edit — Ctrl+Z, or delete the layers i
 came from option 1, tell them option 2 is worth coming back for, and offer the menu again when they
 return. Don't start it for them.
 
-**Step 6 — clean up.** Delete the resume note now that its job is done: remove the "Affinity MCP
-setup — resume here" section from `CLAUDE.md`, and the file too if nothing else is left in it. Left
+**Step 6 — clean up.** Delete the handoff note now that its job is done: remove the "Affinity MCP
+setup — continue here" section from `CLAUDE.md`, and the file too if nothing else is left in it. Left
 behind it re-runs this whole sequence on every future session, against whatever document happens to
 be open.
 
@@ -721,7 +721,7 @@ for them.
 |---|---|---|
 | **Tools missing right after you registered the server** | MCP config is loaded at startup. A server added mid-session was never registered, and `/mcp` only retries *failed* servers — it cannot load a new one | Restart Claude Code. Expected, not a fault — see the Claude Code section |
 | `⏸ Pending approval (run claude to approve)` in `claude mcp list` | A project-scoped server from `.mcp.json` is waiting for interactive approval | Start a session and approve it. Confirms the config is valid, not broken |
-| **The restarted session does nothing / doesn't know about the setup** | A restart starts with an empty context. Without a resume note there is nothing telling it a verification was pending | Write the setup state into the folder's `CLAUDE.md` **before** asking for the restart — Claude Code loads it at startup. See "The resume note" above |
+| **The restarted session does nothing / doesn't know about the setup** | A restart starts with an empty context. Without a handoff note there is nothing telling it a verification was pending | Write the setup state into the folder's `CLAUDE.md` **before** asking for the restart — Claude Code loads it at startup. See "The handoff note" above |
 | `NOT_ALLOWED` from a script doing file I/O | Affinity sandboxes script filesystem access to the Desktop tree | Move the project under `C:\Users\<you>\Desktop\`. Not a permissions bug — a location rule |
 | Tools missing, everything else healthy | SSE stream detached (resumed chat, Affinity restarted mid-session) | Reconnect the MCP server first — in Claude Code, `/mcp`. Restarting the whole CLI is rarely necessary |
 | `The preamble documentation topic has not yet been read` | The gate is per SSE connection; the preamble was read on a different one | Call `read_sdk_documentation_topic({ filename: "preamble" })` again on the current connection |

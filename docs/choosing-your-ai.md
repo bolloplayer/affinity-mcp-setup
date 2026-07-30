@@ -434,6 +434,19 @@ and the ways it failed are worth more than a pass would have been:
 SETUP.md's Antigravity section was rewritten around these: clone rather than retype, skip `verify.ps1`
 on this path, and write `AGENTS.md` before the restart.
 
+The follow-up session, started fresh in a new terminal, added three more:
+
+* **"Resume note" was read as *résumé*.** Handed the phrase without context, it offered to write "a
+  concise professional résumé for Claude" and recommended `CLAUDE.md` as the filename. The document
+  now says **handoff note** everywhere, because the ambiguity is not the model's fault.
+* **It restarted itself by running `agy` as a background shell task** — a nested child process, not a
+  restart, which never completes and leaves the parent waiting on it. Antigravity can relaunch itself;
+  that is not the same as reloading its MCP config, and the difference is invisible from inside.
+* **`initialize` failed with `session not found` and an empty session ID.** Affinity was up the whole
+  time (`::1:6767` listening), so this is the harness never capturing the `endpoint` event's session
+  UUID off the SSE stream — the client side of the CRLF framing problem in `CLAUDE.md`, or the nested
+  process racing the connection. Not an Affinity fault, and not something to debug from the config.
+
 
 ### Tips that save the most pain
 
