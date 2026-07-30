@@ -248,21 +248,6 @@ with a useful error:
 No machine-specific paths, so the file works verbatim on any machine and can be committed. This repo
 already contains one.
 
-#### Quota is the thing that will actually stop you
-
-Antigravity enforces a hard daily quota, and in testing it was the single biggest obstacle — two
-attempts (27 July 2026) died on it entirely, and it cut the third run short. Every request returns
-"quota reached" regardless of what you asked for.
-
-**A quota wall is not a connection failure, and it reads exactly like one.** Before diagnosing
-anything about SSE, IPv6 or the config file, check whether the refusal mentions quota. If it does,
-stop and tell the user plainly: nothing is misconfigured, and the setup resumes when the quota
-resets. Note whether it hit before or after any Affinity call, so the next session can tell the two
-apart.
-
-This also means **finish the config and the fetches first, while requests are cheap.** Do not spend
-the session's quota on exploratory calls before the file exists.
-
 #### Fetch the files you need
 
 Same three files as the Claude Code path — an empty workspace has none of the scripts §3 runs:
@@ -382,9 +367,9 @@ if an SDK call turns out to be missing or to behave unexpectedly, record it with
 harness exposes it.
 
 > **Status: best effort, 30 July 2026.** The connection path in this section is verified; the restart
-> and the resume-note filename are reasoned from the other two harnesses and marked above. Written
-> without a live run — Antigravity quota was exhausted. If you are the first session to follow it end
-> to end, those two marked items are what your run is worth recording.
+> and the resume-note filename are reasoned from the other two harnesses and marked above. If you are
+> the first session to follow it end to end, those two marked items are what your run is worth
+> recording.
 
 ### Codex — needs the bridge
 
@@ -675,7 +660,6 @@ for them.
 | Config says `enabled` / `connected`, no tools | Config loaded, handshake failed | Check the startup log for the protocol error. Do not substitute a hand-written SSE client for the real test |
 | `user cancelled MCP tool call` (`codex exec`) | Non-interactive approval policy; Affinity's tools publish no safety annotations | Use the interactive TUI. Not a bridge failure |
 | **Antigravity: no connection, no error at all** | The config used `url` instead of `serverUrl` | Rename the field in `.agents/mcp_config.json`. It fails silently, so there is nothing in the log to find |
-| **Antigravity: "quota reached" on every request** | Daily quota wall — unrelated to Affinity | Not a connection fault and not fixable by config. Say so and resume when it resets; note whether it hit before or after an Affinity call |
 | **Antigravity: `verify.ps1` says `No .mcp.json in this folder`** | That check is hardcoded to Claude Code's config filename | Ignore it — Antigravity reads `.agents/mcp_config.json`. Do not create a `.mcp.json` |
 | Script runs but the layer lands inside a group | Affinity parents new layers into a topmost group | `color-boost-two-layer.js` detects and corrects this — copy its `addSelectiveColourLayer` helper |
 
