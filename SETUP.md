@@ -296,6 +296,12 @@ here-string, stop and re-download it to disk instead.
 
 Do not fetch `verify.ps1` at all on this path — see above.
 
+**One exception, and it is not really one.** This rule is about *creating files on disk*. Later,
+`execute_script` takes the **script source as an argument**, not a file path — so reading
+`examples/inspect-document.js` and passing its contents to the tool is correct and required. Reading a
+file in order to write it back to disk is the thing that fails; reading it in order to hand it to
+Affinity is the job.
+
 #### Step 3 — write the handoff note. Do not skip this
 
 The restart in step 4 starts a session with an **empty context**. Without a note it greets the user
@@ -343,11 +349,11 @@ Two things about that note:
 
 - **Do not also write `GEMINI.md` "to be safe".** Two copies of a self-deleting note means one
   survives and re-runs this sequence later against whatever document happens to be open.
-- **Whether Antigravity reads `AGENTS.md` at startup is not confirmed** — it is the cross-vendor
-  convention and the best available guess. So when you ask for the restart, give the user a fallback
-  line to paste if the new session seems blank: *"Continue the Affinity MCP setup — read `AGENTS.md`
-  in this folder and do the read-only steps."* If they need it, **that is a finding** — record it in
-  `docs/sdk-notes.md`.
+- **Antigravity does read `AGENTS.md`** — confirmed 30 July 2026. A restarted session given the single
+  word "resume" listed the folder, read the note, and began working through its steps unprompted,
+  reasoning about them as rules for the rest of the session. Still hand the user a fallback line for
+  the restart — *"Continue the Affinity MCP setup — read `AGENTS.md` in this folder and do the
+  read-only steps."* — but expect not to need it.
 
 Write it as UTF-8 and read it back as UTF-8. `Get-Content` without `-Encoding utf8` turns every em
 dash into `â€"`; that is cosmetic and not a reason to "fix" the file.
@@ -368,6 +374,18 @@ them the fallback line from step 3 in case the new session comes back blank.
 
 #### Step 5 — after the restart, prove the connection (read-only)
 
+**These are MCP tool calls. Do not shell out for any of them.** A 30 July run reached this step with
+all 11 tools in its session and still tried three shell routes: `node examples/inspect-document.js`,
+then an invented `agy mcp execute_script …` subcommand, then it announced a background task and asked
+the user to wait for output from a call it had never made. To be explicit:
+
+- Affinity SDK scripts **cannot run under Node** — there is no Affinity runtime outside the app. The
+  only way a script reaches the document is `execute_script`.
+- **`agy` has no `mcp` subcommand.** Running `agy` from a shell spawns a nested session, not a tool
+  call, and it never returns.
+- **Never report a call as in progress.** These tools return synchronously. If you have no result, the
+  call did not happen — say so and make it.
+
 Run these three without asking. They change nothing.
 
 1. **The tools are there.** Confirm the Affinity server's tools appear — 11 of them, including
@@ -376,8 +394,9 @@ Run these three without asking. They change nothing.
    any script runs, and the gate is **per SSE connection** — if a later script returns `The preamble
    documentation topic has not yet been read`, the connection was re-established. Read it again
    rather than treating it as a regression.
-3. **Run `examples/inspect-document.js`** via `execute_script`. It reports the Affinity version, open
-   documents, spreads and top-level layers, and changes nothing:
+3. **Run `examples/inspect-document.js`** via `execute_script` — read the file and pass its
+   **contents** as the script argument; the tool takes source, not a path. It reports the Affinity
+   version, open documents, spreads and top-level layers, and changes nothing:
 
    ```
    === Application ===
@@ -466,10 +485,15 @@ about which model you are. State the one you actually are, and if you cannot tel
 of naming the vendor's flagship.
 
 > **Status, 30 July 2026.** Confirmed by live runs: the config file and the `serverUrl` field, native
-> SSE with no bridge, 11 tools discovered automatically, the preamble, and `execute_script` running
-> real scripts. Still open: whether Antigravity hot-reloads config or needs the restart in step 4, and
-> whether it reads `AGENTS.md` at startup — the 30 July run stalled before the restart and settled
-> neither. Both are marked in place; if you are the session that settles one, record it.
+> SSE with no bridge, 11 tools discovered automatically, the preamble, `execute_script` running real
+> scripts, and — new — that **Antigravity reads `AGENTS.md` at startup**, so steps 1–4 now work
+> end to end. One item stays open: whether Antigravity hot-reloads config or genuinely needs the
+> restart. No run has yet found tools present before restarting, so treat the restart as required.
+>
+> Step 5 is where the last run failed, and it failed on the **model**, not the harness: GPT-OSS 120B
+> had all 11 tools in session and could not call them, reaching for a shell three different ways
+> instead. If you are on a model that does this, that is the finding — record it and say so plainly
+> rather than reporting progress you have not made.
 
 ### Codex — needs the bridge
 

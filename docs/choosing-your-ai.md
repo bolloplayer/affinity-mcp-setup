@@ -125,7 +125,7 @@ unverified, and the endpoint details for the untested rows still need checking.
 | 7 | GPT-5.x | OpenAI API key | Codex CLI | `~/.codex/config.toml` | stdio bridge | ✅ Same local transport verified; API-key authentication itself not tested |
 | 8 | GPT-5.x | OpenAI API key | OpenCode | `opencode.jsonc` | SSE | ❓ Untested — should just work |
 | 9 | Gemini | Google subscription | Antigravity | `.agents/mcp_config.json` | SSE | ✅ Connection and script execution verified (29 July 2026) — but which model served that run was not recorded, and Antigravity fronts non-Gemini models, so "Gemini" is the label rather than a confirmed fact |
-| 10 | Antigravity's other models | Via Antigravity | Antigravity | `.agents/mcp_config.json` | SSE | ❓ Still inferred — a 30 July run named itself **GPT-OSS 120B (Medium)**, the first attributable model, but it stalled during setup and never reached the tools. No alternative model has executed a script |
+| 10 | Antigravity's other models | Via Antigravity | Antigravity | `.agents/mcp_config.json` | SSE | ⚠️ **GPT-OSS 120B (Medium)** completed setup — config, byte-exact downloads, handoff note, restart — then could not call the tools it had, trying `node`, an invented `agy mcp` subcommand, and two fabricated "still running" reports. Harness fine, model unable to drive MCP |
 | 11 | Gemini | Google API key | Gemini CLI | `~/.gemini/settings.json` | ❓ | ❓ Not looked at yet |
 | 12 | Any local model | Free | Ollama / LM Studio | — | none | ❌ No MCP client — not viable |
 
@@ -175,7 +175,7 @@ produced cleaner SDK code than the expensive one. Don't assume the flagship is t
 |---|---|---|
 | **GPT-5.x / GPT-5.x-Codex** (ChatGPT subscription or OpenAI API key) | Codex CLI, OpenCode | Fresh Codex CLI automatic loading, SDK reads, read-only execution, and the generated two-layer Selective Colour variant are verified |
 | **Gemini** | Antigravity, Gemini CLI | Config shape verified and a live round-trip passed through Antigravity (29 July 2026). SDK accuracy not measured — the run's model was not recorded, and an Antigravity session is not necessarily Gemini |
-| **Antigravity's other models** | Antigravity | The harness is proven, so they should work. One session identified itself as **GPT-OSS 120B (Medium)** but stalled before running anything, so SDK accuracy is still unmeasured for all of them |
+| **Antigravity's other models** | Antigravity | **GPT-OSS 120B (Medium)** is a poor pick for this work: it set the connection up correctly and then could not call the MCP tools it had been given, so no script ever ran and SDK accuracy could not be measured. Choose a model in Antigravity with `agy models` rather than taking the default |
 
 #### On the OpenAI side specifically
 
@@ -473,6 +473,32 @@ What remained were two failures of a different kind:
   three-option menu, and running `verify.ps1` — every remaining error traced there, despite the
   Antigravity section saying in three places not to go. Warnings do not beat a concrete, copyable list
   sitting earlier in the same document. That block is now explicitly fenced as Claude-Code-only.
+
+#### The fourth run — the document works, the model does not
+
+Against the fully fixed document, setup went through cleanly for the first time: config written,
+scripts downloaded byte-exact, `AGENTS.md` downloaded rather than composed, `verify.ps1` correctly left
+alone, and the restart requested rather than faked.
+
+**`AGENTS.md` is read at startup — confirmed.** The restarted session, given the single word "resume",
+listed the folder, read the note, and worked from it as a standing rule. That was the last open
+question in the Antigravity setup path.
+
+Then it hit step 5 and could not call an MCP tool, with all 11 in its session:
+
+* `node examples/inspect-document.js` — Affinity scripts cannot run outside Affinity.
+* `agy mcp execute_script …` — an invented subcommand; running `agy` from a shell spawns a nested
+  session that never returns.
+* Twice it announced the script was running and asked the user to wait, once with a task ID, for calls
+  it had never made.
+
+**This is the first failure attributable to a model rather than to Antigravity or the document.** It
+also exposed a real ambiguity in the rewritten rule: "never emit a file's contents" is right for
+writing files to disk and wrong for `execute_script`, which takes script *source* as its argument. The
+document now scopes the rule and says so at both places.
+
+The useful next test is the same harness on a Gemini model, which would separate "Antigravity's MCP
+surface is hard to drive" from "this particular model cannot drive it."
 
 
 ### Tips that save the most pain
