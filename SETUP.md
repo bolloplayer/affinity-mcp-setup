@@ -373,10 +373,10 @@ If the user asks how to make the connection work in other folders, the answer is
 
 #### Record which model answered
 
-`agy models` lists what is reachable, and Antigravity fronts more than one — **Gemini 3.x and
-gpt-oss-120b are tracked as separate rows** in
-[`docs/choosing-your-ai.md`](docs/choosing-your-ai.md). A pass on one says nothing about the other,
-and the 29 July run did not record which one served it. Note which model ran before you finish, and
+`agy models` lists what is reachable, and **Antigravity fronts more than one model — they are tracked
+as separate rows** in [`docs/choosing-your-ai.md`](docs/choosing-your-ai.md). A pass on one says
+nothing about the others, and the 29 July run did not record which one served it, which is why only
+the harness counts as proven. Note which model ran before you finish, and
 if an SDK call turns out to be missing or to behave unexpectedly, record it with `add_sdk_hint` and in
 [`docs/sdk-notes.md`](docs/sdk-notes.md). The negotiated protocol version is worth a line too, if the
 harness exposes it.

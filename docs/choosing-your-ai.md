@@ -73,7 +73,7 @@ reaches Affinity at all.
 | ChatGPT app — **Codex** tab | GPT-5.x / GPT-5.6 | Custom stdio/SSE protocol bridge in `bridge/affinity-codex-bridge.mjs`, read from `~/.codex/config.toml` | stdio bridge → SSE, translating `2025-06-18` to `2025-11-25` | ✅ Tested 29 July 2026 — connects to Affinity and runs scripts. **No terminal needed** — this is the easiest OpenAI path |
 | **`codex` CLI** in a terminal | GPT-5.x / GPT-5.6 | Same `~/.codex/config.toml`, same custom bridge | stdio bridge → SSE, same version translation | ✅ Fresh `codex exec` auto-loaded the tools, read `preamble`, ran a read-only script. Verified independently on npm CLI `0.145.0`, 29 July 2026 |
 | Codex **IDE extension** (VS Code / Cursor / JetBrains) | GPT-5.x / GPT-5.6 | Expected to inherit the same `~/.codex/config.toml` and bridge | stdio bridge → SSE | ❓ Never run — config inheritance is an assumption, not a test |
-| Antigravity CLI / IDE (`agy`) | Gemini 3.x, gpt-oss-120b | Native SSE via `.agents/mcp_config.json` (`serverUrl` field) | SSE native | ✅ Verified 29 July 2026 — connects to Affinity, reads preamble, executes scripts |
+| Antigravity CLI / IDE (`agy`) | Gemini, plus the other models Antigravity fronts | Native SSE via `.agents/mcp_config.json` (`serverUrl` field) | SSE native | ✅ Verified 29 July 2026 — connects to Affinity, reads preamble, executes scripts. The run's model was not recorded, so this proves the harness |
 
 ### OpenAI — only two of the three surfaces reach Affinity
 
@@ -124,9 +124,9 @@ unverified, and the endpoint details for the untested rows still need checking.
 | 6 | GPT-5.x | ChatGPT subscription | Codex CLI | `~/.codex/config.toml` | custom stdio bridge | ✅ Fresh CLI auto-loaded tools, read `preamble`, and ran a read-only script |
 | 7 | GPT-5.x | OpenAI API key | Codex CLI | `~/.codex/config.toml` | stdio bridge | ✅ Same local transport verified; API-key authentication itself not tested |
 | 8 | GPT-5.x | OpenAI API key | OpenCode | `opencode.jsonc` | SSE | ❓ Untested — should just work |
-| 9 | Gemini 3.x | Google subscription | Antigravity | `.agents/mcp_config.json` | SSE | ✅ Verified — live round-trip passed (29 July 2026) |
-| 10 | gpt-oss-120b | Via Antigravity | Antigravity | `.agents/mcp_config.json` | SSE | ✅ Verified — live round-trip passed (29 July 2026) |
-| 11 | Gemini 3.x | Google API key | Gemini CLI | `~/.gemini/settings.json` | ❓ | ❓ Not looked at yet |
+| 9 | Gemini | Google subscription | Antigravity | `.agents/mcp_config.json` | SSE | ✅ Connection and script execution verified (29 July 2026) — which model served the run was not recorded |
+| 10 | Antigravity's other models | Via Antigravity | Antigravity | `.agents/mcp_config.json` | SSE | ❓ Inferred — the harness is proven, but no run is attributable to a specific alternative model |
+| 11 | Gemini | Google API key | Gemini CLI | `~/.gemini/settings.json` | ❓ | ❓ Not looked at yet |
 | 12 | Any local model | Free | Ollama / LM Studio | — | none | ❌ No MCP client — not viable |
 
 ### Settled — Affinity is SSE-only, there is no Streamable HTTP endpoint
@@ -146,7 +146,11 @@ to, and any future guide claiming otherwise is wrong.
 - **Row 8** — OpenCode + an OpenAI key is the path of least resistance for ChatGPT owners, but
   nobody has run it here.
 - **Row 11** — Gemini CLI's config shape and transport are unconfirmed; the row is a placeholder.
-- **Rows 9–10** — ✅ **Settled 29 July 2026:** Antigravity round-trip live execution verified. Loaded preamble, executed inspect script, and ran the two-layer `test-color-boost.js` script successfully against Affinity Photo.
+- **Rows 9–10** — the **harness** is settled: on 29 July 2026 Antigravity connected over native SSE,
+  loaded the preamble, ran the inspection script and executed a generated two-layer script against
+  Affinity. What is *not* settled is the **model**: the run did not record which of Antigravity's
+  models served it, and one run cannot verify two rows. Treat row 9 as the proven path and row 10 as
+  inferred from the shared harness until someone notes the model while testing.
 
 ---
 
@@ -168,8 +172,8 @@ produced cleaner SDK code than the expensive one. Don't assume the flagship is t
 | Model | Reach it via | Status |
 |---|---|---|
 | **GPT-5.x / GPT-5.x-Codex** (ChatGPT subscription or OpenAI API key) | Codex CLI, OpenCode | Fresh Codex CLI automatic loading, SDK reads, read-only execution, and the generated two-layer Selective Colour variant are verified |
-| **Gemini 3.x** | Antigravity, Gemini CLI | Harness confirmed MCP-capable, config shape verified — live round-trip verified (29 July 2026) |
-| **gpt-oss-120b** | Antigravity | Same as above — live round-trip verified (29 July 2026) |
+| **Gemini** | Antigravity, Gemini CLI | Config shape verified and a live round-trip passed through Antigravity (29 July 2026). SDK accuracy not measured — the run's model was not recorded |
+| **Antigravity's other models** | Antigravity | The harness is proven, so they should work; no run is attributable to one specifically |
 
 #### On the OpenAI side specifically
 
@@ -223,7 +227,7 @@ transport it speaks, and how much of it is proven.
 | **Claude Code** | Claude; anything on an Anthropic-compatible endpoint (DeepSeek) | `.mcp.json` in the project | SSE native | ✅ Proven, extensively |
 | **OpenCode** | Almost anything — Claude, GPT, DeepSeek, Gemini, local | `~/.config/opencode/opencode.jsonc` | SSE native (`remote`) | ✅ Full round-trip passed |
 | **Codex CLI / desktop environment** | GPT-5.x via ChatGPT login or OpenAI API key | `~/.codex/config.toml` | custom stdio bridge → SSE | ✅ Fresh CLI automatically discovered the tools, read `preamble`, and ran a read-only Affinity script |
-| **Antigravity** (`agy`) | Gemini 3.x, gpt-oss-120b | `.agents/mcp_config.json` | SSE (`serverUrl` field) | ✅ Verified 29 July 2026 — live round-trip and script execution passed |
+| **Antigravity** (`agy`) | Gemini, plus its other models | `.agents/mcp_config.json` | SSE (`serverUrl` field) | ✅ Verified 29 July 2026 — live round-trip and script execution passed |
 
 ### The Codex caveat, in full
 
@@ -392,13 +396,20 @@ Place `.agents/mcp_config.json` in your project root workspace:
 5. **Read the SDK Preamble First:** Before executing any script in Affinity, call `read_sdk_documentation_topic` with `{ filename: "preamble" }`. Affinity's MCP server enforces that the preamble documentation topic must be read prior to accepting `execute_script` calls.
 6. **Execute JavaScript Scripts:** Run scripts via the `execute_script` tool (e.g., `examples/inspect-document.js` or `examples/test-color-boost.js`).
 
-#### Live Verification Result — 29 July 2026
+#### What the 29 July 2026 run showed
 
-Tested and verified live from this repository with **Gemini 3.6 Flash** and **gpt-oss-120b**:
-* **Connection & Handshake:** Native SSE connected to `http://[::1]:6767/sse`.
-* **Tool Discovery:** 11 Affinity tools discovered automatically (including `read_sdk_documentation_topic` and `execute_script`).
-* **SDK Preamble:** Loaded successfully.
-* **Script Execution:** Executed document inspection (`examples/inspect-document.js`) and two-layer Selective Colour script (`examples/test-color-boost.js`), creating `Clean (Test)` and `Boost (Test)` adjustment layers live in Affinity Photo.
+Run live from this repository through `agy`. The model that served it was not recorded, so read this
+as the **harness** being proven, not any particular model:
+
+* **Connection & handshake:** native SSE to `http://[::1]:6767/sse`, no bridge.
+* **Tool discovery:** all 11 Affinity tools loaded automatically from the config file.
+* **SDK preamble:** read successfully.
+* **Script execution:** ran document inspection, then a generated two-layer Selective Colour script
+  that created its adjustment layers live in Affinity.
+
+Everything past the connection — whether a restart is needed, which file carries a resume note across
+one — is **best guess** rather than tested, extrapolated from the Claude Code and Codex paths. SETUP.md's
+Antigravity section marks each guess in place and says what to record when a live run settles it.
 
 
 ### Tips that save the most pain
