@@ -492,6 +492,12 @@ Then it hit step 5 and could not call an MCP tool, with all 11 in its session:
 * Twice it announced the script was running and asked the user to wait, once with a task ID, for calls
   it had never made.
 
+**Explicit instruction did not help.** Told in plain terms to call `read_sdk_documentation_topic` and
+`execute_script` directly and not to shell out, it raised the permission prompt for both MCP tools —
+so the harness was surfacing them correctly — then issued `agy mcp …` shell commands anyway and
+reported two task IDs as running. It appears able to reach the *approval* step for an MCP tool without
+being able to emit the call itself.
+
 **This is the first failure attributable to a model rather than to Antigravity or the document.** It
 also exposed a real ambiguity in the rewritten rule: "never emit a file's contents" is right for
 writing files to disk and wrong for `execute_script`, which takes script *source* as its argument. The
