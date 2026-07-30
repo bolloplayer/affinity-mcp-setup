@@ -89,20 +89,28 @@ option 3 of the menu in §3 — not during first setup.
 
 </details>
 
-#### Fetch the files you need
+#### Fetch the files you need — Claude Code only
 
-An empty project folder has none of the repo's scripts, and the steps below run two of them. Before
-the restart, download what you need into the folder — no clone required:
+> **If you are not Claude Code, this block is not for you.** It fetches `verify.ps1`, which other
+> harnesses should not run, and it feeds into the `.mcp.json` / §3 / three-option flow below, which is
+> Claude Code's. Antigravity readers in particular: three separate test runs were pulled off their own
+> section by this list and ended up running the wrong preflight. Go back to your row in the table above.
 
+An empty project folder has none of the repo's scripts, and the steps below run two of them. Download
+them straight to disk before the restart — no clone required:
+
+```powershell
+$raw = "https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main"
+New-Item -ItemType Directory -Force -Path examples | Out-Null
+Invoke-WebRequest -Uri "$raw/examples/inspect-document.js"      -OutFile examples/inspect-document.js      -UseBasicParsing
+Invoke-WebRequest -Uri "$raw/examples/color-boost-two-layer.js" -OutFile examples/color-boost-two-layer.js -UseBasicParsing
+Invoke-WebRequest -Uri "$raw/verify.ps1"                        -OutFile verify.ps1                        -UseBasicParsing
 ```
-https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main/examples/inspect-document.js
-https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main/examples/color-boost-two-layer.js
-https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main/verify.ps1
-```
 
-Put the two scripts in `examples/` and `verify.ps1` in the folder root. If you cannot write files or
-fetch URLs, say so and ask the user to clone the repo instead — do not skip ahead and improvise the
-script contents from memory.
+**Never read a file into your context and write it back out.** `-OutFile` puts the bytes on disk
+untouched; re-emitting them from memory produced files at 33–49% of real size in testing — valid
+syntax, wrong contents, silent failure. If you cannot write files or fetch URLs, say so and ask the
+user to clone the repo. Do not improvise the script contents.
 
 Now read on. This next part is where the setup usually stalls.
 
@@ -261,24 +269,32 @@ powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '<work
 
 Ask the user for permission on the workspace folder once, up front, rather than per file.
 
-#### Step 2 — clone the repo. Do not retype file contents
+#### Step 2 — get the files. The bytes must never pass through you
 
 Step 5 and the options in step 6 run scripts from this repo, and an empty workspace has none of them.
-**Get them with `git clone`:**
 
+**The rule is not "clone rather than fetch" — it is that you never emit a file's contents.** Any
+method where the bytes go from the network straight to disk is fine:
+
+```powershell
+$raw = "https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main"
+New-Item -ItemType Directory -Force -Path examples | Out-Null
+Invoke-WebRequest -Uri "$raw/examples/inspect-document.js"      -OutFile examples/inspect-document.js      -UseBasicParsing
+Invoke-WebRequest -Uri "$raw/examples/color-boost-two-layer.js" -OutFile examples/color-boost-two-layer.js -UseBasicParsing
 ```
-git clone https://github.com/bolloplayer/affinity-photo-claude-code-windows
-```
 
-Then use paths relative to where `agy` is running — `affinity-photo-claude-code-windows/examples/…`,
-not a bare `examples/…`.
+`git clone https://github.com/bolloplayer/affinity-photo-claude-code-windows` is equally fine — then
+use paths relative to where `agy` is running, `affinity-photo-claude-code-windows/examples/…` rather
+than a bare `examples/…`.
 
-**Do not fetch the raw file URLs and write the contents out yourself.** This was tested on 30 July
-2026 and it fails silently: fetching puts the page into the harness's own step files, and re-emitting
-it produced files at **33–49% of their real size** — plausible, syntactically valid, and wrong. The
-reconstructed `verify.ps1` even printed an invented success line. The colour-boost script came out
-with **zero** `executeCommand` calls, so it drove nothing at all. If you find yourself typing out the
-body of a file you just read, stop: clone instead, or ask the user to.
+**What fails is reading a file into your context and writing it back out.** Tested twice on 30 July
+2026: the reconstructions came out at **33–49% of real size** — plausible, syntactically valid, and
+wrong. The rebuilt `verify.ps1` printed an invented success line; the colour-boost script had **zero**
+`executeCommand` calls, so it drove nothing at all. The same session, switched to `-OutFile`, produced
+all three files byte-exact. If you find yourself typing the body of a file you just read into a
+here-string, stop and re-download it to disk instead.
+
+Do not fetch `verify.ps1` at all on this path — see above.
 
 #### Step 3 — write the handoff note. Do not skip this
 
@@ -286,8 +302,20 @@ The restart in step 4 starts a session with an **empty context**. Without a note
 and does nothing, and they have to explain the whole setup again. In testing this step was the one
 most often skipped, and skipping it strands the user.
 
-Write **`AGENTS.md`** in the workspace root — the folder the user runs `agy` from. Keep it short and
-imperative so the next session acts instead of summarising:
+**Download it — do not compose it.** The note is a file in the repo, so getting it is the same
+one-liner as step 2, and it lands in the workspace root, the folder the user runs `agy` from:
+
+```powershell
+Invoke-WebRequest -Uri "$raw/handoff/AGENTS.antigravity.md" -OutFile AGENTS.md -UseBasicParsing
+```
+
+This step is where the 30 July run died. It knew what the note should say and still could not get a
+15-line file onto disk: four attempts at a PowerShell literal here-string, each writing `\n` as
+backslash-n rather than a newline, before it gave up and asked the user to create the file by hand.
+`@'…'@` does not interpret escapes. Don't reach for it — download the file.
+
+For reference, this is what lands (and what to reproduce only if the download is genuinely
+unavailable):
 
 ```markdown
 ## Affinity MCP setup — continue here
@@ -732,7 +760,8 @@ for them.
 | Config says `enabled` / `connected`, no tools | Config loaded, handshake failed | Check the startup log for the protocol error. Do not substitute a hand-written SSE client for the real test |
 | `user cancelled MCP tool call` (`codex exec`) | Non-interactive approval policy; Affinity's tools publish no safety annotations | Use the interactive TUI. Not a bridge failure |
 | **Antigravity: no connection, no error at all** | The config used `url` instead of `serverUrl` | Rename the field in `.agents/mcp_config.json`. It fails silently, so there is nothing in the log to find |
-| **A script fails oddly, or a "verified" check passes suspiciously easily** | The file was reconstructed from a fetched page rather than copied. Observed at 33–49% of real size, syntactically valid, silently wrong | `git clone` the repo instead of fetching raw URLs and writing the contents out. Never retype the body of a file you just read |
+| **A script fails oddly, or a "verified" check passes suspiciously easily** | The file was reconstructed from a fetched page rather than copied. Observed at 33–49% of real size, syntactically valid, silently wrong | Re-download it with `Invoke-WebRequest -OutFile` or `git clone`, so the bytes go to disk without passing through you. Never retype the body of a file you just read |
+| **A multi-line file writes as one line full of `\n`** | `@'…'@` is a PowerShell *literal* here-string and does not interpret escapes. Four retries in one test run, all identical | Download the file instead of composing it — the handoff note lives at `handoff/AGENTS.antigravity.md`. If you must write one, use real line breaks and `Out-File -Encoding utf8` |
 | **Antigravity: `verify.ps1` reports a missing `.mcp.json`** | `verify.ps1` is a Claude Code preflight; that check is hardcoded to Claude Code's filename | Don't run it on this path at all — see the Antigravity section. Never create a `.mcp.json` to satisfy it |
 | Script runs but the layer lands inside a group | Affinity parents new layers into a topmost group | `color-boost-two-layer.js` detects and corrects this — copy its `addSelectiveColourLayer` helper |
 

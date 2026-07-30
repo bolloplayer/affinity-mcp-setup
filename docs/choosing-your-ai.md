@@ -447,6 +447,33 @@ The follow-up session, started fresh in a new terminal, added three more:
   UUID off the SSE stream — the client side of the CRLF framing problem in `CLAUDE.md`, or the nested
   process racing the connection. Not an Affinity fault, and not something to debug from the config.
 
+#### The third run — where the remaining problems actually live
+
+Run against the rewritten document, same model. Two of the three earlier failures were gone:
+
+* **File transfer is fixed.** It reached for a here-string once, was stopped, switched to
+  `Invoke-WebRequest -OutFile`, and produced `verify.ps1` (11,848 bytes), `color-boost-two-layer.js`
+  (5,013) and `inspect-document.js` byte-identical to source. **The rule was aimed slightly wrong:**
+  the document said *clone, don't fetch raw URLs*, but fetching was never the problem — reading a file
+  into context and re-emitting it is. `-OutFile` fetches and is exact. The rule is now about where the
+  bytes go, not which command fetches them.
+* **The workspace-write constraint is handled.** It shelled out to PowerShell immediately rather than
+  thrashing on refused calls.
+* **The transport was never in doubt.** The genuine `verify.ps1` reported the handshake on
+  `2025-11-25`, 11 tools, and a document open.
+
+What remained were two failures of a different kind:
+
+* **It could not write the handoff note.** Four attempts at a PowerShell literal here-string, each
+  writing `\n` as backslash-n, before giving up and asking the user to create the file by hand — with
+  the wrong filename (`CLAUDE.md`) and the wrong content. Not a comprehension failure: it knew what to
+  write. A document that requires a file-writing-impaired harness to emit fifteen lines of markdown is
+  asking for the one thing it cannot do. The note is now a repo file to download.
+* **The Claude Code section kept capturing it.** Its raw-URL list, the `§3` / `Part A` framing, the
+  three-option menu, and running `verify.ps1` — every remaining error traced there, despite the
+  Antigravity section saying in three places not to go. Warnings do not beat a concrete, copyable list
+  sitting earlier in the same document. That block is now explicitly fenced as Claude-Code-only.
+
 
 ### Tips that save the most pain
 
