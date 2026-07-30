@@ -75,142 +75,24 @@ reaches Affinity at all.
 | Codex **IDE extension** (VS Code / Cursor / JetBrains) | GPT-5.x / GPT-5.6 | Expected to inherit the same `~/.codex/config.toml` and bridge | stdio bridge → SSE | ❓ Never run — config inheritance is an assumption, not a test |
 | Antigravity CLI / IDE (`agy`) | Gemini 3.x, gpt-oss-120b | Native SSE via `.agents/mcp_config.json` (`serverUrl` field) | SSE native | ✅ Verified 29 July 2026 — connects to Affinity, reads preamble, executes scripts |
 
-### OpenAI verification — three surfaces
+### OpenAI — only two of the three surfaces reach Affinity
 
-The OpenAI test is deliberately split by surface, because access to tools and MCP transports differs
-between them:
+| Surface | Result |
+|---|---|
+| **ChatGPT Chat** | ❌ Tested 28 July 2026. No Affinity entry exists in the plug-in directory, and a local loopback server is not exposed to chat. No tool schema reaches the model at all — a connector-availability gap, so there is nothing to fix at the config or script level |
+| **ChatGPT app, Codex tab** | ✅ Tested 29 July 2026. Reads the same `~/.codex/config.toml` as the CLI, so the bridge serves it too. The easiest OpenAI path — no terminal — but the bridge still has to be installed locally; this is not a managed connector like Claude Desktop's |
+| **`codex` CLI** | ✅ Tested 29 July 2026 on npm CLI `0.145.0` and packaged `0.146.0-alpha.3.1`. Full round-trip: 11 tools discovered from a fresh process, preamble read, `examples/color-boost.js` executed, and a generated two-layer variant executed and re-run safely |
 
-1. **ChatGPT Chat** — ❌ fails
-2. **ChatGPT app, Codex tab** — ✅ works
-3. **`codex` CLI in a terminal** — ✅ works
+Both working surfaces need the bridge for one reason: **Codex initializes with MCP protocol
+`2025-06-18` and Affinity accepts only `2025-11-25`.** A generic `mcp-remote` establishes the SSE
+transport and then passes that initialization through unchanged, so it fails with `-32602` after
+appearing to connect. `bridge/affinity-codex-bridge.mjs` translates the version; see
+"Codex on Windows" below for the config. Affinity identifies itself as server `Affinity` `1.0.0`.
 
-#### Case 1 — ChatGPT Chat: failed (confirmed)
-
-Tested on **28 July 2026** in a signed-in ChatGPT session on Windows, with Affinity running locally.
-The ChatGPT plug-in picker showed the account's installed plug-ins, but no Affinity entry. Searching
-the plug-in directory for `Affinity` also produced no Affinity result.
-
-The following prompt was then sent in a clean Chat chat:
-
-> Test de lokale Affinity MCP-verbinding op deze Windows-pc. Controleer of je de Affinity MCP-server
-> kunt zien. Als dat lukt: lees eerst de SDK-documentatie met filename 'preamble' en voer daarna
-> alleen een veilig read-only script uit dat meldt of Document.current bestaat en hoeveel hoofdlagen
-> het document heeft. Rapporteer exact welke Affinity-tool je gebruikte en de uitvoer. Als Affinity
-> niet beschikbaar is, zeg dat expliciet en verzin geen verbinding.
-
-ChatGPT reported that Affinity was not available in the session. Its attempt to locate an Affinity
-tool returned `No tool was defined under the given paths.` Consequently it could not read
-`preamble`, call `execute_script`, or return document/layer information.
-
-**Conclusion:** ChatGPT Chat cannot currently perform this project's Affinity MCP workflow on the
-tested account. This is a harness/connector availability failure, not a script failure: no Affinity
-tool schema reached the model at all.
-
-#### Case 2 — ChatGPT app, Codex tab: works
-
-Tested on **29 July 2026**. The Codex tab reads the same `~/.codex/config.toml` as the CLI, so it
-picks up the same custom protocol bridge described below. It connected to Affinity and executed
-scripts successfully.
-
-This is the surface most ChatGPT subscribers will actually reach: same capability as the CLI, no
-terminal required. The bridge still has to be installed and referenced from `config.toml` — the tab
-is a different front end onto the same local machinery, not a managed connector like Claude
-Desktop's.
-
-#### Case 3 — `codex` CLI / terminal bridge: successful round-trip and script generation
-
-Final acceptance test completed on **29 July 2026**, with Affinity listening on `[::1]:6767`.
-The generic `mcp-remote` setup was tested first and failed after transport connection: Codex sent
-MCP protocol `2025-06-18`, and Affinity rejected it with:
-
-```text
--32602 Unsupported protocol version
-{"supported":["2025-11-25"],"requested":"2025-06-18"}
-```
-
-This was not a URL, IPv6, SSE or TOML error. `mcp-remote` successfully established the SSE
-transport but passed Codex's incompatible initialization through unchanged. The working Windows
-configuration uses the repository's custom protocol bridge:
-
-```toml
-[mcp_servers.affinity]
-command = "node.exe"
-args = ["C:\\absolute\\path\\to\\bridge\\affinity-codex-bridge.mjs"]
-```
-
-The custom bridge connects directly over SSE. It accepts Codex's `2025-06-18` initialization,
-initializes Affinity separately with `2025-11-25`, and reports Codex's requested version back to
-Codex. Affinity identified itself as server `Affinity` version `1.0.0`. Its initialization
-instructions explicitly said:
-`You MUST read the 'preamble' documentation before using the SDK.`
-
-The Codex test was completed in two parts.
-
-**Part 1 — connection and safe inspection**
-
-1. `tools/list` returned the Affinity tool schemas, including `read_sdk_documentation_topic` and
-   `execute_script`.
-2. `read_sdk_documentation_topic({filename: "preamble"})` succeeded.
-3. A read-only inspection via `execute_script` succeeded and reported Affinity
-   `3.2.3.4646`, one open document, one spread and four top-level layers.
-
-**Part 2 — real script execution and generation**
-
-1. The original `examples/color-boost.js` ran successfully and printed
-   `Color Boost added — strength 1, opacity 25%`.
-2. A follow-up root-layer inspection confirmed the new `Color Boost` adjustment layer.
-3. Codex read `nodes.js`, `commands.js` and `adjustment_ranges`, then generated a new two-layer
-   variant based on the original script.
-4. The generated script executed successfully and printed
-   `Added Boost (25%) and Clean (30%)`.
-5. It was run a second time to test idempotency. After both runs, a follow-up inspection reported
-   exactly one root-level `Boost` and exactly one root-level `Clean`.
-6. The final root-layer names were `{Background}`, `GPT-5.5 Clean Boost`, `Color Boost`, `Clean`,
-   and `Boost`. The script removed only earlier exact-name `Boost` and `Clean` layers and left the
-   original `Color Boost` and unrelated layers untouched.
-
-The custom bridge round-trip and automatic startup are proven. A fresh packaged
-`codex.exe 0.146.0-alpha.3.1` discovered the Affinity tools, read `preamble`, and ran a read-only
-script that returned `{"openDocuments":1}`. The bridge exposed all 11 Affinity tools and Affinity
-identified itself as server `Affinity` version `1.0.0`.
-
-One separate CLI behavior remains important: non-interactive `codex exec` runs with
-`approval: never` and may cancel Affinity MCP calls with `user cancelled MCP tool call`, because
-the current Affinity tool schemas do not publish safety annotations. This is not a bridge or
-handshake failure. The interactive TUI can ask for approval. A narrowly scoped automated
-acceptance run also passed with Codex's explicit approval-bypass option.
-
-##### Reusable generation prompt
-
-> Read the Affinity SDK `preamble` first, then read the relevant `nodes.js`, `commands.js`, and
-> adjustment-range documentation. Write a directly executable, idempotent Affinity JavaScript
-> colour-boost script for the current document. It must create exactly two independently adjustable
-> root-level Selective Colour layers named `Boost` and `Clean`. `Boost` should use the six chromatic
-> ranges to increase colour separation without clipping; `Clean` should gently clear whites and
-> neutrals while preserving solid blacks. Re-running must delete only earlier `Boost` and `Clean`
-> layers. Handle Affinity's topmost-group insertion quirk, use undoable document commands, set
-> conservative opacities, print a concise success message, execute it, then inspect the root layer
-> names to verify both layers exist. Finally compare the code and effect controls with
-> `examples/color-boost.js`; do not invent SDK calls.
-
-##### Comparison with the original
-
-| Aspect | `examples/color-boost.js` | `examples/openai-color-boost-two-layer.js` |
-|---|---|---|
-| Layers | One layer: `Color Boost` | Two layers: `Boost` and `Clean` |
-| Colour boost | Selective Colour, six chromatic ranges, strength `1.0`, opacity `25%` | Same proven six-range recipe, but conservative strength `0.12` and opacity `25%` on `Boost` |
-| Neutral cleanup | None | `Clean` adjusts Whites, Neutrals and Blacks at strength `0.06`, opacity `30%` |
-| User control | One master opacity | Boost and cleanup can be tuned or disabled independently |
-| Re-run safety | Deletes the earlier `Color Boost` layer | Deletes only earlier `Boost` and `Clean` layers |
-| Group insertion quirk | Handles it | Handles it for each new layer |
-
-The OpenAI variant preserves the original, already-verified six-range CMY complement algorithm but
-uses a much lower ink weight. The new image treatment is a conservative neutral cleanup, isolated on
-its own layer so it can be tuned, disabled, or reviewed independently. The original is simpler and
-more forceful; the two-layer version is subtler and gives the user safer, independent controls.
+### Claude Desktop — both tabs work through the official connector
 
 **Source, confirmed:** Affinity's Help Center (Automation → *AI Automation with Claude*) describes
-exactly the Home-tab flow — install the Affinity connector from Claude's connector directory, enable
+the Home-tab flow — install the Affinity connector from Claude's connector directory, enable
 `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable MCP server` in Affinity, then verify with the
 prompt *"Can you see the Affinity MCP server?"*. Requires **Affinity April '26 or later** and
 **Claude Desktop**; free during the current beta. It does not use your Claude plan's monthly AI
@@ -218,17 +100,12 @@ allowance unless you also enable Canva AI Studio features in the MCP privacy set
 premium/ultra Canva AI tools draw on your Canva plan's allowance. Only Claude is supported today;
 MCP isn't available in Affinity China or on mobile.
 
-**Settled:** an earlier attempt to test this mid-session was inconclusive — mounting an empty second
-folder onto a session that was already connected to the `.mcp.json`-holding project folder proves
-nothing, since the original connection was never removed. The real test was then run properly: a
-**brand-new Cowork session, started with only `empty-mcp-test/` (empty, no `.mcp.json`) connected
-from the first message**. Result: the Affinity MCP server was reachable immediately, the SDK preamble
-loaded, and a test script executed without error — one document was open (untitled, unsaved), and the
-sandboxed filesystem root came back as `C:\Users\<you>\Desktop` (matching the "Desktop-only" script
-I/O sandbox described elsewhere in this doc). **Conclusion: Cowork ("Code" tab) does not need a
-project `.mcp.json` — it reaches Affinity through the same app-level connector as the Home tab.** A
-project's own `.mcp.json` (as in the main project folder) is therefore redundant when the official
-connector is already installed, though harmless.
+**The "Code" tab (Cowork) needs no project `.mcp.json`** — settled by a clean test: a brand-new
+session started with only an empty, `.mcp.json`-free folder connected from the first message reached
+Affinity immediately, loaded the preamble and ran a script. It inherits the same app-level connector
+as the Home tab, which makes a project `.mcp.json` redundant there, though harmless. (Testing this
+mid-session proves nothing — a session already connected to the folder holding `.mcp.json` keeps that
+connection when you mount a second empty folder.)
 
 ---
 
@@ -464,8 +341,8 @@ A Codex project does **not** use Claude's `.mcp.json`. Configure the bridge once
 Do not configure Affinity as `url = "http://[::1]:6767/sse"` in Codex: that field expects
 Streamable HTTP, while Affinity exposes legacy SSE. The local stdio bridge performs the conversion.
 
-For a complete pass/fail procedure, including script execution and idempotency checks, follow
-[`codex-cli-affinity-test.md`](codex-cli-affinity-test.md).
+To prove the whole chain from outside Codex — initialize through the bridge, list the real tools,
+read the preamble, touch nothing — run `node .\bridge\smoke-test.mjs`.
 
 #### Codex troubleshooting
 
@@ -479,8 +356,9 @@ For a complete pass/fail procedure, including script execution and idempotency c
 - **`codex exec` says `user cancelled MCP tool call`:** its non-interactive approval policy blocked
   the call. Use the interactive TUI for normal work; this message does not mean the bridge failed.
 - **Tools disappear after an Affinity restart:** start a fresh task or reconnect the MCP server.
-- **Affinity tools are missing in a fresh CLI:** record the exact startup/protocol error and do not
-  replace the acceptance test with a custom SSE client.
+- **Affinity tools are missing in a fresh CLI:** record the exact startup/protocol error. Do not
+  substitute a hand-written SSE client — it proves nothing about the config, which is the thing being
+  tested.
 
 ### Antigravity (`agy`) on Windows — start-to-finish setup
 

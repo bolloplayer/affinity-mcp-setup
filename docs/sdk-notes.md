@@ -82,6 +82,16 @@ against your version. The `preamble` doc (read it every session) is always the s
 - Dialog and AI APIs exist in the SDK — prefer the SDK's Dialog API for any UI, and its AI APIs
   over external services for generative work (subject to the user's AI-access setting).
 
+## Affinity's own library scripts are worth reading
+
+`list_library_scripts` / `read_library_script` reach the scripts already installed in Affinity, and
+they are a better model of house style than anything in this repo. Affinity's own `4. Color Boost`
+builds **two relative Selective Colour adjustments inside a `Color Boost` group at 25% opacity** —
+`Clean` removing opposing CMY components, `Boost` reinforcing the selected families and adding black
+for depth. Note it groups its layers rather than leaving them at root level, which is the opposite of
+what `examples/color-boost-two-layer.js` does; either is fine, but a script that assumes root-level
+layers will not find these.
+
 ## Recording your own findings
 
 When a script solves a non-obvious SDK problem through experimentation, call `add_sdk_hint` so the

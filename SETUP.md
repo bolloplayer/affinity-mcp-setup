@@ -377,10 +377,9 @@ If the user asks how to make the connection work in other folders, the answer is
 gpt-oss-120b are tracked as separate rows** in
 [`docs/choosing-your-ai.md`](docs/choosing-your-ai.md). A pass on one says nothing about the other,
 and the 29 July run did not record which one served it. Note which model ran before you finish, and
-if there is quota to spare, fill in the blank fields in
-[`docs/antigravity-affinity-test.md`](docs/antigravity-affinity-test.md) — the negotiated protocol
-version and the hallucinated-SDK-call count are the two worth having. Do not re-run the whole
-acceptance test just to complete a report; the result that matters is already confirmed.
+if an SDK call turns out to be missing or to behave unexpectedly, record it with `add_sdk_hint` and in
+[`docs/sdk-notes.md`](docs/sdk-notes.md). The negotiated protocol version is worth a line too, if the
+harness exposes it.
 
 > **Status: best effort, 30 July 2026.** The connection path in this section is verified; the restart
 > and the resume-note filename are reasoned from the other two harnesses and marked above. Written
