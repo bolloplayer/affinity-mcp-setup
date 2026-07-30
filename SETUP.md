@@ -60,7 +60,7 @@ Identify which harness you are running inside, then write **only** that row's fi
 |---|---|---|
 | **Claude Code** (CLI, VS Code ext, Desktop Code tab) | `.mcp.json` in the project folder | SSE native |
 | **Codex** (CLI, ChatGPT Codex tab, IDE extension) | `~/.codex/config.toml` | stdio bridge → SSE |
-| **Antigravity** (`agy`, Gemini) | `.agents/mcp_config.json` in the workspace | SSE native |
+| **Antigravity** (`agy`, any model it fronts — not only Gemini) | `.agents/mcp_config.json` in the workspace | SSE native |
 | **OpenCode** (any model) | `opencode.jsonc`, or one CLI command | SSE native |
 
 ### Claude Code
@@ -250,6 +250,17 @@ Create `.agents/mcp_config.json` in the workspace root. **The field is `serverUr
 
 No machine-specific paths, so it works verbatim on any machine.
 
+**If your file-writing tool refuses the path, shell out — don't keep retrying it.** In the 30 July
+run, Antigravity's own write tool was scoped to its artifacts directory and would not write into the
+user's workspace. The agent spent most of the session rediscovering this, one refused call at a time,
+and stalled out into empty responses. The way through is PowerShell via the shell tool:
+
+```
+powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '<workspace>/.agents' | Out-Null"
+```
+
+Ask the user for permission on the workspace folder once, up front, rather than per file.
+
 #### Step 2 — clone the repo. Do not retype file contents
 
 Step 5 and the options in step 6 run scripts from this repo, and an empty workspace has none of them.
@@ -421,11 +432,16 @@ as separate rows** in [`docs/choosing-your-ai.md`](docs/choosing-your-ai.md). A 
 nothing about the others, so note which model ran before you finish. Record any missing or surprising
 SDK call with `add_sdk_hint` and in [`docs/sdk-notes.md`](docs/sdk-notes.md).
 
+**Do not assume the model is Gemini.** Asked directly, the 30 July session answered *GPT-OSS 120B
+(Medium)* — an OpenAI open-weights model served through a Google harness. "Antigravity" says nothing
+about which model you are. State the one you actually are, and if you cannot tell, say that instead
+of naming the vendor's flagship.
+
 > **Status, 30 July 2026.** Confirmed by live runs: the config file and the `serverUrl` field, native
 > SSE with no bridge, 11 tools discovered automatically, the preamble, and `execute_script` running
 > real scripts. Still open: whether Antigravity hot-reloads config or needs the restart in step 4, and
-> whether it reads `AGENTS.md` at startup. Both are marked in place — if you are the session that
-> settles one, record it.
+> whether it reads `AGENTS.md` at startup — the 30 July run stalled before the restart and settled
+> neither. Both are marked in place; if you are the session that settles one, record it.
 
 ### Codex — needs the bridge
 

@@ -73,7 +73,7 @@ reaches Affinity at all.
 | ChatGPT app — **Codex** tab | GPT-5.x / GPT-5.6 | Custom stdio/SSE protocol bridge in `bridge/affinity-codex-bridge.mjs`, read from `~/.codex/config.toml` | stdio bridge → SSE, translating `2025-06-18` to `2025-11-25` | ✅ Tested 29 July 2026 — connects to Affinity and runs scripts. **No terminal needed** — this is the easiest OpenAI path |
 | **`codex` CLI** in a terminal | GPT-5.x / GPT-5.6 | Same `~/.codex/config.toml`, same custom bridge | stdio bridge → SSE, same version translation | ✅ Fresh `codex exec` auto-loaded the tools, read `preamble`, ran a read-only script. Verified independently on npm CLI `0.145.0`, 29 July 2026 |
 | Codex **IDE extension** (VS Code / Cursor / JetBrains) | GPT-5.x / GPT-5.6 | Expected to inherit the same `~/.codex/config.toml` and bridge | stdio bridge → SSE | ❓ Never run — config inheritance is an assumption, not a test |
-| Antigravity CLI / IDE (`agy`) | Gemini, plus the other models Antigravity fronts | Native SSE via `.agents/mcp_config.json` (`serverUrl` field) | SSE native | ✅ Verified 29 July 2026 — connects to Affinity, reads preamble, executes scripts. The run's model was not recorded, so this proves the harness |
+| Antigravity CLI / IDE (`agy`) | Gemini, plus the other models Antigravity fronts — a 30 July session identified itself as **GPT-OSS 120B**, so do not assume Gemini | Native SSE via `.agents/mcp_config.json` (`serverUrl` field) | SSE native | ✅ Verified 29 July 2026 — connects to Affinity, reads preamble, executes scripts. The run's model was not recorded, so this proves the harness |
 
 ### OpenAI — only two of the three surfaces reach Affinity
 
@@ -124,8 +124,8 @@ unverified, and the endpoint details for the untested rows still need checking.
 | 6 | GPT-5.x | ChatGPT subscription | Codex CLI | `~/.codex/config.toml` | custom stdio bridge | ✅ Fresh CLI auto-loaded tools, read `preamble`, and ran a read-only script |
 | 7 | GPT-5.x | OpenAI API key | Codex CLI | `~/.codex/config.toml` | stdio bridge | ✅ Same local transport verified; API-key authentication itself not tested |
 | 8 | GPT-5.x | OpenAI API key | OpenCode | `opencode.jsonc` | SSE | ❓ Untested — should just work |
-| 9 | Gemini | Google subscription | Antigravity | `.agents/mcp_config.json` | SSE | ✅ Connection and script execution verified (29 July 2026) — which model served the run was not recorded |
-| 10 | Antigravity's other models | Via Antigravity | Antigravity | `.agents/mcp_config.json` | SSE | ❓ Inferred — the harness is proven, but no run is attributable to a specific alternative model |
+| 9 | Gemini | Google subscription | Antigravity | `.agents/mcp_config.json` | SSE | ✅ Connection and script execution verified (29 July 2026) — but which model served that run was not recorded, and Antigravity fronts non-Gemini models, so "Gemini" is the label rather than a confirmed fact |
+| 10 | Antigravity's other models | Via Antigravity | Antigravity | `.agents/mcp_config.json` | SSE | ❓ Still inferred — a 30 July run named itself **GPT-OSS 120B (Medium)**, the first attributable model, but it stalled during setup and never reached the tools. No alternative model has executed a script |
 | 11 | Gemini | Google API key | Gemini CLI | `~/.gemini/settings.json` | ❓ | ❓ Not looked at yet |
 | 12 | Any local model | Free | Ollama / LM Studio | — | none | ❌ No MCP client — not viable |
 
@@ -148,9 +148,11 @@ to, and any future guide claiming otherwise is wrong.
 - **Row 11** — Gemini CLI's config shape and transport are unconfirmed; the row is a placeholder.
 - **Rows 9–10** — the **harness** is settled: on 29 July 2026 Antigravity connected over native SSE,
   loaded the preamble, ran the inspection script and executed a generated two-layer script against
-  Affinity. What is *not* settled is the **model**: the run did not record which of Antigravity's
-  models served it, and one run cannot verify two rows. Treat row 9 as the proven path and row 10 as
-  inferred from the shared harness until someone notes the model while testing.
+  Affinity. What is *not* settled is the **model**: that run did not record which of Antigravity's
+  models served it, and one run cannot verify two rows. A 30 July run did name itself — **GPT-OSS
+  120B (Medium)** — which is worth knowing for its own sake, because it shows an Antigravity session
+  need not be Gemini at all. But it stalled in setup and never called a tool, so it moves neither
+  row. Both stay as they are until a run notes its model *and* executes a script.
 
 ---
 
@@ -172,8 +174,8 @@ produced cleaner SDK code than the expensive one. Don't assume the flagship is t
 | Model | Reach it via | Status |
 |---|---|---|
 | **GPT-5.x / GPT-5.x-Codex** (ChatGPT subscription or OpenAI API key) | Codex CLI, OpenCode | Fresh Codex CLI automatic loading, SDK reads, read-only execution, and the generated two-layer Selective Colour variant are verified |
-| **Gemini** | Antigravity, Gemini CLI | Config shape verified and a live round-trip passed through Antigravity (29 July 2026). SDK accuracy not measured — the run's model was not recorded |
-| **Antigravity's other models** | Antigravity | The harness is proven, so they should work; no run is attributable to one specifically |
+| **Gemini** | Antigravity, Gemini CLI | Config shape verified and a live round-trip passed through Antigravity (29 July 2026). SDK accuracy not measured — the run's model was not recorded, and an Antigravity session is not necessarily Gemini |
+| **Antigravity's other models** | Antigravity | The harness is proven, so they should work. One session identified itself as **GPT-OSS 120B (Medium)** but stalled before running anything, so SDK accuracy is still unmeasured for all of them |
 
 #### On the OpenAI side specifically
 
@@ -388,13 +390,14 @@ Place `.agents/mcp_config.json` in your project root workspace:
 
 1. **Enable MCP in Affinity:** Open Affinity Photo and navigate to `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable Affinity MCP`.
 2. **Create Project Config:** Create `.agents/mcp_config.json` in your workspace directory with the `"serverUrl": "http://[::1]:6767/sse"` configuration above.
-3. **Verify Environment & Network Plumbing:** Run `verify.ps1` from PowerShell to confirm Affinity is running, port 6767 is listening on IPv6 loopback (`[::1]`), and the SSE handshake returns HTTP 200:
+3. **Verify Environment & Network Plumbing (optional):** Run `verify.ps1` yourself from PowerShell to confirm Affinity is running, port 6767 is listening on IPv6 loopback (`[::1]`), and the SSE handshake returns HTTP 200:
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File .\verify.ps1
    ```
+   It will report `No .mcp.json in this folder` and suggest creating one. **Ignore that** — it is a Claude Code check, and your config is `.agents/mcp_config.json`. Don't ask an agent to run this script for you: in testing, one took that line at face value and went off inventing a `.mcp.json`. The transport checks it performs are the same for every harness, so run it as a human sanity check or skip it.
 4. **Start Antigravity:** Launch `agy` or start an Antigravity agentic session. Antigravity automatically parses `.agents/mcp_config.json` and connects to the Affinity MCP server.
 5. **Read the SDK Preamble First:** Before executing any script in Affinity, call `read_sdk_documentation_topic` with `{ filename: "preamble" }`. Affinity's MCP server enforces that the preamble documentation topic must be read prior to accepting `execute_script` calls.
-6. **Execute JavaScript Scripts:** Run scripts via the `execute_script` tool (e.g., `examples/inspect-document.js` or `examples/test-color-boost.js`).
+6. **Execute JavaScript Scripts:** Run scripts via the `execute_script` tool — `examples/inspect-document.js` to look without changing anything, then `examples/color-boost-two-layer.js`. (`examples/test-color-boost.js` is a record of one model's generated output, not a starting point.)
 
 #### What the 29 July 2026 run showed
 
@@ -410,6 +413,26 @@ as the **harness** being proven, not any particular model:
 Everything past the connection — whether a restart is needed, which file carries a resume note across
 one — is **best guess** rather than tested, extrapolated from the Claude Code and Codex paths. SETUP.md's
 Antigravity section marks each guess in place and says what to record when a live run settles it.
+
+#### What the 30 July 2026 run added
+
+A second run followed the setup document from scratch in an empty folder. It never reached the tools,
+and the ways it failed are worth more than a pass would have been:
+
+* **The model was `GPT-OSS 120B (Medium)`** — asked directly, that is what it answered. An Antigravity
+  session is not automatically a Gemini session.
+* **Its file-writing tool was scoped to its own artifacts directory** and would not write into the
+  user's workspace. Most of the session went on rediscovering that one refused call at a time; the way
+  through is shelling out to PowerShell.
+* **It reconstructed files from fetched raw URLs instead of cloning**, producing them at 33–49% of
+  real size — valid syntax, wrong contents. Its rebuilt `verify.ps1` then printed `All checks passed`,
+  including a handshake probe it had not really performed.
+* **It ran `verify.ps1`, hit the `No .mcp.json` line, and surfaced it to the user as a caveat** rather
+  than ignoring it.
+* **It did not write a resume note**, and proposed `CLAUDE.md` — the wrong harness's file — when asked.
+
+SETUP.md's Antigravity section was rewritten around these: clone rather than retype, skip `verify.ps1`
+on this path, and write `AGENTS.md` before the restart.
 
 
 ### Tips that save the most pain
