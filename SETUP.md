@@ -213,10 +213,29 @@ opencode mcp add affinity --url "http://[::1]:6767/sse"
 opencode mcp list          # should report: connected
 ```
 
-### Antigravity (`agy`)
+### Antigravity (`agy`, Gemini)
+
+**Antigravity needs no bridge.** Unlike Codex, it speaks a protocol version Affinity accepts and
+connects over native SSE straight from its config file. It is the simplest non-Claude path — which
+inverts the expectation the Codex section sets, so do not go looking for a bridge to build.
+
+Read this before following it, because the two halves of this section have different standing:
+
+| | |
+|---|---|
+| **Confirmed** by a live run on 29 July 2026 (`agy` 1.1.8) | the config file below, the `serverUrl` field, native SSE with no bridge, 11 tools discovered automatically, the preamble read, `execute_script` running real scripts, and a model-generated two-layer script (`examples/test-color-boost.js`) |
+| **Extrapolated** from the Claude Code and Codex legs, never verified on Antigravity | whether the restart is required, and which filename carries the resume note |
+
+The extrapolated parts are marked in place. Where one turns out to be wrong, **say so to the user and
+record it** — `add_sdk_hint` for SDK facts, `docs/sdk-notes.md` for harness facts. A single real run
+settles questions this section can only guess at, and the guesses are all in the same direction:
+assume the more conservative behaviour, which costs one restart at worst.
+
+#### The config file — confirmed
 
 Create `.agents/mcp_config.json` in the workspace root. **The field is `serverUrl`, not `url`** —
-using `url` prevents the SSE connection from being established:
+using `url` prevents the SSE connection from being established, and it fails silently rather than
+with a useful error:
 
 ```json
 {
@@ -225,6 +244,148 @@ using `url` prevents the SSE connection from being established:
   }
 }
 ```
+
+No machine-specific paths, so the file works verbatim on any machine and can be committed. This repo
+already contains one.
+
+#### Quota is the thing that will actually stop you
+
+Antigravity enforces a hard daily quota, and in testing it was the single biggest obstacle — two
+attempts (27 July 2026) died on it entirely, and it cut the third run short. Every request returns
+"quota reached" regardless of what you asked for.
+
+**A quota wall is not a connection failure, and it reads exactly like one.** Before diagnosing
+anything about SSE, IPv6 or the config file, check whether the refusal mentions quota. If it does,
+stop and tell the user plainly: nothing is misconfigured, and the setup resumes when the quota
+resets. Note whether it hit before or after any Affinity call, so the next session can tell the two
+apart.
+
+This also means **finish the config and the fetches first, while requests are cheap.** Do not spend
+the session's quota on exploratory calls before the file exists.
+
+#### Fetch the files you need
+
+Same three files as the Claude Code path — an empty workspace has none of the scripts §3 runs:
+
+```
+https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main/examples/inspect-document.js
+https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main/examples/color-boost-two-layer.js
+https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main/verify.ps1
+```
+
+Scripts into `examples/`, `verify.ps1` in the workspace root. If a fetch fails, read the timing
+before you believe it: a failure in tens of milliseconds never left the machine and means a sandbox,
+as in the Codex section. If you cannot fetch or write files, ask the user to clone the repo — do not
+improvise the script contents from memory.
+
+#### Preflight — there is no `agy mcp list`
+
+Antigravity has no `mcp` subcommand, so **the connection cannot be checked from outside a session.**
+That makes [`verify.ps1`](verify.ps1) more important here than anywhere else: it proves Affinity's
+endpoint, tools and open document independently of any harness, so a later failure inside `agy` is
+provably the harness's side.
+
+One thing to expect and **not** to act on: `verify.ps1`'s config check is hardcoded to Claude Code's
+`.mcp.json`, and its closing advice names Claude Code. On an Antigravity setup it reports
+`No .mcp.json in this folder` and suggests creating one. **That line does not apply — ignore it.**
+Your config is `.agents/mcp_config.json`, and the checks that matter (Affinity running, `[::1]:6767`
+listening, the handshake probe) are transport checks that hold for every harness. Do not create a
+`.mcp.json` to silence it, and do not report it to the user as a problem.
+
+Also record `agy --version` while you are here.
+
+#### Assume the restart is needed — *extrapolated*
+
+Every harness tested so far reads MCP config **only at startup**: Claude Code and Codex both do, and
+in both cases the agent that wrote a correct config found no tools in its own session and started
+debugging a transport that was fine. Whether Antigravity hot-reloads `.agents/mcp_config.json` is
+**untested.**
+
+Treat it as needing a restart, and let the cheap test settle it:
+
+1. Write the config, fetch the scripts, run `verify.ps1`, leave the resume note.
+2. Look for the Affinity tools in your current session.
+3. **Tools present** → Antigravity reloaded live. Skip the restart, go straight to §3 Part A, and
+   **record that finding** — it removes the most awkward step in this section.
+4. **Tools absent** → this is the expected case. Ask the user to restart, exactly as the Claude Code
+   section describes: it worked, nothing is broken, here is why, here is what to type.
+
+`verify.ps1` passing plus no visible tools means **restart, not diagnose.** That is the signature of
+the startup-load rule, and it is where both other harnesses lost the most time. Do not write your own
+SSE client to work around it — it appears to work, proves nothing about the user's config, and the
+config is the entire deliverable.
+
+#### The resume note — filename *extrapolated*
+
+A restart is a new session with an empty context. Without a note it greets the user and does nothing,
+and they have to explain the whole setup again. Claude Code reads `CLAUDE.md`; Codex reads
+`AGENTS.md`. **Which file Antigravity reads at startup has not been verified.**
+
+Write **`AGENTS.md`** in the workspace root. It is the cross-vendor convention and the best available
+guess. Then cover the guess being wrong:
+
+- Do not also write `GEMINI.md` "to be safe". Two copies of a self-deleting note means one of them
+  survives and re-runs this sequence against whatever document is open later. One file, one note.
+- When you ask for the restart, give the user a one-line fallback to paste if the new session seems
+  not to know anything: *"Continue the Affinity MCP setup — read `AGENTS.md` in this folder and do
+  Part A."* This costs them one sentence and makes the note's filename non-critical.
+- If the restarted session did have to be prompted, **that is the finding**: `AGENTS.md` is not read
+  automatically. Record it in `docs/sdk-notes.md`.
+
+Use the same note content as the Claude Code section's resume note, with `AGENTS.md` in place of
+`CLAUDE.md` — current state, the three read-only Part A steps, then offer the menu and touch nothing
+until the user picks, and delete itself once the choices have been offered.
+
+Write it as UTF-8 and read it back as UTF-8. `Get-Content` without `-Encoding utf8` decodes it as the
+ANSI codepage and turns every em dash into `â€"`; it is cosmetic, and it is not a reason to "fix" the
+file.
+
+#### Then run §3 — Part A, hand over, Part B
+
+From here the path is the shared one, unchanged: **Part A** proves the connection read-only (tools
+present, preamble read, `examples/inspect-document.js`), then you stop and offer the menu. **Part B**
+runs only what the user picks — option 1 the supplied colour boost, option 2 a black-and-white
+conversion you write against the SDK. Both end with a script saved to Affinity's Script View,
+confirmed with `list_library_scripts`, run once, and the user looking at their own document. No
+renders.
+
+Two Antigravity-specific notes for that sequence:
+
+- **The preamble gate is per SSE connection.** If a script later returns `The preamble documentation
+  topic has not yet been read`, the connection was re-established — read it again rather than
+  treating it as a regression.
+- **`examples/test-color-boost.js` is not a template.** It is Antigravity's *own* earlier generated
+  output, kept as a record of that run, and it produces `Boost (Test)` / `Clean (Test)` layers. For
+  structure, read `examples/color-boost-two-layer.js`. For option 2, write the conversion from the
+  SDK docs — do not adapt either file into a black-and-white script.
+
+#### The menu is two options here, not three
+
+Offer options 1 and 2 as written, and **stop there. Option 3 does not apply to Antigravity** — it
+promotes a project-scoped server to user scope, which is a Claude Code distinction. Do not offer it,
+and do not go looking for an Antigravity equivalent to fill the gap.
+
+So the menu you present is: run the supplied colour-boost script, or have you write a black-and-white
+conversion from scratch — plus the closing line that they can stop here and nothing will be changed.
+
+If the user asks how to make the connection work in other folders, the answer is to copy
+`.agents/mcp_config.json` into that workspace. It is two lines, and it needs no restart logic.
+
+#### Record which model answered
+
+`agy models` lists what is reachable, and Antigravity fronts more than one — **Gemini 3.x and
+gpt-oss-120b are tracked as separate rows** in
+[`docs/choosing-your-ai.md`](docs/choosing-your-ai.md). A pass on one says nothing about the other,
+and the 29 July run did not record which one served it. Note which model ran before you finish, and
+if there is quota to spare, fill in the blank fields in
+[`docs/antigravity-affinity-test.md`](docs/antigravity-affinity-test.md) — the negotiated protocol
+version and the hallucinated-SDK-call count are the two worth having. Do not re-run the whole
+acceptance test just to complete a report; the result that matters is already confirmed.
+
+> **Status: best effort, 30 July 2026.** The connection path in this section is verified; the restart
+> and the resume-note filename are reasoned from the other two harnesses and marked above. Written
+> without a live run — Antigravity quota was exhausted. If you are the first session to follow it end
+> to end, those two marked items are what your run is worth recording.
 
 ### Codex — needs the bridge
 
@@ -514,6 +675,9 @@ for them.
 | `-32602 Unsupported protocol version` | Client initialized with an older MCP version | Codex: use the bridge. Others: check the harness's MCP version support |
 | Config says `enabled` / `connected`, no tools | Config loaded, handshake failed | Check the startup log for the protocol error. Do not substitute a hand-written SSE client for the real test |
 | `user cancelled MCP tool call` (`codex exec`) | Non-interactive approval policy; Affinity's tools publish no safety annotations | Use the interactive TUI. Not a bridge failure |
+| **Antigravity: no connection, no error at all** | The config used `url` instead of `serverUrl` | Rename the field in `.agents/mcp_config.json`. It fails silently, so there is nothing in the log to find |
+| **Antigravity: "quota reached" on every request** | Daily quota wall — unrelated to Affinity | Not a connection fault and not fixable by config. Say so and resume when it resets; note whether it hit before or after an Affinity call |
+| **Antigravity: `verify.ps1` says `No .mcp.json in this folder`** | That check is hardcoded to Claude Code's config filename | Ignore it — Antigravity reads `.agents/mcp_config.json`. Do not create a `.mcp.json` |
 | Script runs but the layer lands inside a group | Affinity parents new layers into a topmost group | `color-boost-two-layer.js` detects and corrects this — copy its `addSelectiveColourLayer` helper |
 
 On Windows, [`verify.ps1`](verify.ps1) checks everything independently of any harness, and is the
