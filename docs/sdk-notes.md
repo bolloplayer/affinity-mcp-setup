@@ -56,6 +56,14 @@ against your version. The `preamble` doc (read it every session) is always the s
   already-saturated pixels; Selective Colour is six ink triplets but lets you push one colour range
   without touching the others. Vibrance for a quick global lift, Selective Colour for a look you
   intend to keep tuning.
+- **Black and White adjustment.** `BlackAndWhiteAdjustmentRasterNodeDefinition` (`/nodes`), added
+  via `AddChildNodesCommandBuilder.addBlackAndWhiteAdjustmentRasterNode(def)` — same builder
+  pattern as Selective Colour. Its parameters are flat numeric properties `red`/`yellow`/`green`/
+  `cyan`/`blue`/`magenta`, each ranged `[-2.0, 3.0]`, defaulting to `1` (flat luminance mix, no
+  channel emphasis). Same read-mutate-reapply pattern as Selective Colour: read `layer.parameters`,
+  set fields directly, reapply via
+  `DocumentCommand.createSetBlackAndWhiteAdjustmentParameters(Selection.create(doc, layer), params)`
+  — there's no live setter on the layer itself.
 
 ## Known limitations (as of Affinity Photo 3.2.x)
 
