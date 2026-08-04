@@ -75,3 +75,19 @@ optional handshake probe, Claude Code present). If scripts are blocked:
 - Record non-obvious SDK discoveries back with `add_sdk_hint`.
 - Confirmed API shapes and known dead-ends live in `docs/sdk-notes.md`; example scripts in
   `examples/` (see `examples/README.md`).
+
+## Three-leg re-test status
+
+The setup instructions moved to the public repo **`bolloplayer/affinity-mcp-setup`** (this repo
+stays private/working; the old `affinity-photo-claude-code-windows` repo is archived). Re-verifying
+all three harnesses against the cleaned-up `SETUP.md` there:
+
+- ✅ **Claude Code** — re-tested. Both menu options ran clean (colour boost, and a black-and-white
+  script written from scratch against the SDK docs). Found and fixed a real `verify.ps1` bug along
+  the way: its port check parsed `netstat`'s localized state text, which fails on non-English
+  Windows.
+- ⬜ **Codex** — not yet re-tested against the new repo.
+- ⬜ **Antigravity** — not yet re-tested against the new repo.
+
+Codex and Antigravity need their own CLI/session to test — not available from a Claude Code
+session. Update this section as each leg is re-run.
