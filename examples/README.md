@@ -12,9 +12,7 @@ chain down to a document write.
 |---|---|---|
 | [`inspect-document.js`](inspect-document.js) | Prints app + current-document info (version, spreads, layers). A good "is the connection live?" first call. | No — read-only |
 | [`color-boost-two-layer.js`](color-boost-two-layer.js) | **The demo.** Adds `Boost` (saturates the six colour ranges) over `Clean` (lifts highlights, keeps blacks solid) as two independently tunable layers. | Yes — adds two adjustment layers; re-running replaces its own (undoable) |
-| [`color-boost.js`](color-boost.js) | The single-layer original: one Selective Colour layer, all six ranges, neutrals untouched. Simpler to read. | Yes — adds one adjustment layer; re-running replaces it (undoable) |
-| [`openai-color-boost-two-layer.js`](openai-color-boost-two-layer.js) | Codex's own two-layer variant, kept verbatim as the record of that test. Much fainter (strength `0.12`). | Yes — adds two adjustment layers |
-| [`test-color-boost.js`](test-color-boost.js) | Two-layer variant with `(Test)` suffixes, used for the Antigravity verification. | Yes — adds two adjustment layers |
+| [`color-boost.js`](color-boost.js) | The single-layer original: one Selective Colour layer, all six ranges, neutrals untouched. Simpler to read, and what the step-by-step tutorial walks through. | Yes — adds one adjustment layer; re-running replaces it (undoable) |
 
 ## Running an example
 

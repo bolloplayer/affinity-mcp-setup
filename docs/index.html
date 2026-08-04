@@ -421,7 +421,7 @@
   first AI-written adjustment layer.</p>
   <p class="lede"><b>Not a Claude user?</b> Affinity's server is open to any AI that speaks MCP — Codex,
   Antigravity, OpenCode. You don't have to follow a guide for those: point your own agent at
-  <a href="https://github.com/bolloplayer/affinity-photo-claude-code-windows/blob/main/SETUP.md">the
+  <a href="https://github.com/bolloplayer/affinity-mcp-setup/blob/main/SETUP.md">the
   repo's <code>SETUP.md</code></a> and it will set the connection up itself.
   <a href="#other-ai">The short version is further down.</a></p>
   <img class="cmp-img" src="img/before-after.jpg"
@@ -468,7 +468,7 @@
   Claude's briefing, the script. This is the shape you're after:</p>
 
   <p class="term-label">what you get</p>
-  <div class="term shrink"><pre>affinity-photo-claude-code-windows/
+  <div class="term shrink"><pre>affinity-mcp-setup/
 ├── .mcp.json          <span class="dim">← the connection — ready to use, don't edit</span>
 ├── CLAUDE.md          <span class="dim">← Claude's briefing, read at every session start</span>
 ├── examples/          <span class="dim">← color-boost.js lives here</span>
@@ -479,8 +479,8 @@
   appears — connection file, Color Boost script, Claude's briefing, and a diagnostic tool, all included:</p>
 
   <p class="term-label">terminal</p>
-  <div class="term"><button class="copy-btn" type="button" aria-label="Copy commands to clipboard" data-copy="cd ~\Desktop&#10;git clone https://github.com/bolloplayer/affinity-photo-claude-code-windows.git"><svg class="ic-copy" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="ic-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></button><pre><span class="dim">&gt;</span> cd ~\Desktop
-<span class="dim">&gt;</span> git clone https://github.com/bolloplayer/affinity-photo-claude-code-windows.git</pre></div>
+  <div class="term"><button class="copy-btn" type="button" aria-label="Copy commands to clipboard" data-copy="cd ~\Desktop&#10;git clone https://github.com/bolloplayer/affinity-mcp-setup.git"><svg class="ic-copy" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="ic-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></button><pre><span class="dim">&gt;</span> cd ~\Desktop
+<span class="dim">&gt;</span> git clone https://github.com/bolloplayer/affinity-mcp-setup.git</pre></div>
 
   <div class="shortcut">
     <h3>No git? Build the folder by hand</h3>
@@ -504,7 +504,7 @@
 - Read the Affinity SDK "preamble" doc once per session, before running any script.
 - Scripts and exports live in this folder. Start with color-boost.js.</pre></div>
     <p><b>3 · The script</b> — download
-    <a href="https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main/examples/color-boost.js">color-boost.js</a>
+    <a href="https://raw.githubusercontent.com/bolloplayer/affinity-mcp-setup/main/examples/color-boost.js">color-boost.js</a>
     (right-click → <em>Save link as…</em>) and put it in the folder.</p>
   </div>
 
@@ -672,13 +672,13 @@
     server as in step 1, then paste this to whichever AI you use:</p>
     <div class="term"><pre>Set up a connection to Affinity Photo's MCP server on Windows.
 
-Follow github.com/bolloplayer/affinity-photo-claude-code-windows — read its
+Follow github.com/bolloplayer/affinity-mcp-setup — read its
 SETUP.md and do what it says for the harness you're running in, including the
 verification at the end. If you get stuck, tell me where the doc stopped
 matching what you found.</pre></div>
     <p>It writes the config, fetches the scripts it needs, and asks you to restart once. After that it
     proves the connection without touching anything of yours, then offers you a short menu: leave it there,
-    run the <a href="https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main/examples/color-boost-two-layer.js">two-layer
+    run the <a href="https://raw.githubusercontent.com/bolloplayer/affinity-mcp-setup/main/examples/color-boost-two-layer.js">two-layer
     Color Boost</a> on your open photo and see the before/after, write a look of your own, or make the
     connection machine-wide so you never set it up again.</p>
   </div>
@@ -702,7 +702,7 @@ matching what you found.</pre></div>
     <h3>Which model should write the scripts?</h3>
     <p>They all get the architecture right and the API calls wrong — the Affinity SDK is too new to be well
     represented in training data, so expect simple scripts first try and a review pass on complex ones. The
-    repo's <a href="https://github.com/bolloplayer/affinity-photo-claude-code-windows/blob/main/docs/choosing-your-ai.md">model
+    repo's <a href="https://github.com/bolloplayer/affinity-mcp-setup/blob/main/docs/choosing-your-ai.md">model
     and harness comparison</a> lays out what's actually been verified, what's assumed, and what each option
     costs. One result worth knowing up front: <b>DeepSeek Flash</b> produced cleaner SDK code than its more
     expensive Pro sibling, at a fraction of the price — and Claude Code can be pointed straight at it without
@@ -774,8 +774,8 @@ matching what you found.</pre></div>
 <footer>
   <div class="wrap">
     <div class="links">
-      <a href="https://github.com/bolloplayer/affinity-photo-claude-code-windows">Companion repo — config, scripts, verify.ps1</a>
-      <a href="https://github.com/bolloplayer/affinity-photo-claude-code-windows/blob/main/SETUP.md">SETUP.md — hand it to any AI</a>
+      <a href="https://github.com/bolloplayer/affinity-mcp-setup">Companion repo — config, scripts, verify.ps1</a>
+      <a href="https://github.com/bolloplayer/affinity-mcp-setup/blob/main/SETUP.md">SETUP.md — hand it to any AI</a>
       <a href="deepseek.html">Same setup, DeepSeek instead of Claude</a>
       <a href="https://github.com/JiriKrblich/Affinity-Community-Scripts">Affinity Community Scripts</a>
       <a href="https://affinityhub.js.org/">Affinity Hub</a>

@@ -22,6 +22,9 @@ Two facts to get straight before step 1, because they save a lot of confusion:
 So the model is largely a free choice, and the CLI is the real constraint. Pick the model you want,
 then check it's reachable from a CLI in step 2.
 
+**Setup steps for any of the harnesses below live in [`SETUP.md`](../SETUP.md)** — this page is
+about which one to pick, not how to wire it up.
+
 ## Quick view — by app
 
 <br>
@@ -48,8 +51,8 @@ then check it's reachable from a CLI in step 2.
 *(Note: Standard web browser chat interfaces like `gemini.google.com` or `chatgpt.com` cannot reach local Windows loopback sockets like `[::1]:6767`; local MCP requires a supported desktop app or CLI harness.)*
 
 *\* Expected to work by config inheritance — the desktop/IDE surface reads the same config file as the
-CLI that was tested — but not individually tested. The corresponding CLI in the same row **was**
-tested.*
+CLI that was tested — but not individually verified in its own right. The corresponding CLI in the same row **was**
+verified.*
 
 <br>
 
@@ -66,33 +69,33 @@ reaches Affinity at all.
 
 | App | Model | MCP | Transport | Status |
 |---|---|---|---|---|
-| Claude Desktop — **Home** tab (chat) | Sonnet / Opus | Official **Affinity connector** — install once via Claude Desktop's own Settings → Connectors → Browse connectors → "Affinity". No project `.mcp.json`, no manual URL. | SSE, local (`[::1]:6767`), wrapped by the connector — you never see the URL | ✅ Confirmed — Affinity's own Help Center article, "AI Automation with Claude" |
-| Claude Desktop — **Code** tab (Cowork) | Sonnet / Opus | Inherits the same official app-level connector — **confirmed** by a clean test: a brand-new session started with only an empty, `.mcp.json`-free folder connected still reached the Affinity MCP server, read the preamble, and ran a script successfully. No project `.mcp.json` required. | SSE | ✅ Confirmed by direct test (this project, empty `empty-mcp-test/` folder) |
-| Claude Code (terminal / VS Code extension) | Opus / Sonnet | Needs `.mcp.json` in the project folder — no app-level connector | SSE native | ✅ Tested, documented below |
-| ChatGPT app — **Chat** tab | GPT-5.x / GPT-5.6 | Cloud connectors only; no Affinity connector was available and the local loopback server was not exposed to the chat | None available | ❌ Tested 28 July 2026 — no Affinity connection, tool schemas, preamble or script execution. This is a missing ChatGPT connector, not an Affinity or script failure |
-| ChatGPT app — **Codex** tab | GPT-5.x / GPT-5.6 | Custom stdio/SSE protocol bridge in `bridge/affinity-codex-bridge.mjs`, read from `~/.codex/config.toml` | stdio bridge → SSE, translating `2025-06-18` to `2025-11-25` | ✅ Tested 29 July 2026 — connects to Affinity and runs scripts. **No terminal needed** — this is the easiest OpenAI path |
-| **`codex` CLI** in a terminal | GPT-5.x / GPT-5.6 | Same `~/.codex/config.toml`, same custom bridge | stdio bridge → SSE, same version translation | ✅ Fresh `codex exec` auto-loaded the tools, read `preamble`, ran a read-only script. Verified independently on npm CLI `0.145.0`, 29 July 2026 |
-| Codex **IDE extension** (VS Code / Cursor / JetBrains) | GPT-5.x / GPT-5.6 | Expected to inherit the same `~/.codex/config.toml` and bridge | stdio bridge → SSE | ❓ Never run — config inheritance is an assumption, not a test |
-| Antigravity CLI / IDE (`agy`) | Gemini, plus the other models Antigravity fronts — a 30 July session identified itself as **GPT-OSS 120B**, so do not assume Gemini | Native SSE via `.agents/mcp_config.json` (`serverUrl` field) | SSE native | ✅ Verified 29 July 2026 — connects to Affinity, reads preamble, executes scripts. The run's model was not recorded, so this proves the harness |
+| Claude Desktop — **Home** tab (chat) | Sonnet / Opus | Official **Affinity connector** — install once via Claude Desktop's own Settings → Connectors → Browse connectors → "Affinity". No project `.mcp.json`, no manual URL. | SSE, local (`[::1]:6767`), wrapped by the connector — you never see the URL | ✅ Documented by Affinity's own Help Center article, "AI Automation with Claude" |
+| Claude Desktop — **Code** tab (Cowork) | Sonnet / Opus | Inherits the same official app-level connector — a brand-new session with only an empty, `.mcp.json`-free folder still reaches the Affinity MCP server, reads the preamble, and runs a script. No project `.mcp.json` required. | SSE | ✅ Confirmed |
+| Claude Code (terminal / VS Code extension) | Opus / Sonnet | Needs `.mcp.json` in the project folder — no app-level connector | SSE native | ✅ Verified, documented in `SETUP.md` |
+| ChatGPT app — **Chat** tab | GPT-5.x | Cloud connectors only; no Affinity connector exists and the local loopback server isn't exposed to the chat | None available | ❌ No Affinity connection possible — a missing ChatGPT connector, not an Affinity or script failure |
+| ChatGPT app — **Codex** tab | GPT-5.x | Custom stdio/SSE protocol bridge in `bridge/affinity-codex-bridge.mjs`, read from `~/.codex/config.toml` | stdio bridge → SSE, translating `2025-06-18` to `2025-11-25` | ✅ Verified — connects to Affinity and runs scripts. No terminal needed — the easiest OpenAI path |
+| **`codex` CLI** in a terminal | GPT-5.x | Same `~/.codex/config.toml`, same custom bridge | stdio bridge → SSE, same version translation | ✅ Verified — auto-loads the tools, reads `preamble`, runs scripts |
+| Codex **IDE extension** (VS Code / Cursor / JetBrains) | GPT-5.x | Expected to inherit the same `~/.codex/config.toml` and bridge | stdio bridge → SSE | ❓ Not yet run — config inheritance is an assumption |
+| Antigravity CLI / IDE (`agy`) | Gemini, plus other models Antigravity fronts — don't assume Gemini | Native SSE via `.agents/mcp_config.json` (`serverUrl` field) | SSE native | ✅ Verified — connects to Affinity, reads preamble, executes scripts |
 
 ### OpenAI — only two of the three surfaces reach Affinity
 
 | Surface | Result |
 |---|---|
-| **ChatGPT Chat** | ❌ Tested 28 July 2026. No Affinity entry exists in the plug-in directory, and a local loopback server is not exposed to chat. No tool schema reaches the model at all — a connector-availability gap, so there is nothing to fix at the config or script level |
-| **ChatGPT app, Codex tab** | ✅ Tested 29 July 2026. Reads the same `~/.codex/config.toml` as the CLI, so the bridge serves it too. The easiest OpenAI path — no terminal — but the bridge still has to be installed locally; this is not a managed connector like Claude Desktop's |
-| **`codex` CLI** | ✅ Tested 29 July 2026 on npm CLI `0.145.0` and packaged `0.146.0-alpha.3.1`. Full round-trip: 11 tools discovered from a fresh process, preamble read, `examples/color-boost.js` executed, and a generated two-layer variant executed and re-run safely |
+| **ChatGPT Chat** | ❌ No Affinity entry exists in the plug-in directory, and a local loopback server is not exposed to chat. No tool schema reaches the model at all — a connector-availability gap, not something to fix at the config or script level |
+| **ChatGPT app, Codex tab** | ✅ Reads the same `~/.codex/config.toml` as the CLI, so the bridge serves it too. The easiest OpenAI path — no terminal — but the bridge still has to be installed locally; this is not a managed connector like Claude Desktop's |
+| **`codex` CLI** | ✅ Full round-trip verified: tools discovered from a fresh process, preamble read, colour-boost script executed and safely re-run |
 
 Both working surfaces need the bridge for one reason: **Codex initializes with MCP protocol
 `2025-06-18` and Affinity accepts only `2025-11-25`.** A generic `mcp-remote` establishes the SSE
 transport and then passes that initialization through unchanged, so it fails with `-32602` after
-appearing to connect. `bridge/affinity-codex-bridge.mjs` translates the version; see
-"Codex on Windows" below for the config. Affinity identifies itself as server `Affinity` `1.0.0`.
+appearing to connect. `bridge/affinity-codex-bridge.mjs` translates the version; see `SETUP.md`'s
+Codex section for the config. Affinity identifies itself as server `Affinity` `1.0.0`.
 
 ### Claude Desktop — both tabs work through the official connector
 
-**Source, confirmed:** Affinity's Help Center (Automation → *AI Automation with Claude*) describes
-the Home-tab flow — install the Affinity connector from Claude's connector directory, enable
+**Source:** Affinity's Help Center (Automation → *AI Automation with Claude*) describes the
+Home-tab flow — install the Affinity connector from Claude's connector directory, enable
 `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable MCP server` in Affinity, then verify with the
 prompt *"Can you see the Affinity MCP server?"*. Requires **Affinity April '26 or later** and
 **Claude Desktop**; free during the current beta. It does not use your Claude plan's monthly AI
@@ -100,19 +103,15 @@ allowance unless you also enable Canva AI Studio features in the MCP privacy set
 premium/ultra Canva AI tools draw on your Canva plan's allowance. Only Claude is supported today;
 MCP isn't available in Affinity China or on mobile.
 
-**The "Code" tab (Cowork) needs no project `.mcp.json`** — settled by a clean test: a brand-new
-session started with only an empty, `.mcp.json`-free folder connected from the first message reached
-Affinity immediately, loaded the preamble and ran a script. It inherits the same app-level connector
-as the Home tab, which makes a project `.mcp.json` redundant there, though harmless. (Testing this
-mid-session proves nothing — a session already connected to the folder holding `.mcp.json` keeps that
-connection when you mount a second empty folder.)
+**The "Code" tab (Cowork) needs no project `.mcp.json`.** It inherits the same app-level connector
+as the Home tab, which makes a project `.mcp.json` redundant there, though harmless.
 
 ---
 
 ## The whole picture, at a glance
 
-Rough framework — every combination we know of, in one place. Status is honest: most of the grid is
-unverified, and the endpoint details for the untested rows still need checking.
+Rough framework — every combination we know of, in one place. Status is honest: some of the grid is
+unverified.
 
 | # | Model | How you pay | CLI | Config file | Transport | Status |
 |---|---|---|---|---|---|---|
@@ -121,38 +120,31 @@ unverified, and the endpoint details for the untested rows still need checking.
 | 3 | deepseek-v4-pro | Prepaid credits | OpenCode | `opencode.jsonc` | SSE | ✅ Verified — worse than Flash |
 | 4 | deepseek-v4-flash | Prepaid credits | Claude Code (redirected) | `.mcp.json` | SSE | ✅ Verified |
 | 5 | `opencode/deepseek-v4-flash-free` | Free | OpenCode | `opencode.jsonc` | SSE | ✅ Verified — $0 smoke test |
-| 6 | GPT-5.x | ChatGPT subscription | Codex CLI | `~/.codex/config.toml` | custom stdio bridge | ✅ Fresh CLI auto-loaded tools, read `preamble`, and ran a read-only script |
-| 7 | GPT-5.x | OpenAI API key | Codex CLI | `~/.codex/config.toml` | stdio bridge | ✅ Same local transport verified; API-key authentication itself not tested |
+| 6 | GPT-5.x | ChatGPT subscription | Codex CLI | `~/.codex/config.toml` | custom stdio bridge | ✅ Verified |
+| 7 | GPT-5.x | OpenAI API key | Codex CLI | `~/.codex/config.toml` | stdio bridge | ✅ Same local transport verified; API-key authentication itself not separately tested |
 | 8 | GPT-5.x | OpenAI API key | OpenCode | `opencode.jsonc` | SSE | ❓ Untested — should just work |
-| 9 | Gemini | Google subscription | Antigravity | `.agents/mcp_config.json` | SSE | ✅ Connection and script execution verified (29 July 2026) — but which model served that run was not recorded, and Antigravity fronts non-Gemini models, so "Gemini" is the label rather than a confirmed fact |
-| 10 | Antigravity's other models | Via Antigravity | Antigravity | `.agents/mcp_config.json` | SSE | ⚠️ **GPT-OSS 120B (Medium)** completed setup — config, byte-exact downloads, handoff note, restart — then could not call the tools it had, trying `node`, an invented `agy mcp` subcommand, and two fabricated "still running" reports. Harness fine, model unable to drive MCP |
+| 9 | Gemini | Google subscription | Antigravity | `.agents/mcp_config.json` | SSE | ✅ Connection and script execution verified — which model actually served the run wasn't recorded, so "Gemini" is a label rather than a confirmed fact |
+| 10 | Antigravity's other models | Via Antigravity | Antigravity | `.agents/mcp_config.json` | SSE | ⚠️ At least one non-Gemini model completed setup correctly but could not call the MCP tools it had been given. Harness fine, model unable to drive MCP — pick a model in Antigravity deliberately (`agy models`) rather than taking the default |
 | 11 | Gemini | Google API key | Gemini CLI | `~/.gemini/settings.json` | ❓ | ❓ Not looked at yet |
 | 12 | Any local model | Free | Ollama / LM Studio | — | none | ❌ No MCP client — not viable |
 
 ### Settled — Affinity is SSE-only, there is no Streamable HTTP endpoint
 
-This was previously listed as the highest-value open question. It is now answered: **no.** Probed on
-28 July 2026 with a JSON-RPC `initialize` POST against `/mcp`, `/`, `/message`, `/streamable`,
-`/http` and `/sse` — every path returned `404`. Only `/message` responded at all, with
-`{"error":"Session not found"}`, confirming it is the SSE session's POST channel rather than a
-standalone transport. `mcp-remote` reaches the same conclusion independently: it attempts Streamable
-HTTP first, takes the 404, and falls back to SSE.
+Probed exhaustively: a JSON-RPC `initialize` POST against `/mcp`, `/`, `/message`, `/streamable`,
+`/http` and `/sse` — every path but `/sse` returned `404`. `mcp-remote` reaches the same conclusion
+independently: it attempts Streamable HTTP first, takes the 404, and falls back to SSE.
 
 Consequence: rows 6–7 keep a bridge **permanently**. There is no one-line `url = …` form to collapse
-to, and any future guide claiming otherwise is wrong.
+to.
 
-### Open questions to settle later
+### Open questions
 
 - **Row 8** — OpenCode + an OpenAI key is the path of least resistance for ChatGPT owners, but
-  nobody has run it here.
+  nobody has run it here yet.
 - **Row 11** — Gemini CLI's config shape and transport are unconfirmed; the row is a placeholder.
-- **Rows 9–10** — the **harness** is settled: on 29 July 2026 Antigravity connected over native SSE,
-  loaded the preamble, ran the inspection script and executed a generated two-layer script against
-  Affinity. What is *not* settled is the **model**: that run did not record which of Antigravity's
-  models served it, and one run cannot verify two rows. A 30 July run did name itself — **GPT-OSS
-  120B (Medium)** — which is worth knowing for its own sake, because it shows an Antigravity session
-  need not be Gemini at all. But it stalled in setup and never called a tool, so it moves neither
-  row. Both stay as they are until a run notes its model *and* executes a script.
+- **Rows 9–10** — the **harness** is settled: Antigravity connects over native SSE, loads the
+  preamble, and executes scripts. What is *not* settled is the **model** — a run needs to both name
+  its model and successfully execute a script before either row moves.
 
 ---
 
@@ -173,9 +165,9 @@ produced cleaner SDK code than the expensive one. Don't assume the flagship is t
 
 | Model | Reach it via | Status |
 |---|---|---|
-| **GPT-5.x / GPT-5.x-Codex** (ChatGPT subscription or OpenAI API key) | Codex CLI, OpenCode | Fresh Codex CLI automatic loading, SDK reads, read-only execution, and the generated two-layer Selective Colour variant are verified |
-| **Gemini** | Antigravity, Gemini CLI | Config shape verified and a live round-trip passed through Antigravity (29 July 2026). SDK accuracy not measured — the run's model was not recorded, and an Antigravity session is not necessarily Gemini |
-| **Antigravity's other models** | Antigravity | **GPT-OSS 120B (Medium)** is a poor pick for this work: it set the connection up correctly and then could not call the MCP tools it had been given, so no script ever ran and SDK accuracy could not be measured. Choose a model in Antigravity with `agy models` rather than taking the default |
+| **GPT-5.x / GPT-5.x-Codex** (ChatGPT subscription or OpenAI API key) | Codex CLI, OpenCode | Automatic loading, SDK reads, script execution and a generated two-layer variant are all verified |
+| **Gemini** | Antigravity, Gemini CLI | Config shape verified and a live round-trip passed through Antigravity. SDK accuracy not measured — the run's model wasn't recorded, and an Antigravity session is not necessarily Gemini |
+| **Antigravity's other models** | Antigravity | At least one non-Gemini model is a poor pick for this work: it set the connection up correctly and then could not call the MCP tools it had been given, so no script ever ran and SDK accuracy could not be measured. Choose a model in Antigravity with `agy models` rather than taking the default |
 
 #### On the OpenAI side specifically
 
@@ -186,11 +178,10 @@ OpenAI's coding models sit behind two different doors, and it matters which one 
 - **OpenAI API key** — pay per token, billed separately from ChatGPT. Works with Codex CLI and with
   third-party harnesses like OpenCode.
 
-Model names on this side churn fast (GPT-5.5 in spring 2026, the GPT-5.6 *sol / terra / luna* tiers
-from July 2026, plus `-Codex`, `-Max`, `-Mini` and `-Spark` variants). **Don't trust any list,
-including this one, to still be current.** Run `/model` inside Codex CLI — it shows exactly what
-your install and your plan can actually reach today. As a rule of thumb: the mid tier is the right
-default for Affinity scripting, and the cheap/small tier is fine for simple one-adjustment scripts.
+Model names on this side churn fast. **Don't trust any list, including this one, to still be
+current.** Run `/model` inside Codex CLI — it shows exactly what your install and your plan can
+actually reach today. As a rule of thumb: the mid tier is the right default for Affinity scripting,
+and the cheap/small tier is fine for simple one-adjustment scripts.
 
 ### Not viable as "the model"
 
@@ -210,12 +201,11 @@ Practical consequence:
 - **Simple scripts** (one adjustment layer, set some parameters, set opacity/blend mode) —
   production-ready from any of these models, first try.
 - **Complex scripts** (pixel buffers, render engine, file I/O, history manipulation) — expect to
-  review and fix the specific API calls. Our complex test needed four fixes before it ran correctly.
-  Treat it like a capable junior dev: sound instincts, shaky API recall.
+  review and fix the specific API calls.
 
 This isn't really a model weakness — the Affinity SDK is new and thinly represented in training
-data. The fix is context, not a bigger model: have the agent read the SDK preamble each session
-(step 3), and record discoveries with `add_sdk_hint` so the next session inherits them.
+data. The fix is context, not a bigger model: have the agent read the SDK preamble each session,
+and record discoveries with `add_sdk_hint` so the next session inherits them.
 
 ---
 
@@ -228,21 +218,20 @@ transport it speaks, and how much of it is proven.
 |---|---|---|---|---|
 | **Claude Code** | Claude; anything on an Anthropic-compatible endpoint (DeepSeek) | `.mcp.json` in the project | SSE native | ✅ Proven, extensively |
 | **OpenCode** | Almost anything — Claude, GPT, DeepSeek, Gemini, local | `~/.config/opencode/opencode.jsonc` | SSE native (`remote`) | ✅ Full round-trip passed |
-| **Codex CLI / desktop environment** | GPT-5.x via ChatGPT login or OpenAI API key | `~/.codex/config.toml` | custom stdio bridge → SSE | ✅ Fresh CLI automatically discovered the tools, read `preamble`, and ran a read-only Affinity script |
-| **Antigravity** (`agy`) | Gemini, plus its other models | `.agents/mcp_config.json` | SSE (`serverUrl` field) | ✅ Verified 29 July 2026 — live round-trip and script execution passed |
+| **Codex CLI / desktop environment** | GPT-5.x via ChatGPT login or OpenAI API key | `~/.codex/config.toml` | custom stdio bridge → SSE | ✅ Automatically discovers the tools, reads `preamble`, runs scripts |
+| **Antigravity** (`agy`) | Gemini, plus its other models | `.agents/mcp_config.json` | SSE (`serverUrl` field) | ✅ Verified — live round-trip and script execution passed |
 
 ### The Codex caveat, in full
 
 Codex CLI's `config.toml` accepts exactly two kinds of MCP server: a **stdio** server (`command` +
 `args`) or a **Streamable HTTP** server (`url`). SSE isn't in the list. So dropping Affinity's
-`/sse` URL straight into `url = …` is not expected to work — the client will try to speak Streamable
-HTTP to an SSE endpoint.
+`/sse` URL straight into `url = …` doesn't work — the client tries to speak Streamable HTTP to an
+SSE endpoint.
 
-The workaround is the repository's **custom stdio bridge**. A generic `mcp-remote` subprocess is
-not enough: Codex `0.145.0` and `0.146.0-alpha.3.1` request MCP `2025-06-18`, while Affinity accepts
-only `2025-11-25`. The custom bridge performs that initialization translation in addition to the
-stdio-to-SSE transport. It rewrites only `initialize`; subsequent JSON-RPC messages pass through
-unchanged. This is the one place in the project where Node.js is required.
+The workaround is the repository's **custom stdio bridge** — see `SETUP.md`'s Codex section for the
+config. A generic `mcp-remote` subprocess is not enough, because Codex requests MCP `2025-06-18`
+while Affinity accepts only `2025-11-25`; the custom bridge translates that in addition to the
+stdio-to-SSE transport.
 
 If you only have a ChatGPT subscription and no interest in installing a bridge, the cleaner path is
 **OpenCode with an OpenAI API key** — native SSE, no bridge, same models.
@@ -253,289 +242,16 @@ If you only have a ChatGPT subscription and no interest in installing a bridge, 
 |---|---|
 | **The most reliable setup** | Claude Code + Claude |
 | **The cheapest verified setup** | OpenCode + `deepseek-v4-flash` |
-| **Cheap, on the proven connection** | Claude Code + DeepSeek, via the redirect in step 3 |
+| **Cheap, on the proven connection** | Claude Code + DeepSeek, via the redirect below |
 | **Zero-cost smoke test** | OpenCode + `opencode/deepseek-v4-flash-free` — works with no API key at all |
 | **You already pay for ChatGPT** | The ChatGPT app's **Codex** tab + the custom bridge — no terminal needed. Same capability in a terminal via the `codex` CLI. (`Chat` cannot reach Affinity at all.) |
 
 That third row is a useful trick: DeepSeek publishes an **Anthropic-API-compatible endpoint**, so
 Claude Code can be pointed at DeepSeek instead of Anthropic. The harness, the MCP connection, and
-every config file stay exactly as they were — only the model changes. It's the cleanest way to swap
-models without re-learning a new CLI's config format.
+every config file stay exactly as they were — only the model changes.
 
----
-
-## Step 3 — Setup, short
-
-### Prerequisites (both required, every time)
-
-1. **Affinity is running.** Its MCP server only listens while the app is open. Launch Affinity
-   *before* the CLI.
-2. **The MCP toggle is on:** `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable Affinity MCP`.
-
-The endpoint is always:
-
-```
-http://[::1]:6767/sse
-```
-
-### Minimal config, per CLI
-
-**Claude Code** — `.mcp.json` in your project folder:
-
-```json
-{
-  "mcpServers": {
-    "affinity": { "type": "sse", "url": "http://[::1]:6767/sse" }
-  }
-}
-```
-
-**OpenCode** — one command, no file editing:
-
-```
-opencode mcp add affinity --url "http://[::1]:6767/sse"
-opencode mcp list          # should report: connected
-```
-
-**Codex CLI / desktop environment** — sign in first (`codex login` for ChatGPT accounts, or set
-`OPENAI_API_KEY`), then add the bridge to `~/.codex/config.toml`. On Windows, `~` means the current
-user profile, so the normal path is `%USERPROFILE%\.codex\config.toml`:
-
-```toml
-[mcp_servers.affinity]
-command = "node.exe"
-args = ["C:\\absolute\\path\\to\\bridge\\affinity-codex-bridge.mjs"]
-```
-
-Check it with `codex mcp list`, then fully restart Codex or open a fresh task so the configuration is
-loaded. An `enabled` row confirms only that Codex loaded the configuration; successful tool
-discovery proves the handshake. Pick your model with `/model` inside the CLI. The custom bridge can
-be removed only when Codex and Affinity support a common protocol version and compatible transport.
-
-**Antigravity** — `.agents/mcp_config.json` (mind the `serverUrl` field, not `url`):
-
-```json
-{
-  "mcpServers": {
-    "affinity": { "serverUrl": "http://[::1]:6767/sse" }
-  }
-}
-```
-
-### Codex on Windows — start-to-finish setup
-
-A Codex project does **not** use Claude's `.mcp.json`. Configure the bridge once for the Windows user:
-
-1. Launch Affinity and enable
-   `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable Affinity MCP`.
-2. Install the current Node.js LTS release, then verify `node --version` in a new terminal.
-3. Sign in with `codex login` for a ChatGPT subscription, or configure `OPENAI_API_KEY` for API
-   billing. Model authentication is separate from the local Affinity connection.
-4. Open or create `%USERPROFILE%\.codex\config.toml`, preserving unrelated settings, and add:
-
-   ```toml
-   [mcp_servers.affinity]
-   command = "node.exe"
-   args = ["C:\\absolute\\path\\to\\bridge\\affinity-codex-bridge.mjs"]
-   ```
-
-5. Check the saved entry with `codex mcp list`.
-6. Keep Affinity open and start a genuinely fresh `codex` process or Codex task.
-7. Ask Codex to confirm that the Affinity tools were loaded automatically, read `preamble`, and run
-   a read-only document inspection before any editing script.
-
-Do not configure Affinity as `url = "http://[::1]:6767/sse"` in Codex: that field expects
-Streamable HTTP, while Affinity exposes legacy SSE. The local stdio bridge performs the conversion.
-
-To prove the whole chain from outside Codex — initialize through the bridge, list the real tools,
-read the preamble, touch nothing — run `node .\bridge\smoke-test.mjs`.
-
-#### Codex troubleshooting
-
-- **`mcp-remote` reports `-32602 Unsupported protocol version`:** it does not translate Codex's
-  `2025-06-18` initialization. Use `bridge/affinity-codex-bridge.mjs`.
-- **Connection tries `127.0.0.1`:** use the IPv6 loopback URL `http://[::1]:6767/sse`.
-- **Nothing listens on port 6767:** start Affinity, enable MCP, and restart Affinity if the toggle
-  was just changed.
-- **`codex mcp list` says `enabled`, but no tools appear:** `enabled` describes configuration state,
-  not handshake success. Check the startup log for a protocol error.
-- **`codex exec` says `user cancelled MCP tool call`:** its non-interactive approval policy blocked
-  the call. Use the interactive TUI for normal work; this message does not mean the bridge failed.
-- **Tools disappear after an Affinity restart:** start a fresh task or reconnect the MCP server.
-- **Affinity tools are missing in a fresh CLI:** record the exact startup/protocol error. Do not
-  substitute a hand-written SSE client — it proves nothing about the config, which is the thing being
-  tested.
-
-### Antigravity (`agy`) on Windows — start-to-finish setup
-
-Antigravity uses native SSE transport to connect directly to Affinity Photo without needing a protocol translation bridge.
-
-#### Configuration File
-
-Place `.agents/mcp_config.json` in your project root workspace:
-
-```json
-{
-  "mcpServers": {
-    "affinity": {
-      "serverUrl": "http://[::1]:6767/sse"
-    }
-  }
-}
-```
-
-> **Important Note on Field Name:** Antigravity requires the JSON key to be **`serverUrl`** (not `url`). Using `url` will prevent Antigravity from establishing the SSE connection.
-
-#### Step-by-Step Connection & Execution Guide
-
-1. **Enable MCP in Affinity:** Open Affinity Photo and navigate to `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable Affinity MCP`.
-2. **Create Project Config:** Create `.agents/mcp_config.json` in your workspace directory with the `"serverUrl": "http://[::1]:6767/sse"` configuration above.
-3. **Verify Environment & Network Plumbing (optional):** Run `verify.ps1` yourself from PowerShell to confirm Affinity is running, port 6767 is listening on IPv6 loopback (`[::1]`), and the SSE handshake returns HTTP 200:
-   ```powershell
-   powershell -NoProfile -ExecutionPolicy Bypass -File .\verify.ps1
-   ```
-   It will report `No .mcp.json in this folder` and suggest creating one. **Ignore that** — it is a Claude Code check, and your config is `.agents/mcp_config.json`. Don't ask an agent to run this script for you: in testing, one took that line at face value and went off inventing a `.mcp.json`. The transport checks it performs are the same for every harness, so run it as a human sanity check or skip it.
-4. **Start Antigravity:** Launch `agy` or start an Antigravity agentic session. Antigravity automatically parses `.agents/mcp_config.json` and connects to the Affinity MCP server.
-5. **Read the SDK Preamble First:** Before executing any script in Affinity, call `read_sdk_documentation_topic` with `{ filename: "preamble" }`. Affinity's MCP server enforces that the preamble documentation topic must be read prior to accepting `execute_script` calls.
-6. **Execute JavaScript Scripts:** Run scripts via the `execute_script` tool — `examples/inspect-document.js` to look without changing anything, then `examples/color-boost-two-layer.js`. (`examples/test-color-boost.js` is a record of one model's generated output, not a starting point.)
-
-#### What the 29 July 2026 run showed
-
-Run live from this repository through `agy`. The model that served it was not recorded, so read this
-as the **harness** being proven, not any particular model:
-
-* **Connection & handshake:** native SSE to `http://[::1]:6767/sse`, no bridge.
-* **Tool discovery:** all 11 Affinity tools loaded automatically from the config file.
-* **SDK preamble:** read successfully.
-* **Script execution:** ran document inspection, then a generated two-layer Selective Colour script
-  that created its adjustment layers live in Affinity.
-
-Everything past the connection — whether a restart is needed, which file carries a resume note across
-one — is **best guess** rather than tested, extrapolated from the Claude Code and Codex paths. SETUP.md's
-Antigravity section marks each guess in place and says what to record when a live run settles it.
-
-#### What the 30 July 2026 run added
-
-A second run followed the setup document from scratch in an empty folder. It never reached the tools,
-and the ways it failed are worth more than a pass would have been:
-
-* **The model was `GPT-OSS 120B (Medium)`** — asked directly, that is what it answered. An Antigravity
-  session is not automatically a Gemini session.
-* **Its file-writing tool was scoped to its own artifacts directory** and would not write into the
-  user's workspace. Most of the session went on rediscovering that one refused call at a time; the way
-  through is shelling out to PowerShell.
-* **It reconstructed files from fetched raw URLs instead of cloning**, producing them at 33–49% of
-  real size — valid syntax, wrong contents. Its rebuilt `verify.ps1` then printed `All checks passed`,
-  including a handshake probe it had not really performed.
-* **It ran `verify.ps1`, hit the `No .mcp.json` line, and surfaced it to the user as a caveat** rather
-  than ignoring it.
-* **It did not write a resume note**, and proposed `CLAUDE.md` — the wrong harness's file — when asked.
-
-SETUP.md's Antigravity section was rewritten around these: clone rather than retype, skip `verify.ps1`
-on this path, and write `AGENTS.md` before the restart.
-
-The follow-up session, started fresh in a new terminal, added three more:
-
-* **"Resume note" was read as *résumé*.** Handed the phrase without context, it offered to write "a
-  concise professional résumé for Claude" and recommended `CLAUDE.md` as the filename. The document
-  now says **handoff note** everywhere, because the ambiguity is not the model's fault.
-* **It restarted itself by running `agy` as a background shell task** — a nested child process, not a
-  restart, which never completes and leaves the parent waiting on it. Antigravity can relaunch itself;
-  that is not the same as reloading its MCP config, and the difference is invisible from inside.
-* **`initialize` failed with `session not found` and an empty session ID.** Affinity was up the whole
-  time (`::1:6767` listening), so this is the harness never capturing the `endpoint` event's session
-  UUID off the SSE stream — the client side of the CRLF framing problem in `CLAUDE.md`, or the nested
-  process racing the connection. Not an Affinity fault, and not something to debug from the config.
-
-#### The third run — where the remaining problems actually live
-
-Run against the rewritten document, same model. Two of the three earlier failures were gone:
-
-* **File transfer is fixed.** It reached for a here-string once, was stopped, switched to
-  `Invoke-WebRequest -OutFile`, and produced `verify.ps1` (11,848 bytes), `color-boost-two-layer.js`
-  (5,013) and `inspect-document.js` byte-identical to source. **The rule was aimed slightly wrong:**
-  the document said *clone, don't fetch raw URLs*, but fetching was never the problem — reading a file
-  into context and re-emitting it is. `-OutFile` fetches and is exact. The rule is now about where the
-  bytes go, not which command fetches them.
-* **The workspace-write constraint is handled.** It shelled out to PowerShell immediately rather than
-  thrashing on refused calls.
-* **The transport was never in doubt.** The genuine `verify.ps1` reported the handshake on
-  `2025-11-25`, 11 tools, and a document open.
-
-What remained were two failures of a different kind:
-
-* **It could not write the handoff note.** Four attempts at a PowerShell literal here-string, each
-  writing `\n` as backslash-n, before giving up and asking the user to create the file by hand — with
-  the wrong filename (`CLAUDE.md`) and the wrong content. Not a comprehension failure: it knew what to
-  write. A document that requires a file-writing-impaired harness to emit fifteen lines of markdown is
-  asking for the one thing it cannot do. The note is now a repo file to download.
-* **The Claude Code section kept capturing it.** Its raw-URL list, the `§3` / `Part A` framing, the
-  three-option menu, and running `verify.ps1` — every remaining error traced there, despite the
-  Antigravity section saying in three places not to go. Warnings do not beat a concrete, copyable list
-  sitting earlier in the same document. That block is now explicitly fenced as Claude-Code-only.
-
-#### The fourth run — the document works, the model does not
-
-Against the fully fixed document, setup went through cleanly for the first time: config written,
-scripts downloaded byte-exact, `AGENTS.md` downloaded rather than composed, `verify.ps1` correctly left
-alone, and the restart requested rather than faked.
-
-**`AGENTS.md` is read at startup — confirmed.** The restarted session, given the single word "resume",
-listed the folder, read the note, and worked from it as a standing rule. That was the last open
-question in the Antigravity setup path.
-
-Then it hit step 5 and could not call an MCP tool, with all 11 in its session:
-
-* `node examples/inspect-document.js` — Affinity scripts cannot run outside Affinity.
-* `agy mcp execute_script …` — an invented subcommand; running `agy` from a shell spawns a nested
-  session that never returns.
-* Twice it announced the script was running and asked the user to wait, once with a task ID, for calls
-  it had never made.
-
-**Explicit instruction did not help.** Told in plain terms to call `read_sdk_documentation_topic` and
-`execute_script` directly and not to shell out, it raised the permission prompt for both MCP tools —
-so the harness was surfacing them correctly — then issued `agy mcp …` shell commands anyway and
-reported two task IDs as running. It appears able to reach the *approval* step for an MCP tool without
-being able to emit the call itself.
-
-**This is the first failure attributable to a model rather than to Antigravity or the document.** It
-also exposed a real ambiguity in the rewritten rule: "never emit a file's contents" is right for
-writing files to disk and wrong for `execute_script`, which takes script *source* as its argument. The
-document now scopes the rule and says so at both places.
-
-The useful next test is the same harness on a Gemini model, which would separate "Antigravity's MCP
-surface is hard to drive" from "this particular model cannot drive it."
-
-
-### Tips that save the most pain
-
-**Put the connection in the config file — never let the agent write connection code.** The most
-common failure we've seen reported is someone asking their CLI to "connect to Affinity," getting
-working ad-hoc code, and then having to redo it every session. A config-file entry is read at
-startup, every time, forever. If you're reconnecting manually each session, you skipped this step.
-
-**Use `[::1]`, not `127.0.0.1`.** Affinity binds an IPv6 loopback socket. `[::1]` always works;
-`localhost` usually resolves correctly on current builds but depends on your resolver's
-IPv4/IPv6 preference; `127.0.0.1` will refuse the connection outright. An `ECONNREFUSED` on an IPv4
-address is expected behaviour, not a broken install.
-
-**Have the agent read the SDK preamble before its first script.** In Claude Code that's
-`read_sdk_documentation_topic` with `filename: "preamble"`. The server expects it, and the response
-carries accumulated SDK hints — this is the single biggest lever on how much hallucinated API code
-you'll have to fix.
-
-**When tools vanish mid-session, reconnect before restarting.** A resumed chat or an Affinity
-restart detaches the SSE stream while leaving everything else healthy. In Claude Code: `/mcp` →
-reconnect `affinity`. Restarting the whole CLI is rarely necessary.
-
-**You don't need Node.js** — with one exception. Nothing in the integration itself uses it. The only
-things that do are `verify.ps1`'s optional handshake probe and the Codex custom bridge above.
-If a troubleshooting guide tells you to install Node to fix a *connection* problem on Claude Code or
-OpenCode, it's wrong.
-
-**If you redirect Claude Code to DeepSeek, use a separate terminal window.** The environment
-variables that do this redirect *all* traffic — including auth and billing — away from Anthropic.
-Set them in a throwaway shell, not your normal profile:
+**Use a separate terminal window for the redirect** — the environment variables involved redirect
+*all* traffic, including auth and billing, away from Anthropic:
 
 ```powershell
 $env:ANTHROPIC_BASE_URL  = "https://api.deepseek.com/anthropic"
@@ -544,8 +260,8 @@ $env:ANTHROPIC_MODEL      = "deepseek-v4-flash"
 claude
 ```
 
-Also note: Claude Code's web-search tool triggers extra LLM calls under the hood, which costs extra
-tokens against your DeepSeek balance when running this way.
+Claude Code's web-search tool triggers extra LLM calls under the hood, which costs extra tokens
+against your DeepSeek balance when running this way.
 
 ---
 

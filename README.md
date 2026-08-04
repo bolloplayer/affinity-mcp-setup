@@ -16,9 +16,9 @@ then paste this into your agent:
 
 > Set up a connection to Affinity Photo's MCP server on Windows.
 >
-> Follow `github.com/bolloplayer/affinity-photo-claude-code-windows` — read its `SETUP.md` and do
-> what it says for the harness you're running in, including the verification at the end. If you get
-> stuck, tell me where the doc stopped matching what you found.
+> Follow `github.com/bolloplayer/affinity-mcp-setup` — read its `SETUP.md` and do what it says for
+> the harness you're running in, including the verification at the end. If you get stuck, tell me
+> where the doc stopped matching what you found.
 
 That's it. Your agent reads **[`SETUP.md`](SETUP.md)**, registers the connection, proves it works
 without touching anything of yours — then offers you a short menu: leave it there, run a
@@ -78,7 +78,7 @@ Affinity accepts **MCP protocol `2025-11-25`** alone, which is why Codex needs a
 For a human walkthrough with screenshots — the Claude Code path end to end, and how to point
 Claude Code at **DeepSeek** instead without changing a single config file:
 
-**→ [bolloplayer.github.io/affinity-photo-claude-code-windows](https://bolloplayer.github.io/affinity-photo-claude-code-windows/)**
+**→ [bolloplayer.github.io/affinity-mcp-setup](https://bolloplayer.github.io/affinity-mcp-setup/)**
 
 And if you haven't picked a model or a harness yet,
 [`docs/choosing-your-ai.md`](docs/choosing-your-ai.md) compares them — what's verified, what's

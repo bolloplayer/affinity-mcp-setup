@@ -41,7 +41,7 @@ should fix, and none of them is.
 | Rule | Why |
 |---|---|
 | **Use `[::1]`, never `localhost` or `127.0.0.1`** | Affinity binds an **IPv6 loopback socket only**. `127.0.0.1:6767` returns `ECONNREFUSED` — that is expected behaviour, not a broken install. `localhost` depends on the resolver's IPv4/IPv6 preference and may silently fail. |
-| **The transport is SSE, and only SSE** | Probed exhaustively: `/mcp`, `/`, `/streamable`, `/http` all return `404`. There is **no Streamable HTTP endpoint**. Any guide claiming a one-line `url = …` form for a Streamable-HTTP-only client is wrong. |
+| **The transport is SSE, and only SSE** | There is **no Streamable HTTP endpoint**. Any guide claiming a one-line `url = …` form for a Streamable-HTTP-only client is wrong. |
 | **Affinity accepts MCP protocol `2025-11-25` only** | A client initializing with an older version gets `-32602 Unsupported protocol version`. This is not a URL, IPv6 or config error. See the Codex section. |
 | **Read the `preamble` doc before your first `execute_script`** | The server requires it, and the gate is **per connection**, not per machine or per day: a new SSE session starts un-gated and `execute_script` returns `The preamble documentation topic has not yet been read` until you call it again. The response also carries accumulated SDK hints that materially reduce hallucinated API calls. Call `read_sdk_documentation_topic` with `filename: "preamble"`. |
 | **Put the connection in the config file — never write ad-hoc connection code** | A config entry is read at startup, every session, forever. If the user has to reconnect manually each time, the config step was skipped. |
@@ -92,15 +92,14 @@ option 3 of the menu in §3 — not during first setup.
 #### Fetch the files you need — Claude Code only
 
 > **If you are not Claude Code, this block is not for you.** It fetches `verify.ps1`, which other
-> harnesses should not run, and it feeds into the `.mcp.json` / §3 / three-option flow below, which is
-> Claude Code's. Antigravity readers in particular: three separate test runs were pulled off their own
-> section by this list and ended up running the wrong preflight. Go back to your row in the table above.
+> harnesses should not run, and it feeds into the `.mcp.json` / §3 / three-option flow below, which
+> is Claude Code's. Antigravity readers in particular: go back to your row in the table above.
 
 An empty project folder has none of the repo's scripts, and the steps below run two of them. Download
 them straight to disk before the restart — no clone required:
 
 ```powershell
-$raw = "https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main"
+$raw = "https://raw.githubusercontent.com/bolloplayer/affinity-mcp-setup/main"
 New-Item -ItemType Directory -Force -Path examples | Out-Null
 Invoke-WebRequest -Uri "$raw/examples/inspect-document.js"      -OutFile examples/inspect-document.js      -UseBasicParsing
 Invoke-WebRequest -Uri "$raw/examples/color-boost-two-layer.js" -OutFile examples/color-boost-two-layer.js -UseBasicParsing
@@ -108,9 +107,9 @@ Invoke-WebRequest -Uri "$raw/verify.ps1"                        -OutFile verify.
 ```
 
 **Never read a file into your context and write it back out.** `-OutFile` puts the bytes on disk
-untouched; re-emitting them from memory produced files at 33–49% of real size in testing — valid
-syntax, wrong contents, silent failure. If you cannot write files or fetch URLs, say so and ask the
-user to clone the repo. Do not improvise the script contents.
+untouched; re-emitting them from memory has produced files at a fraction of their real size in
+testing — valid syntax, wrong contents, silent failure. If you cannot write files or fetch URLs, say
+so and ask the user to clone the repo. Do not improvise the script contents.
 
 Now read on. This next part is where the setup usually stalls.
 
@@ -229,15 +228,16 @@ for a bridge to build.
 
 **This section is complete on its own.** Everything you need is in these seven steps, including the
 two options to offer the user at the end. Do not jump to §3, and do not follow the Claude Code
-section — in testing, an agent that navigated away lost track of where it was and started inventing
-config files. If you only read one part of this document, read this one, and follow it top to bottom.
+section — an agent that navigates away from this section tends to lose track of where it was and
+start inventing config files. If you only read one part of this document, read this one, and follow
+it top to bottom.
 
 **Two files in this repo belong to Claude Code, not to you:**
 
 | File | Why it is not yours |
 |---|---|
-| `.mcp.json` | Claude Code's config format. Antigravity never reads it. **Never create one** — one tested agent invented an unrelated filesystem MCP server and wrote it here, which does nothing except confuse the user |
-| `verify.ps1` | A Claude Code preflight. Its output literally says *"Affinity ↔ Claude Code environment check"* and it reports a missing `.mcp.json` as a problem. **Do not run it and do not ask the user to run it** |
+| `.mcp.json` | Claude Code's config format. Antigravity never reads it. **Never create one.** |
+| `verify.ps1` | A Claude Code preflight. Its output literally says *"Affinity ↔ Claude Code environment check"* and it reports a missing `.mcp.json` as a problem. **Do not run it and do not ask the user to run it.** |
 
 You do not need an external check. **Assume the connection is up** if Affinity is running with a
 document open and the MCP toggle is on (§0). Step 5 proves it from inside the session, which is the
@@ -246,7 +246,8 @@ only place that matters, and it needs no PowerShell.
 #### Step 1 — write the config
 
 Create `.agents/mcp_config.json` in the workspace root. **The field is `serverUrl`, not `url`** —
-`url` prevents the SSE connection from being established and fails silently, with nothing in any log:
+`url` prevents the SSE connection from being established and fails silently, with nothing in any
+log:
 
 ```json
 {
@@ -258,10 +259,9 @@ Create `.agents/mcp_config.json` in the workspace root. **The field is `serverUr
 
 No machine-specific paths, so it works verbatim on any machine.
 
-**If your file-writing tool refuses the path, shell out — don't keep retrying it.** In the 30 July
-run, Antigravity's own write tool was scoped to its artifacts directory and would not write into the
-user's workspace. The agent spent most of the session rediscovering this, one refused call at a time,
-and stalled out into empty responses. The way through is PowerShell via the shell tool:
+**If your file-writing tool refuses the path, shell out — don't keep retrying it.** Some
+Antigravity installs scope the built-in write tool to its own artifacts directory, which will not
+write into the user's workspace. The way through is PowerShell via the shell tool:
 
 ```
 powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '<workspace>/.agents' | Out-Null"
@@ -277,36 +277,33 @@ Step 5 and the options in step 6 run scripts from this repo, and an empty worksp
 method where the bytes go from the network straight to disk is fine:
 
 ```powershell
-$raw = "https://raw.githubusercontent.com/bolloplayer/affinity-photo-claude-code-windows/main"
+$raw = "https://raw.githubusercontent.com/bolloplayer/affinity-mcp-setup/main"
 New-Item -ItemType Directory -Force -Path examples | Out-Null
 Invoke-WebRequest -Uri "$raw/examples/inspect-document.js"      -OutFile examples/inspect-document.js      -UseBasicParsing
 Invoke-WebRequest -Uri "$raw/examples/color-boost-two-layer.js" -OutFile examples/color-boost-two-layer.js -UseBasicParsing
 ```
 
-`git clone https://github.com/bolloplayer/affinity-photo-claude-code-windows` is equally fine — then
-use paths relative to where `agy` is running, `affinity-photo-claude-code-windows/examples/…` rather
-than a bare `examples/…`.
+`git clone https://github.com/bolloplayer/affinity-mcp-setup` is equally fine — then use paths
+relative to where `agy` is running, `affinity-mcp-setup/examples/…` rather than a bare `examples/…`.
 
-**What fails is reading a file into your context and writing it back out.** Tested twice on 30 July
-2026: the reconstructions came out at **33–49% of real size** — plausible, syntactically valid, and
-wrong. The rebuilt `verify.ps1` printed an invented success line; the colour-boost script had **zero**
-`executeCommand` calls, so it drove nothing at all. The same session, switched to `-OutFile`, produced
-all three files byte-exact. If you find yourself typing the body of a file you just read into a
-here-string, stop and re-download it to disk instead.
+**What fails is reading a file into your context and writing it back out.** Reconstructions from
+memory come out a fraction of their real size — plausible, syntactically valid, and wrong: a rebuilt
+`verify.ps1` can print an invented success line, and a rebuilt colour-boost script can end up with
+zero real `executeCommand` calls, driving nothing at all. If you find yourself typing the body of a
+file you just read into a here-string, stop and re-download it to disk instead.
 
 Do not fetch `verify.ps1` at all on this path — see above.
 
 **One exception, and it is not really one.** This rule is about *creating files on disk*. Later,
 `execute_script` takes the **script source as an argument**, not a file path — so reading
-`examples/inspect-document.js` and passing its contents to the tool is correct and required. Reading a
-file in order to write it back to disk is the thing that fails; reading it in order to hand it to
+`examples/inspect-document.js` and passing its contents to the tool is correct and required. Reading
+a file in order to write it back to disk is the thing that fails; reading it in order to hand it to
 Affinity is the job.
 
 #### Step 3 — write the handoff note. Do not skip this
 
 The restart in step 4 starts a session with an **empty context**. Without a note it greets the user
-and does nothing, and they have to explain the whole setup again. In testing this step was the one
-most often skipped, and skipping it strands the user.
+and does nothing, and they have to explain the whole setup again.
 
 **Download it — do not compose it.** The note is a file in the repo, so getting it is the same
 one-liner as step 2, and it lands in the workspace root, the folder the user runs `agy` from:
@@ -315,12 +312,9 @@ one-liner as step 2, and it lands in the workspace root, the folder the user run
 Invoke-WebRequest -Uri "$raw/handoff/AGENTS.antigravity.md" -OutFile AGENTS.md -UseBasicParsing
 ```
 
-This step is where the 30 July run died. It knew what the note should say and still could not get a
-15-line file onto disk: four attempts at a PowerShell literal here-string, each writing `\n` as
-backslash-n rather than a newline, before it gave up and asked the user to create the file by hand.
-`@'…'@` does not interpret escapes. Don't reach for it — download the file.
-
-For reference, this is what lands (and what to reproduce only if the download is genuinely
+A PowerShell literal here-string (`@'…'@`) does not interpret escapes — writing the note by hand
+this way tends to produce a file full of literal `\n` instead of real newlines. Download the file
+instead. For reference, this is what lands (and what to reproduce only if the download is genuinely
 unavailable):
 
 ```markdown
@@ -347,13 +341,12 @@ left in it.
 
 Two things about that note:
 
-- **Do not also write `GEMINI.md` "to be safe".** Two copies of a self-deleting note means one
+- **Do not also write `GEMINI.md` "to be safe."** Two copies of a self-deleting note means one
   survives and re-runs this sequence later against whatever document happens to be open.
-- **Antigravity does read `AGENTS.md`** — confirmed 30 July 2026. A restarted session given the single
-  word "resume" listed the folder, read the note, and began working through its steps unprompted,
-  reasoning about them as rules for the rest of the session. Still hand the user a fallback line for
-  the restart — *"Continue the Affinity MCP setup — read `AGENTS.md` in this folder and do the
-  read-only steps."* — but expect not to need it.
+- **Antigravity does read `AGENTS.md`** at startup. A restarted session given the single word
+  "resume" will list the folder, read the note, and begin working through its steps unprompted.
+  Still hand the user a fallback line for the restart — *"Continue the Affinity MCP setup — read
+  `AGENTS.md` in this folder and do the read-only steps."*
 
 Write it as UTF-8 and read it back as UTF-8. `Get-Content` without `-Encoding utf8` turns every em
 dash into `â€"`; that is cosmetic and not a reason to "fix" the file.
@@ -362,8 +355,7 @@ dash into `â€"`; that is cosmetic and not a reason to "fix" the file.
 
 Look for the Affinity tools in your current session first:
 
-- **Tools present** → Antigravity reloaded the config live. Skip the restart, go to step 5, and
-  **record that finding** — it removes the most awkward step here.
+- **Tools present** → Antigravity reloaded the config live. Skip the restart and go to step 5.
 - **Tools absent** → expected. Every harness tested so far loads MCP config only at startup.
 
 No tools plus a correctly written config means **restart, not diagnose.** Do not debug SSE or IPv6,
@@ -374,17 +366,15 @@ them the fallback line from step 3 in case the new session comes back blank.
 
 #### Step 5 — after the restart, prove the connection (read-only)
 
-**These are MCP tool calls. Do not shell out for any of them.** A 30 July run reached this step with
-all 11 tools in its session and still tried three shell routes: `node examples/inspect-document.js`,
-then an invented `agy mcp execute_script …` subcommand, then it announced a background task and asked
-the user to wait for output from a call it had never made. To be explicit:
+**These are MCP tool calls. Do not shell out for any of them.** To be explicit about failure modes
+worth avoiding here:
 
 - Affinity SDK scripts **cannot run under Node** — there is no Affinity runtime outside the app. The
   only way a script reaches the document is `execute_script`.
 - **`agy` has no `mcp` subcommand.** Running `agy` from a shell spawns a nested session, not a tool
   call, and it never returns.
-- **Never report a call as in progress.** These tools return synchronously. If you have no result, the
-  call did not happen — say so and make it.
+- **Never report a call as in progress.** These tools return synchronously. If you have no result,
+  the call did not happen — say so and make it.
 
 Run these three without asking. They change nothing.
 
@@ -468,32 +458,9 @@ fails silently. Use `read_sdk_documentation_topic` and `search_sdk_hints` rather
 API call; a hallucinated method is the most common way option 2 fails. Record what you learn with
 `add_sdk_hint`, or in `docs/sdk-notes.md` if that call is refused.
 
-`examples/test-color-boost.js` in the clone is an earlier model's generated output, kept as a record.
-It is not a template and not a black-and-white script — read `color-boost-two-layer.js` for structure
-and write the conversion itself from the SDK docs.
-
-#### Note which model answered
-
-`agy models` lists what is reachable, and **Antigravity fronts more than one model — they are tracked
-as separate rows** in [`docs/choosing-your-ai.md`](docs/choosing-your-ai.md). A pass on one says
-nothing about the others, so note which model ran before you finish. Record any missing or surprising
-SDK call with `add_sdk_hint` and in [`docs/sdk-notes.md`](docs/sdk-notes.md).
-
-**Do not assume the model is Gemini.** Asked directly, the 30 July session answered *GPT-OSS 120B
-(Medium)* — an OpenAI open-weights model served through a Google harness. "Antigravity" says nothing
-about which model you are. State the one you actually are, and if you cannot tell, say that instead
-of naming the vendor's flagship.
-
-> **Status, 30 July 2026.** Confirmed by live runs: the config file and the `serverUrl` field, native
-> SSE with no bridge, 11 tools discovered automatically, the preamble, `execute_script` running real
-> scripts, and — new — that **Antigravity reads `AGENTS.md` at startup**, so steps 1–4 now work
-> end to end. One item stays open: whether Antigravity hot-reloads config or genuinely needs the
-> restart. No run has yet found tools present before restarting, so treat the restart as required.
->
-> Step 5 is where the last run failed, and it failed on the **model**, not the harness: GPT-OSS 120B
-> had all 11 tools in session and could not call them, reaching for a shell three different ways
-> instead. If you are on a model that does this, that is the finding — record it and say so plainly
-> rather than reporting progress you have not made.
+**Antigravity fronts more than one model, and not always Gemini** — `agy models` lists what is
+reachable. Don't assume the model behind a session is Gemini just because the harness is
+Antigravity; if asked, state the model you actually are.
 
 ### Codex — needs the bridge
 
@@ -536,21 +503,20 @@ The bridge can be dropped only once Codex and Affinity share a protocol version 
 #### Getting the repo — expect the network to be blocked
 
 Codex sandboxes network access. Your first attempt to fetch anything — the raw URLs above, a
-`git clone`, even a web search for this page — fails with a connection error that looks like the
+`git clone`, even a web search for this page — can fail with a connection error that looks like the
 user's network is down:
 
 ```text
 fatal: unable to access 'https://github.com/...': Failed to connect to github.com port 443 after 84 ms
 ```
 
-**That is the sandbox, not their connection** — the timing gives it away, since 84 ms is too fast to
-have left the machine. Ask for approval to run `git clone` and say why you need it. Do not conclude
-the repo is unreachable, and do not improvise the script contents from memory.
+**That is the sandbox, not their connection** — a failure that fast is too quick to have left the
+machine. Ask for approval to run `git clone` and say why you need it. Do not conclude the repo is
+unreachable, and do not improvise the script contents from memory.
 
 Clone into the workspace folder, then use paths **relative to where Codex is running**. If you
-cloned into `my-project\affinity-photo-claude-code-windows\`, the inspection script is
-`affinity-photo-claude-code-windows/examples/inspect-document.js`, not the bare `examples/...` path
-§3 uses.
+cloned into `my-project\affinity-mcp-setup\`, the inspection script is
+`affinity-mcp-setup/examples/inspect-document.js`, not the bare `examples/...` path §3 uses.
 
 Once the bridge is configured, `node .\bridge\smoke-test.mjs` proves the whole chain from outside
 Codex — it initializes through the bridge, lists the real tools and reads the preamble, without
@@ -562,10 +528,10 @@ Everything in "The restart is unavoidable. Plan for it." above applies to Codex,
 reason: **Codex reads `config.toml` at startup.** The entry you just wrote does not exist in the
 process that wrote it, and no command loads it live.
 
-This is where a Codex run actually stalls. In testing, the model wrote a correct config, verified
-the bridge end to end, saw no Affinity tools in its own session, concluded the CLI was faulty, and
-went off to fetch the Codex manual to debug it. Everything was already working. **A successful
-smoke test plus no visible tools is the signature of this, and it means restart — not diagnose.**
+This is where a Codex run actually stalls: the model writes a correct config, verifies the bridge
+end to end, sees no Affinity tools in its own session, and concludes the CLI is faulty. Everything
+was already working. **A successful smoke test plus no visible tools is the signature of this, and
+it means restart — not diagnose.**
 
 The handoff channel is **`AGENTS.md` in the workspace root**, which Codex reads at startup, exactly
 as Claude Code reads `CLAUDE.md`. Write it before you ask for the restart, using the same shape as
@@ -589,20 +555,6 @@ have.
 
 If the user asks how to check the connection themselves, `/mcp` is a Claude Code command — give
 `codex mcp list` instead.
-
-Option 2 needs no change, but note that a clone gives you more than the two scripts a fetching
-harness sees: `openai-color-boost-two-layer.js` and `test-color-boost.js` are earlier models'
-colour-boost attempts. They are not black-and-white conversions and they are not a template for one —
-read `color-boost-two-layer.js` for structure if you want a model, and write the conversion itself
-from the SDK docs.
-
-> **Verified 29 July 2026** — gpt-5.6-sol, Codex CLI 0.145.0, from a clean `config.toml` with no
-> Affinity entry. Following this document it recovered from the sandbox block, checked §0's
-> prerequisites unprompted, wrote a correct config entry without disturbing unrelated settings,
-> verified the bridge, and — once told about `AGENTS.md` — carried a handoff note across the restart
-> and passed Part A on the other side (Affinity 3.2.3.4646, one document, `[0] Background`), then
-> deleted the note and offered the menu without touching the document. The restart was the only
-> step it did not get right unaided, which is what the two subsections above are for.
 
 ---
 
@@ -784,8 +736,8 @@ for them.
 | Config says `enabled` / `connected`, no tools | Config loaded, handshake failed | Check the startup log for the protocol error. Do not substitute a hand-written SSE client for the real test |
 | `user cancelled MCP tool call` (`codex exec`) | Non-interactive approval policy; Affinity's tools publish no safety annotations | Use the interactive TUI. Not a bridge failure |
 | **Antigravity: no connection, no error at all** | The config used `url` instead of `serverUrl` | Rename the field in `.agents/mcp_config.json`. It fails silently, so there is nothing in the log to find |
-| **A script fails oddly, or a "verified" check passes suspiciously easily** | The file was reconstructed from a fetched page rather than copied. Observed at 33–49% of real size, syntactically valid, silently wrong | Re-download it with `Invoke-WebRequest -OutFile` or `git clone`, so the bytes go to disk without passing through you. Never retype the body of a file you just read |
-| **A multi-line file writes as one line full of `\n`** | `@'…'@` is a PowerShell *literal* here-string and does not interpret escapes. Four retries in one test run, all identical | Download the file instead of composing it — the handoff note lives at `handoff/AGENTS.antigravity.md`. If you must write one, use real line breaks and `Out-File -Encoding utf8` |
+| **A script fails oddly, or a "verified" check passes suspiciously easily** | The file was reconstructed from a fetched page rather than copied, and came out smaller than the real file — syntactically valid, silently wrong | Re-download it with `Invoke-WebRequest -OutFile` or `git clone`, so the bytes go to disk without passing through you. Never retype the body of a file you just read |
+| **A multi-line file writes as one line full of `\n`** | `@'…'@` is a PowerShell *literal* here-string and does not interpret escapes | Download the file instead of composing it — the handoff note lives at `handoff/AGENTS.antigravity.md`. If you must write one, use real line breaks and `Out-File -Encoding utf8` |
 | **Antigravity: `verify.ps1` reports a missing `.mcp.json`** | `verify.ps1` is a Claude Code preflight; that check is hardcoded to Claude Code's filename | Don't run it on this path at all — see the Antigravity section. Never create a `.mcp.json` to satisfy it |
 | Script runs but the layer lands inside a group | Affinity parents new layers into a topmost group | `color-boost-two-layer.js` detects and corrects this — copy its `addSelectiveColourLayer` helper |
 
@@ -829,10 +781,10 @@ calls.
 
 ## 6. Going further
 
-- **[The step-by-step tutorial](https://bolloplayer.github.io/affinity-photo-claude-code-windows/)**
-  — a human-facing walkthrough of the Claude Code path, with screenshots. Also covers pointing
-  Claude Code at **DeepSeek** via its Anthropic-compatible endpoint, which keeps this exact
-  connection and every config file unchanged while swapping the model underneath.
+- **[The step-by-step tutorial](https://bolloplayer.github.io/affinity-mcp-setup/)** — a
+  human-facing walkthrough of the Claude Code path, with screenshots. Also covers pointing Claude
+  Code at **DeepSeek** via its Anthropic-compatible endpoint, which keeps this exact connection and
+  every config file unchanged while swapping the model underneath.
 - **[`docs/choosing-your-ai.md`](docs/choosing-your-ai.md)** — which model, which harness, what
   each combination costs, and what has actually been verified versus assumed.
 - **[`CLAUDE.md`](CLAUDE.md)** — connection internals (IPv6 binding, the SSE handshake, stale
