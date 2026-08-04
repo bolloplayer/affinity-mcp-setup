@@ -38,7 +38,15 @@ if ($aff) {
 }
 
 # 2. Port 6767 LISTENING on IPv6 loopback
-$listening = netstat -ano | Select-String "\[::1\]:6767\s+\[::\]:0\s+LISTENING"
+# Get-NetTCPConnection's State is a .NET enum name ("Listen"), not a localized string, so it
+# works on non-English Windows -- netstat's text column ("LISTENING") is localized (e.g.
+# "ABHOEREN" on German Windows) and silently never matches there.
+try {
+    $listening = Get-NetTCPConnection -State Listen -ErrorAction Stop |
+        Where-Object { $_.LocalPort -eq 6767 -and $_.LocalAddress -eq '::1' }
+} catch {
+    $listening = netstat -ano | Select-String "\[::1\]:6767\s+\[::\]:0\s+LISTENING"
+}
 if ($listening) {
     Pass "Port 6767 listening on [::1] (IPv6 loopback)"
 } elseif ($aff) {
