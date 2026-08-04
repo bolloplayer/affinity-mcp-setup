@@ -82,10 +82,18 @@ The setup instructions moved to the public repo **`bolloplayer/affinity-mcp-setu
 stays private/working; the old `affinity-photo-claude-code-windows` repo is archived). Re-verifying
 all three harnesses against the cleaned-up `SETUP.md` there:
 
-- ✅ **Claude Code** — re-tested. Both menu options ran clean (colour boost, and a black-and-white
-  script written from scratch against the SDK docs). Found and fixed a real `verify.ps1` bug along
-  the way: its port check parsed `netstat`'s localized state text, which fails on non-English
-  Windows.
+- ✅ **Claude Code, reconnect path** — re-tested. Both menu options ran clean (colour boost, and a
+  black-and-white script written from scratch against the SDK docs). Found and fixed a real
+  `verify.ps1` bug along the way: its port check parsed `netstat`'s localized state text, which
+  fails on non-English Windows. This pass reused a folder whose `.mcp.json` already existed, so it
+  only exercised `/mcp` reconnect — not the restart+handoff-note path.
+- 🟡 **Claude Code, restart/handoff-note path** — set up but not yet observed. A genuinely fresh
+  folder, `C:\Users\maria\OneDrive\Desktop\affinity-mcp-restart-test\`, has `.mcp.json`, the three
+  fetched files, a passing `verify.ps1`, and a handoff note in its `CLAUDE.md` — all written by
+  this session, matching SETUP.md's Part 1 exactly. What's missing: the user needs to open a new
+  terminal/VS Code window in that folder, run `claude`, and type "continue", then report whether
+  the new session reads the note unprompted and offers the menu without being told the setup was
+  in progress. Pick this up next session if it hasn't happened yet.
 - ⬜ **Codex** — not yet re-tested against the new repo.
 - ⬜ **Antigravity** — not yet re-tested against the new repo.
 
