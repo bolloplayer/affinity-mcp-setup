@@ -100,9 +100,10 @@ all three harnesses against the cleaned-up `SETUP.md` there:
   *without* option 3 (doc says machine-wide registration doesn't apply to Codex). Both demo scripts
   ran clean, and a follow-up ad-hoc request ("put them back in the library") correctly triggered
   only `save_script_to_library`, not a re-run — it kept the save-vs-execute distinction straight
-  outside the scripted flow. Codex CLI itself (as opposed to the ChatGPT app's Codex tab) not
-  separately tested — same config file and bridge, so treat as covered by inheritance, not verified
-  independently.
+  outside the scripted flow. Codex CLI itself not separately re-tested against the new repo —
+  same `config.toml` and bridge as the ChatGPT app, no surface-specific mechanism to diverge, and
+  it already had extensive verification from before this repo's cleanup. Considered fully covered;
+  no CLI re-run planned.
 - ⬜ **Antigravity** — not yet re-tested against the new repo.
 
 Antigravity needs its own CLI/session to test — not available from a Claude Code session. Update
