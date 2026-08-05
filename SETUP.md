@@ -290,6 +290,18 @@ powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '<work
 
 Ask the user for permission on the workspace folder once, up front, rather than per file.
 
+**A silent redirect is worse than a refusal, and it is not a success.** Observed at least once:
+the write tool reported success, but the config, the cloned repo and the handoff note all landed
+under Antigravity's own internal state directory (`~/.gemini/antigravity/scratch/...`) instead of
+the folder the user actually opened — with no error, and the agent then asked the *user* to switch
+their workspace to match, rather than the other way round. Do not do that. After writing
+`.agents/mcp_config.json`, confirm it exists at the literal workspace path the user is in —
+`Test-Path '<workspace>/.agents/mcp_config.json'` — before moving on. If it is missing there
+(even though the write tool claimed success), the write went into a scratch directory: shell out
+with the `New-Item`/`Set-Content` PowerShell pattern above, using the workspace's real absolute
+path, and verify again. The user's folder does not move to wherever your tools find it convenient
+to write.
+
 #### Step 2 — get the files. The bytes must never pass through you
 
 Step 5 and the options in step 6 run scripts from this repo, and an empty workspace has none of them.
@@ -773,6 +785,7 @@ for them.
 | Config says `enabled` / `connected`, no tools | Config loaded, handshake failed | Check the startup log for the protocol error. Do not substitute a hand-written SSE client for the real test |
 | `user cancelled MCP tool call` (`codex exec`) | Non-interactive approval policy; Affinity's tools publish no safety annotations | Use the interactive TUI. Not a bridge failure |
 | **Antigravity: no connection, no error at all** | The config used `url` instead of `serverUrl` | Rename the field in `.agents/mcp_config.json`. It fails silently, so there is nothing in the log to find |
+| **Antigravity: agent asks the user to switch workspace to somewhere under `~/.gemini/antigravity/scratch/...`** | The write tool reported success but silently redirected into Antigravity's own internal state directory instead of the user's opened folder | Don't switch. `Test-Path` the config at the user's real workspace path; if it's not there, shell out with PowerShell to write it at the real absolute path, and verify again |
 | **A script fails oddly, or a "verified" check passes suspiciously easily** | The file was reconstructed from a fetched page rather than copied, and came out smaller than the real file — syntactically valid, silently wrong | Re-download it with `Invoke-WebRequest -OutFile` or `git clone`, so the bytes go to disk without passing through you. Never retype the body of a file you just read |
 | **A multi-line file writes as one line full of `\n`** | `@'…'@` is a PowerShell *literal* here-string and does not interpret escapes | Download the file instead of composing it — the handoff note lives at `handoff/AGENTS.antigravity.md`. If you must write one, use real line breaks and `Out-File -Encoding utf8` |
 | **Antigravity: `verify.ps1` reports a missing `.mcp.json`** | `verify.ps1` is a Claude Code preflight; that check is hardcoded to Claude Code's filename | Don't run it on this path at all — see the Antigravity section. Never create a `.mcp.json` to satisfy it |
