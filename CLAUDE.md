@@ -76,46 +76,13 @@ optional handshake probe, Claude Code present). If scripts are blocked:
 - Confirmed API shapes and known dead-ends live in `docs/sdk-notes.md`; example scripts in
   `examples/` (see `examples/README.md`).
 
-## Three-leg re-test status
+## Three-leg re-test — done
 
-The setup instructions moved to the public repo **`bolloplayer/affinity-mcp-setup`** (this repo
-stays private/working; the old `affinity-photo-claude-code-windows` repo is archived). Re-verifying
-all three harnesses against the cleaned-up `SETUP.md` there:
+All three harnesses re-verified against **`bolloplayer/affinity-mcp-setup`**: Claude Code, Codex
+(ChatGPT app), Antigravity (Gemini) all connect, survive the restart/handoff-note, and reach the
+menu. Two bugs found and fixed in the repo along the way: a `verify.ps1` locale bug, and both
+handoff notes weren't self-contained (fixed).
 
-- ✅ **Claude Code, reconnect path** — re-tested. Both menu options ran clean (colour boost, and a
-  black-and-white script written from scratch against the SDK docs). Found and fixed a real
-  `verify.ps1` bug along the way: its port check parsed `netstat`'s localized state text, which
-  fails on non-English Windows. This pass reused a folder whose `.mcp.json` already existed, so it
-  only exercised `/mcp` reconnect — not the restart+handoff-note path.
-- ✅ **Claude Code, restart/handoff-note path** — observed and passing. A fresh folder
-  (`affinity-mcp-restart-test`, since deleted) went through Part 1 from scratch, and the restarted
-  session read the `CLAUDE.md` note off a bare "resume" and did Part A unprompted. It surfaced a
-  real gap — no local `SETUP.md`, so it correctly refused to invent the three-choice menu and asked
-  instead — fixed by making both handoff-note templates self-contained (menu text embedded
-  directly) and adding `SETUP.md` to both fetch lists. Confirmed fixed on re-fetch.
-- ✅ **Codex, ChatGPT desktop app (Codex tab)** — full pass, no doc bugs found. Bridge smoke test
-  passed, config written with the idempotent duplicate-check the doc doesn't even mandate, handoff
-  note correctly placed in the parent folder (it cloned into a subfolder), restart worked, Part A
-  ran with correct subfolder-relative paths, the two-choice menu appeared verbatim and correctly
-  *without* option 3 (doc says machine-wide registration doesn't apply to Codex). Both demo scripts
-  ran clean, and a follow-up ad-hoc request ("put them back in the library") correctly triggered
-  only `save_script_to_library`, not a re-run — it kept the save-vs-execute distinction straight
-  outside the scripted flow. Codex CLI itself not separately re-tested against the new repo —
-  same `config.toml` and bridge as the ChatGPT app, no surface-specific mechanism to diverge, and
-  it already had extensive verification from before this repo's cleanup. Considered fully covered;
-  no CLI re-run planned.
-- ✅ **Antigravity (`agy`), Google AI Plus subscription** — connection/harness level passed;
-  demo scripts deliberately not run to conserve a small (\$4.99/mo) quota. Config write, restart,
-  and the handoff note all worked, and the self-contained menu fix (from the Claude Code leg)
-  carried over correctly — the restarted session reproduced the two-choice menu verbatim from
-  `AGENTS.md` alone. One real finding: instead of writing into the workspace folder the user
-  pointed it at, it silently wrote the config, cloned repo, and handoff note into its own internal
-  state directory (`~/.gemini/antigravity/scratch/affinity-setup`) and asked the user to switch
-  their active workspace to match — a worse variant of the "file tool scoped to its own directory"
-  trap `SETUP.md` already documents, since this one didn't surface as a visible refusal to react
-  to. Chose to let it proceed there rather than fight it, so the workspace-redirection behavior
-  itself is the recorded finding. Not yet reflected as a fix in `SETUP.md` — worth a troubleshooting
-  row if it reproduces on a future run.
-
-**All three legs now re-tested against the new repo.** Codex CLI (vs the app) intentionally not
-re-run, see above.
+**Open, unfixed finding**: Antigravity sometimes writes the setup into its own internal scratch
+folder (`~/.gemini/antigravity/scratch/...`) instead of the user's chosen workspace, then asks the
+user to relocate. Not yet turned into a `SETUP.md` fix — watch for it on the next run.
