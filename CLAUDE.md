@@ -87,15 +87,23 @@ all three harnesses against the cleaned-up `SETUP.md` there:
   `verify.ps1` bug along the way: its port check parsed `netstat`'s localized state text, which
   fails on non-English Windows. This pass reused a folder whose `.mcp.json` already existed, so it
   only exercised `/mcp` reconnect — not the restart+handoff-note path.
-- 🟡 **Claude Code, restart/handoff-note path** — set up but not yet observed. A genuinely fresh
-  folder, `C:\Users\maria\OneDrive\Desktop\affinity-mcp-restart-test\`, has `.mcp.json`, the three
-  fetched files, a passing `verify.ps1`, and a handoff note in its `CLAUDE.md` — all written by
-  this session, matching SETUP.md's Part 1 exactly. What's missing: the user needs to open a new
-  terminal/VS Code window in that folder, run `claude`, and type "continue", then report whether
-  the new session reads the note unprompted and offers the menu without being told the setup was
-  in progress. Pick this up next session if it hasn't happened yet.
-- ⬜ **Codex** — not yet re-tested against the new repo.
+- ✅ **Claude Code, restart/handoff-note path** — observed and passing. A fresh folder
+  (`affinity-mcp-restart-test`, since deleted) went through Part 1 from scratch, and the restarted
+  session read the `CLAUDE.md` note off a bare "resume" and did Part A unprompted. It surfaced a
+  real gap — no local `SETUP.md`, so it correctly refused to invent the three-choice menu and asked
+  instead — fixed by making both handoff-note templates self-contained (menu text embedded
+  directly) and adding `SETUP.md` to both fetch lists. Confirmed fixed on re-fetch.
+- ✅ **Codex, ChatGPT desktop app (Codex tab)** — full pass, no doc bugs found. Bridge smoke test
+  passed, config written with the idempotent duplicate-check the doc doesn't even mandate, handoff
+  note correctly placed in the parent folder (it cloned into a subfolder), restart worked, Part A
+  ran with correct subfolder-relative paths, the two-choice menu appeared verbatim and correctly
+  *without* option 3 (doc says machine-wide registration doesn't apply to Codex). Both demo scripts
+  ran clean, and a follow-up ad-hoc request ("put them back in the library") correctly triggered
+  only `save_script_to_library`, not a re-run — it kept the save-vs-execute distinction straight
+  outside the scripted flow. Codex CLI itself (as opposed to the ChatGPT app's Codex tab) not
+  separately tested — same config file and bridge, so treat as covered by inheritance, not verified
+  independently.
 - ⬜ **Antigravity** — not yet re-tested against the new repo.
 
-Codex and Antigravity need their own CLI/session to test — not available from a Claude Code
-session. Update this section as each leg is re-run.
+Antigravity needs its own CLI/session to test — not available from a Claude Code session. Update
+this section as it's re-run.
