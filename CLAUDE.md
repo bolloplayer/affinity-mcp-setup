@@ -81,6 +81,6 @@ optional handshake probe, Claude Code present). If scripts are blocked:
 All three harnesses re-verified against **`bolloplayer/affinity-mcp-setup`**: Claude Code, Codex
 (ChatGPT app), Antigravity (Gemini) all connect, survive the restart/handoff-note, and reach the
 menu. Three bugs found and fixed along the way: a `verify.ps1` locale bug, both handoff notes
-weren't self-contained, and Antigravity's silent scratch-folder redirect (§2/§4 of `SETUP.md` now
-warn about it and say to verify the write landed in the real workspace) — that last one is fixed
-in the doc but not yet re-observed live; worth confirming on the next Antigravity run.
+weren't self-contained, and Antigravity's silent scratch-folder redirect — §2/§4 of `SETUP.md` now
+tell the agent to verify the write landed in the real workspace instead of trusting a reported
+success. Fix applied, not re-verified with a live run.
