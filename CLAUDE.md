@@ -104,7 +104,18 @@ all three harnesses against the cleaned-up `SETUP.md` there:
   same `config.toml` and bridge as the ChatGPT app, no surface-specific mechanism to diverge, and
   it already had extensive verification from before this repo's cleanup. Considered fully covered;
   no CLI re-run planned.
-- ⬜ **Antigravity** — not yet re-tested against the new repo.
+- ✅ **Antigravity (`agy`), Google AI Plus subscription** — connection/harness level passed;
+  demo scripts deliberately not run to conserve a small (\$4.99/mo) quota. Config write, restart,
+  and the handoff note all worked, and the self-contained menu fix (from the Claude Code leg)
+  carried over correctly — the restarted session reproduced the two-choice menu verbatim from
+  `AGENTS.md` alone. One real finding: instead of writing into the workspace folder the user
+  pointed it at, it silently wrote the config, cloned repo, and handoff note into its own internal
+  state directory (`~/.gemini/antigravity/scratch/affinity-setup`) and asked the user to switch
+  their active workspace to match — a worse variant of the "file tool scoped to its own directory"
+  trap `SETUP.md` already documents, since this one didn't surface as a visible refusal to react
+  to. Chose to let it proceed there rather than fight it, so the workspace-redirection behavior
+  itself is the recorded finding. Not yet reflected as a fix in `SETUP.md` — worth a troubleshooting
+  row if it reproduces on a future run.
 
-Antigravity needs its own CLI/session to test — not available from a Claude Code session. Update
-this section as it's re-run.
+**All three legs now re-tested against the new repo.** Codex CLI (vs the app) intentionally not
+re-run, see above.
