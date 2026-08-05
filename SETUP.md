@@ -95,12 +95,15 @@ option 3 of the menu in §3 — not during first setup.
 > harnesses should not run, and it feeds into the `.mcp.json` / §3 / three-option flow below, which
 > is Claude Code's. Antigravity readers in particular: go back to your row in the table above.
 
-An empty project folder has none of the repo's scripts, and the steps below run two of them. Download
-them straight to disk before the restart — no clone required:
+An empty project folder has none of the repo's files, and the steps below need them — including
+this file itself: the restarted session in Part 2 has an empty context and no way to re-derive
+`SETUP.md`'s contents, so fetch a copy into the folder now rather than leaving it to guesswork
+later. Download everything straight to disk before the restart — no clone required:
 
 ```powershell
 $raw = "https://raw.githubusercontent.com/bolloplayer/affinity-mcp-setup/main"
 New-Item -ItemType Directory -Force -Path examples | Out-Null
+Invoke-WebRequest -Uri "$raw/SETUP.md"                          -OutFile SETUP.md                          -UseBasicParsing
 Invoke-WebRequest -Uri "$raw/examples/inspect-document.js"      -OutFile examples/inspect-document.js      -UseBasicParsing
 Invoke-WebRequest -Uri "$raw/examples/color-boost-two-layer.js" -OutFile examples/color-boost-two-layer.js -UseBasicParsing
 Invoke-WebRequest -Uri "$raw/verify.ps1"                        -OutFile verify.ps1                        -UseBasicParsing
@@ -139,7 +142,8 @@ has everything it needs.
 The Part 1 sequence:
 
 1. Write `.mcp.json` in the project folder.
-2. Fetch `examples/inspect-document.js`, `examples/color-boost-two-layer.js` and `verify.ps1`.
+2. Fetch `SETUP.md`, `examples/inspect-document.js`, `examples/color-boost-two-layer.js` and
+   `verify.ps1`.
 3. Run [`verify.ps1`](verify.ps1) — it confirms the endpoint, tools and open document from
    outside the session, so you know the config is good before anyone restarts anything.
 4. **Leave a handoff note** — see below. The session that comes back has none of your context.
@@ -179,9 +183,26 @@ waiting to be asked — but only Part A of §3. It is read-only.
 3. Run `examples/inspect-document.js` and report the Affinity version, the open
    document and its layer stack.
 
-Then hand over: offer the user the three choices from SETUP.md §3 and let them pick.
-Do not run the colour-boost script, or anything else that writes to their document,
-until they ask. Follow SETUP.md from that point — do not invent your own step list.
+Then hand over — report what step 3 established, then offer these three, verbatim,
+and let them pick. Don't choose one for them, don't run one ahead of time, and say
+they can also stop here with nothing changed:
+
+> 1 — Run the colour boost script. I add it to Affinity's Script View and run it on
+> your open image, then tell you the name it's listed under. Switch to Affinity and
+> see the result yourself.
+>
+> 2 — Have me write one from scratch. I write a black-and-white conversion against
+> the SDK, add it to your Script View and run it. Switch to Affinity and see the
+> result yourself.
+>
+> 3 — Use Affinity from every folder, not just this one. Registers the connection
+> machine-wide instead of just here.
+
+`SETUP.md` should be in this folder (Part 1 fetches it) — read its §3 for the exact
+run steps once they pick 1 or 2. If it isn't here for any reason, fetch it from
+`https://raw.githubusercontent.com/bolloplayer/affinity-mcp-setup/main/SETUP.md`
+rather than inventing steps; do not run the colour-boost script, or anything else
+that writes to their document, until they ask.
 
 Delete this section once you have offered the choices; the file too if nothing else
 is left in it. Do not state what has or hasn't been done to the document — check the
@@ -279,10 +300,13 @@ method where the bytes go from the network straight to disk is fine:
 ```powershell
 $raw = "https://raw.githubusercontent.com/bolloplayer/affinity-mcp-setup/main"
 New-Item -ItemType Directory -Force -Path examples | Out-Null
+Invoke-WebRequest -Uri "$raw/SETUP.md"                          -OutFile SETUP.md                          -UseBasicParsing
 Invoke-WebRequest -Uri "$raw/examples/inspect-document.js"      -OutFile examples/inspect-document.js      -UseBasicParsing
 Invoke-WebRequest -Uri "$raw/examples/color-boost-two-layer.js" -OutFile examples/color-boost-two-layer.js -UseBasicParsing
 ```
 
+Fetch `SETUP.md` itself too, not just the scripts — the handoff note in step 3 points back to its
+Antigravity section, and the restarted session has no way to re-derive that content on its own.
 `git clone https://github.com/bolloplayer/affinity-mcp-setup` is equally fine — then use paths
 relative to where `agy` is running, `affinity-mcp-setup/examples/…` rather than a bare `examples/…`.
 
@@ -331,9 +355,22 @@ Do this now, without waiting to be asked. It is read-only:
 3. Run `examples/inspect-document.js` via `execute_script` and report the Affinity
    version, the open document and its layer stack.
 
-Then offer the user the two options from SETUP.md's Antigravity section and let them
-pick. Do not run anything that writes to their document until they ask. Do not run
-verify.ps1 and do not create a .mcp.json.
+Then hand over — report what step 3 established, then offer these two, verbatim,
+and let them pick:
+
+1 — Run the colour boost script. Add examples/color-boost-two-layer.js to Affinity's
+script library, run it on the open image, tell them the name it's saved under and how
+to undo it. Don't render or describe the result — they'll look in Affinity.
+
+2 — Have me write one from scratch. Write a black-and-white conversion against the
+SDK docs (don't guess at API calls), save it to the library, run it, same ending as
+option 1.
+
+SETUP.md should be in this folder (fetched earlier) — read its Antigravity section
+for the exact run steps once they pick 1 or 2. If it isn't here, fetch it from
+https://raw.githubusercontent.com/bolloplayer/affinity-mcp-setup/main/SETUP.md rather
+than inventing steps. Do not run anything that writes to their document until they
+ask. Do not run verify.ps1 and do not create a .mcp.json.
 
 Delete this section once you have offered the choices; the file too if nothing else is
 left in it.
