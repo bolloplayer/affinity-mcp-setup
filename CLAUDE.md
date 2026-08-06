@@ -78,9 +78,24 @@ optional handshake probe, Claude Code present). If scripts are blocked:
 
 ## Three-leg re-test — done
 
-All three harnesses re-verified against **`bolloplayer/affinity-mcp-setup`**: Claude Code, Codex
-(ChatGPT app), Antigravity (Gemini) all connect, survive the restart/handoff-note, and reach the
-menu. Three bugs found and fixed along the way: a `verify.ps1` locale bug, both handoff notes
-weren't self-contained, and Antigravity's silent scratch-folder redirect — §2/§4 of `SETUP.md` now
-tell the agent to verify the write landed in the real workspace instead of trusting a reported
-success. Fix applied, not re-verified with a live run.
+All three harnesses verified against **`bolloplayer/affinity-mcp-setup`**: Claude Code, Codex
+(ChatGPT app), and Antigravity (Gemini) connect, survive the restart/handoff-note, and reach the
+two-option menu.
+
+**A single harness-agnostic prompt works for all three** — good for a public post, since it means
+one instruction rather than three:
+
+> Set up the Affinity MCP connection following https://github.com/bolloplayer/affinity-mcp-setup's
+> SETUP.md.
+
+It self-identifies which harness it's in from the table in `SETUP.md` §2 and writes only that
+harness's config, without being told which one it's running in.
+
+**Antigravity's config location is global, not per-workspace — `SETUP.md` now reflects that.**
+Antigravity has no per-workspace MCP config file; only a global one,
+`~/.gemini/config/mcp_config.json` (or a plugin-scoped file), per Antigravity's own bundled docs.
+The Antigravity section previously had agents write `.agents/mcp_config.json` into the workspace,
+which Antigravity silently never read — tools would never appear no matter how correctly that file
+was written. Fixed in `SETUP.md`'s Antigravity §1: merge an `affinity` entry into the global file
+instead. Verified live end-to-end on real Gemini after the fix — all 11 tools loaded, the preamble
+read, and `inspect-document.js` ran successfully against a real open document.

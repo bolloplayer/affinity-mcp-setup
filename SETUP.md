@@ -60,7 +60,7 @@ Identify which harness you are running inside, then write **only** that row's fi
 |---|---|---|
 | **Claude Code** (CLI, VS Code ext, Desktop Code tab) | `.mcp.json` in the project folder | SSE native |
 | **Codex** (CLI, ChatGPT Codex tab, IDE extension) | `~/.codex/config.toml` | stdio bridge → SSE |
-| **Antigravity** (`agy`, any model it fronts — not only Gemini) | `.agents/mcp_config.json` in the workspace | SSE native |
+| **Antigravity** (`agy`, any model it fronts — not only Gemini) | `~/.gemini/config/mcp_config.json` — **global**, not per-workspace | SSE native |
 | **OpenCode** (any model) | `opencode.jsonc`, or one CLI command | SSE native |
 
 ### Claude Code
@@ -266,9 +266,14 @@ only place that matters, and it needs no PowerShell.
 
 #### Step 1 — write the config
 
-Create `.agents/mcp_config.json` in the workspace root. **The field is `serverUrl`, not `url`** —
-`url` prevents the SSE connection from being established and fails silently, with nothing in any
-log:
+**The file is global, not per-workspace: `~/.gemini/config/mcp_config.json`.** Antigravity has no
+per-workspace MCP config location — only global (`~/.gemini/config/mcp_config.json`) or
+plugin-scoped (`plugins/<name>/mcp_config.json`). Write the global one, once, and it's live for
+every workspace and every future session from then on — there's no per-project setup step, and no
+"promote it machine-wide" question to ask later.
+
+**This file may already hold the user's other MCP servers — read it first and merge in an
+`affinity` entry, never overwrite the whole file.** If it doesn't exist yet, create it with just:
 
 ```json
 {
@@ -278,29 +283,20 @@ log:
 }
 ```
 
-No machine-specific paths, so it works verbatim on any machine.
+**The field is `serverUrl`, not `url`** — `url` fails the SSE connection silently, with nothing in
+any log.
 
-**If your file-writing tool refuses the path, shell out — don't keep retrying it.** Some
-Antigravity installs scope the built-in write tool to its own artifacts directory, which will not
-write into the user's workspace. The way through is PowerShell via the shell tool:
+**If your file-writing tool refuses the path, shell out to PowerShell rather than retrying it** —
+some Antigravity installs scope the built-in write tool away from arbitrary filesystem paths:
 
 ```
-powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '<workspace>/.agents' | Out-Null"
+powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$env:USERPROFILE/.gemini/config' | Out-Null"
 ```
 
-Ask the user for permission on the workspace folder once, up front, rather than per file.
-
-**A silent redirect is worse than a refusal, and it is not a success.** Observed at least once:
-the write tool reported success, but the config, the cloned repo and the handoff note all landed
-under Antigravity's own internal state directory (`~/.gemini/antigravity/scratch/...`) instead of
-the folder the user actually opened — with no error, and the agent then asked the *user* to switch
-their workspace to match, rather than the other way round. Do not do that. After writing
-`.agents/mcp_config.json`, confirm it exists at the literal workspace path the user is in —
-`Test-Path '<workspace>/.agents/mcp_config.json'` — before moving on. If it is missing there
-(even though the write tool claimed success), the write went into a scratch directory: shell out
-with the `New-Item`/`Set-Content` PowerShell pattern above, using the workspace's real absolute
-path, and verify again. The user's folder does not move to wherever your tools find it convenient
-to write.
+**Verify the write landed at that real path** — `Test-Path '$env:USERPROFILE/.gemini/config/mcp_config.json'`
+— rather than trusting a reported success. Once Antigravity has picked it up, the most reliable
+confirmation is its own UI: **Additional Options (…) → MCP Servers** lists registered servers
+directly, independent of anything the agent reports about its own tool list.
 
 #### Step 2 — get the files. The bytes must never pass through you
 
@@ -356,9 +352,9 @@ unavailable):
 ```markdown
 ## Affinity MCP setup — continue here
 
-State: `.agents/mcp_config.json` is written and the repo is cloned. The connection could
-not be used in the session that wrote the config, because MCP configuration loads at
-startup. This session is the restart.
+State: the `affinity` entry is merged into `~/.gemini/config/mcp_config.json`, and the repo is
+cloned into this workspace. The connection could not be used in the session that wrote the
+config, because MCP configuration loads at startup. This session is the restart.
 
 Do this now, without waiting to be asked. It is read-only:
 
@@ -476,8 +472,8 @@ Offer these two, verbatim, and let them pick:
 
 Close by telling them they can also stop here and nothing will be changed — that is a real answer,
 not a failure to choose. Do not pick for them, do not run one ahead of time, and **do not offer a
-third option.** Promoting the connection machine-wide is a Claude Code distinction; if they ask about
-other folders, the answer is to copy `.agents/mcp_config.json` into that workspace.
+third option.** Unlike Claude Code, there's no "promote machine-wide" question here — the config in
+`~/.gemini/config/mcp_config.json` is already global, so every other workspace already has it.
 
 #### Step 7 — run only what they picked
 
@@ -784,8 +780,8 @@ for them.
 | `-32602 Unsupported protocol version` | Client initialized with an older MCP version | Codex: use the bridge. Others: check the harness's MCP version support |
 | Config says `enabled` / `connected`, no tools | Config loaded, handshake failed | Check the startup log for the protocol error. Do not substitute a hand-written SSE client for the real test |
 | `user cancelled MCP tool call` (`codex exec`) | Non-interactive approval policy; Affinity's tools publish no safety annotations | Use the interactive TUI. Not a bridge failure |
-| **Antigravity: no connection, no error at all** | The config used `url` instead of `serverUrl` | Rename the field in `.agents/mcp_config.json`. It fails silently, so there is nothing in the log to find |
-| **Antigravity: agent asks the user to switch workspace to somewhere under `~/.gemini/antigravity/scratch/...`** | The write tool reported success but silently redirected into Antigravity's own internal state directory instead of the user's opened folder | Don't switch. `Test-Path` the config at the user's real workspace path; if it's not there, shell out with PowerShell to write it at the real absolute path, and verify again |
+| **Antigravity: no connection, no error at all** | The config used `url` instead of `serverUrl` | Rename the field in `~/.gemini/config/mcp_config.json`. It fails silently, so there is nothing in the log to find |
+| **Antigravity: tools never appear, config looks fine, no error anywhere** | Config was written to a per-workspace file (e.g. `.agents/mcp_config.json`) — Antigravity has no such location and silently ignores it | Write to the global `~/.gemini/config/mcp_config.json` instead — see Step 1 |
 | **A script fails oddly, or a "verified" check passes suspiciously easily** | The file was reconstructed from a fetched page rather than copied, and came out smaller than the real file — syntactically valid, silently wrong | Re-download it with `Invoke-WebRequest -OutFile` or `git clone`, so the bytes go to disk without passing through you. Never retype the body of a file you just read |
 | **A multi-line file writes as one line full of `\n`** | `@'…'@` is a PowerShell *literal* here-string and does not interpret escapes | Download the file instead of composing it — the handoff note lives at `handoff/AGENTS.antigravity.md`. If you must write one, use real line breaks and `Out-File -Encoding utf8` |
 | **Antigravity: `verify.ps1` reports a missing `.mcp.json`** | `verify.ps1` is a Claude Code preflight; that check is hardcoded to Claude Code's filename | Don't run it on this path at all — see the Antigravity section. Never create a `.mcp.json` to satisfy it |

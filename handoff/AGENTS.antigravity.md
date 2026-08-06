@@ -1,8 +1,8 @@
 ## Affinity MCP setup — continue here
 
-State: `.agents/mcp_config.json` is written and the scripts are in `examples/`. The
-connection could not be used in the session that wrote the config, because MCP
-configuration loads at startup. This session is the restart.
+State: the `affinity` entry is merged into `~/.gemini/config/mcp_config.json`, and the scripts
+are in `examples/`. The connection could not be used in the session that wrote the config,
+because MCP configuration loads at startup. This session is the restart.
 
 Do this now, without waiting to be asked. It is read-only:
 
