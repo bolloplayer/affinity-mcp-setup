@@ -99,3 +99,32 @@ which Antigravity silently never read — tools would never appear no matter how
 was written. Fixed in `SETUP.md`'s Antigravity §1: merge an `affinity` entry into the global file
 instead. Verified live end-to-end on real Gemini after the fix — all 11 tools loaded, the preamble
 read, and `inspect-document.js` ran successfully against a real open document.
+
+## Publishing to the public repo
+
+This repo (`affinity-photo-claude-code-windows-private`) is the private/working one — it's where
+testing, debugging narrative, and this file live. **`bolloplayer/affinity-mcp-setup`** (remote
+`public`) is what Reddit/tutorial readers actually clone. Never push this repo's branch there
+wholesale — it pulls in `CLAUDE.md` and whatever else this repo happens to be carrying.
+
+Only these paths belong in the public repo: `SETUP.md`, `README.md`, `docs/`, `examples/`,
+`bridge/`, `handoff/`, `verify.ps1`, `LICENSE`. **Never push `CLAUDE.md`** — it's private working
+context, not user-facing setup content. **Never commit a real `.mcp.json` or
+`.agents/mcp_config.json`** (or any other generated config) — the setup instructions tell users to
+create these themselves, so a pre-existing copy in the repo contradicts that and can go stale
+(both are now gitignored in the public repo to catch this).
+
+Process for pushing a fix over:
+
+```
+git worktree add "$TEMP/agy-public-sync" public/main
+cp <files-you-changed> "$TEMP/agy-public-sync/"
+cd "$TEMP/agy-public-sync" && git status --short   # review before staging
+git add <specific files> && git commit -m "..."
+git push public HEAD:main
+cd - && git worktree remove "$TEMP/agy-public-sync" --force
+```
+
+Never merge private `main` into public `main`, and never `git push public main` from this repo's
+own working tree — always stage the copy in a disposable worktree first so only the intended files
+move across.
