@@ -9,6 +9,11 @@ Desktop.ini
 # Claude Code local settings (per-machine)
 .claude/settings.local.json
 
+# Config files the setup instructions tell users to create themselves —
+# never commit a real one, it contradicts the instructions and can go stale
+.mcp.json
+.agents/
+
 # Image binaries — keep sample assets small or out of git
 *.afphoto
 *.afmacro
