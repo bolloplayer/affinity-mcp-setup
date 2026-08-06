@@ -70,7 +70,6 @@ Affinity accepts **MCP protocol `2025-11-25`** alone, which is why Codex needs a
 | **[`examples/`](examples/)** | A read-only connection check, and a two-layer **Color Boost** you can run on any photo |
 | **[`bridge/`](bridge/)** | The Codex protocol bridge, plus its smoke test |
 | **[`verify.ps1`](verify.ps1)** | Checks the plumbing before you start — Affinity running, port listening, handshake |
-| **[`CLAUDE.md`](CLAUDE.md)** | Connection internals, so Claude can diagnose problems from inside the chat |
 | **[`docs/sdk-notes.md`](docs/sdk-notes.md)** | Confirmed SDK behaviours and mapped dead-ends |
 
 ## The tutorial
