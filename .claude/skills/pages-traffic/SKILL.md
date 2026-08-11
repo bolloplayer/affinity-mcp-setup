@@ -81,25 +81,16 @@ the public-facing page and adding a third-party script.
 6. Do not commit the log automatically — leave it as a local, uncommitted file update unless the
    user explicitly asks to commit it. It's working data, not something to push to either repo.
 
-## Tracked Reddit posts
+## Reddit — obsolete, do not raise it
 
-Reddit posts driving traffic to the tutorial, for correlation with GitHub traffic spikes:
+The earlier r/Affinity posts are **obsolete as of 12 Aug 2026**. They still point at the archived
+repo, and that is fine. Do not correlate traffic against them, do not suggest editing them, and
+do not ask the user for post scores.
 
-- **Part II (DeepSeek)** — posted 2026-07-25 to r/Affinity:
-  `https://www.reddit.com/r/Affinity/comments/1v5s036/scripting_affinity_photo_with_deepseek_instead_of/`
-
-**This cannot be fetched automatically.** Confirmed 2026-07-25: both WebFetch and a raw `curl`
-from this environment get hard-blocked by Reddit ("whoa there, pardner! Your request has been
-blocked due to a network policy") — reddit.com is unreachable from here, JSON endpoint included.
-
-Also, even with access, **Reddit has no public view/impression count** for posts — its API (and
-the `.json` endpoint) only exposes `score` (net upvotes), `num_comments`, and `upvote_ratio`.
-"Views" isn't a number Reddit ever hands out publicly, from this environment or any other.
-
-**Practical path:** ask the user for the post's current score/comment count when they check it
-themselves (e.g. "how's the post doing?"), and log it as a note on the next traffic-log row
-alongside that day's GitHub numbers, e.g. `"r/Affinity Part II post: 34 upvotes, 6 comments as of
-7/27"`. Don't attempt an automated fetch — it will fail every time until Reddit access changes.
+Background, so it isn't re-investigated: reddit.com is hard-blocked from this environment
+(WebFetch and raw `curl` both get "your request has been blocked due to a network policy"), and
+even with access Reddit exposes no public view count — only `score`, `num_comments` and
+`upvote_ratio`. Any automated fetch will fail.
 
 ## Log schema (`analytics/pages-traffic-log.csv`)
 
