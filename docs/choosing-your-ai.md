@@ -39,7 +39,7 @@ about which one to pick, not how to wire it up.
 | | | | | |
 | **GPT** (OpenAI) | ❌ **ChatGPT App (Chat tab)** / Web | ✅ **ChatGPT App (Codex tab)** | ✅ **`codex` CLI** | `~/.codex/config.toml` & custom stdio bridge |
 | | | | | |
-| **Gemini** (Google) | ❌ **Gemini Web** (`gemini.google.com`) | ✅\* **Antigravity 2.0 / IDE** | ✅ **`agy` CLI** (Antigravity) | `.agents/mcp_config.json` (`serverUrl` field) |
+| **Gemini** (Google) | ❌ **Gemini Web** (`gemini.google.com`) | ✅\* **Antigravity 2.0 / IDE** | ✅ **`agy` CLI** (Antigravity) | `~/.gemini/config/mcp_config.json` — global (`serverUrl` field) |
 | | | | | |
 | | | | | |
 | ⎯⎯⎯ *Not a vendor ecosystem — a multi-model harness that can drive any of the models above* ⎯⎯⎯ | | | | |
@@ -76,7 +76,7 @@ reaches Affinity at all.
 | ChatGPT app — **Codex** tab | GPT-5.x | Custom stdio/SSE protocol bridge in `bridge/affinity-codex-bridge.mjs`, read from `~/.codex/config.toml` | stdio bridge → SSE, translating `2025-06-18` to `2025-11-25` | ✅ Verified — connects to Affinity and runs scripts. No terminal needed — the easiest OpenAI path |
 | **`codex` CLI** in a terminal | GPT-5.x | Same `~/.codex/config.toml`, same custom bridge | stdio bridge → SSE, same version translation | ✅ Verified — auto-loads the tools, reads `preamble`, runs scripts |
 | Codex **IDE extension** (VS Code / Cursor / JetBrains) | GPT-5.x | Expected to inherit the same `~/.codex/config.toml` and bridge | stdio bridge → SSE | ❓ Not yet run — config inheritance is an assumption |
-| Antigravity CLI / IDE (`agy`) | Gemini, plus other models Antigravity fronts — don't assume Gemini | Native SSE via `.agents/mcp_config.json` (`serverUrl` field) | SSE native | ✅ Verified — connects to Affinity, reads preamble, executes scripts |
+| Antigravity CLI / IDE (`agy`) | Gemini, plus other models Antigravity fronts — don't assume Gemini | Native SSE via `~/.gemini/config/mcp_config.json` — **global**, `serverUrl` field | SSE native | ✅ Verified — connects to Affinity, reads preamble, executes scripts |
 
 ### OpenAI — only two of the three surfaces reach Affinity
 
@@ -123,8 +123,8 @@ unverified.
 | 6 | GPT-5.x | ChatGPT subscription | Codex CLI | `~/.codex/config.toml` | custom stdio bridge | ✅ Verified |
 | 7 | GPT-5.x | OpenAI API key | Codex CLI | `~/.codex/config.toml` | stdio bridge | ✅ Same local transport verified; API-key authentication itself not separately tested |
 | 8 | GPT-5.x | OpenAI API key | OpenCode | `opencode.jsonc` | SSE | ❓ Untested — should just work |
-| 9 | Gemini | Google subscription | Antigravity | `.agents/mcp_config.json` | SSE | ✅ Connection and script execution verified — which model actually served the run wasn't recorded, so "Gemini" is a label rather than a confirmed fact |
-| 10 | Antigravity's other models | Via Antigravity | Antigravity | `.agents/mcp_config.json` | SSE | ⚠️ At least one non-Gemini model completed setup correctly but could not call the MCP tools it had been given. Harness fine, model unable to drive MCP — pick a model in Antigravity deliberately (`agy models`) rather than taking the default |
+| 9 | Gemini | Google subscription | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ✅ Verified end-to-end: 11 tools loaded, preamble read, script executed against a real open document |
+| 10 | Antigravity's other models | Via Antigravity | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ❓ Not separately verified since the config-location fix (row 9). Pick a model in Antigravity deliberately (`agy models`) rather than taking the default |
 | 11 | Gemini | Google API key | Gemini CLI | `~/.gemini/settings.json` | ❓ | ❓ Not looked at yet |
 | 12 | Any local model | Free | Ollama / LM Studio | — | none | ❌ No MCP client — not viable |
 
@@ -166,8 +166,8 @@ produced cleaner SDK code than the expensive one. Don't assume the flagship is t
 | Model | Reach it via | Status |
 |---|---|---|
 | **GPT-5.x / GPT-5.x-Codex** (ChatGPT subscription or OpenAI API key) | Codex CLI, OpenCode | Automatic loading, SDK reads, script execution and a generated two-layer variant are all verified |
-| **Gemini** | Antigravity, Gemini CLI | Config shape verified and a live round-trip passed through Antigravity. SDK accuracy not measured — the run's model wasn't recorded, and an Antigravity session is not necessarily Gemini |
-| **Antigravity's other models** | Antigravity | At least one non-Gemini model is a poor pick for this work: it set the connection up correctly and then could not call the MCP tools it had been given, so no script ever ran and SDK accuracy could not be measured. Choose a model in Antigravity with `agy models` rather than taking the default |
+| **Gemini** | Antigravity, Gemini CLI | Verified end-to-end through Antigravity with the config in its correct global location (`~/.gemini/config/mcp_config.json`) — tools loaded, preamble read, script executed |
+| **Antigravity's other models** | Antigravity | Not separately verified since the config-location fix above. Choose a model in Antigravity with `agy models` rather than taking the default |
 
 #### On the OpenAI side specifically
 
@@ -219,7 +219,7 @@ transport it speaks, and how much of it is proven.
 | **Claude Code** | Claude; anything on an Anthropic-compatible endpoint (DeepSeek) | `.mcp.json` in the project | SSE native | ✅ Proven, extensively |
 | **OpenCode** | Almost anything — Claude, GPT, DeepSeek, Gemini, local | `~/.config/opencode/opencode.jsonc` | SSE native (`remote`) | ✅ Full round-trip passed |
 | **Codex CLI / desktop environment** | GPT-5.x via ChatGPT login or OpenAI API key | `~/.codex/config.toml` | custom stdio bridge → SSE | ✅ Automatically discovers the tools, reads `preamble`, runs scripts |
-| **Antigravity** (`agy`) | Gemini, plus its other models | `.agents/mcp_config.json` | SSE (`serverUrl` field) | ✅ Verified — live round-trip and script execution passed |
+| **Antigravity** (`agy`) | Gemini, plus its other models | `~/.gemini/config/mcp_config.json` — global | SSE (`serverUrl` field) | ✅ Verified — live round-trip and script execution passed |
 
 ### The Codex caveat, in full
 
