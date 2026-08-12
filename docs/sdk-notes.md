@@ -12,6 +12,12 @@ against your version. The `preamble` doc (read it every session) is always the s
 - **IPv6 only.** The server binds `[::1]:6767`; `127.0.0.1` and (sometimes) `localhost` are
   refused. Your client / `.mcp.json` URL must use `[::1]`.
 - **`execute_script` returns nothing by default** — use `console.log(...)` to get output back.
+- **Some listed documentation topics don't exist.** `adjustment_ranges` appears in
+  `list_sdk_documentation` but `read_sdk_documentation_topic` returns `ERROR: File not found`. It's a
+  dead name in the listing, not a call you got wrong — don't retry it or assume the topic name is
+  mistyped. **`param_ranges.min.json` and `struct_ranges.min.json` load fine** and carry the same
+  information: `struct_ranges` is where adjustment *parameter* ranges live. Verified 12 Aug 2026 on
+  Affinity 3.2.3.4646.
 
 ## Object creation & module includes
 
