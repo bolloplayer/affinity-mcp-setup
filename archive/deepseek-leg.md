@@ -255,6 +255,24 @@ distinguish the two, so **every future leg must check the canvas before recordin
 bar in step 7. The harder task is still unrun, and the old Pro-vs-Flash claim was specifically about
 *complex* scripts. Do not conclude Flash beats Pro from this alone.
 
+### Cost — the whole Flash leg came to about $0.03
+
+Balance **$9.63 → $9.60**, measured 12 Aug 2026 either side of the run. Rounding to cents means the
+true figure is $0.03 ± $0.005, so treat it as "about three cents", not a precise number.
+
+That covered **everything**: fetching the repo, writing the config, running `verify.ps1`, the
+restart, the preamble read, `inspect-document.js`, the supplied colour-boost script, probing the SDK
+for the B&W API and ranges, writing and running a novel script, and the `add_sdk_hint` call. It also
+absorbed the wasteful 270KB fetch of GitHub's rendered HTML.
+
+**This is the finding that most deserves to reach readers.** The per-token rates on DeepSeek's
+pricing page are abstract; "a complete setup plus two scripts costs three cents" is not. It also
+reframes the Flash-vs-Pro question — at this scale, Pro's 3× premium is the difference between three
+cents and nine, so **cost is not the reason to prefer Flash.** Accuracy is the only axis that
+matters here, which is exactly what the complex-script test is for.
+
+Note the price-increase warning on DeepSeek's docs: date any cost claim published from this.
+
 ### What to record — this is the actual deliverable
 
 | Field | Why |
