@@ -43,6 +43,11 @@ about which one to pick, not how to wire it up.
 | | | | | |
 | **DeepSeek** | ❌ **DeepSeek Web** (`chat.deepseek.com`) | ✅ **Claude Code in VS Code**, redirected | ✅ **`claude` CLI**, redirected | `.mcp.json` — same as Claude, plus env-var redirect † |
 | | | | | |
+| | | | | |
+| ⎯⎯⎯ *Not a vendor ecosystem — a multi-model harness that can drive any of the models above* ⎯⎯⎯ | | | | |
+| | | | | |
+| **OpenCode** (Multi-model) | — *(N/A — local harness)* | ✅\* **OpenCode Desktop App** (beta) | ✅ **`opencode` CLI / TUI** | `opencode.json` in the project — **workspace**, `url` field |
+| | | | | |
 
 <br>
 
@@ -132,7 +137,8 @@ unverified.
 | 5 | Gemini | Google subscription | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ✅ Verified end-to-end |
 | 6 | Antigravity's other models | Via Antigravity | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ❓ Harness proven, model not separately verified |
 | 7 | Gemini | Google API key | Gemini CLI | `~/.gemini/settings.json` | ❓ | ❓ Not looked at yet |
-| 8 | Any local model | Free | Ollama / LM Studio | — | none | ❌ No MCP client — not viable |
+| 8 | Free models (e.g. DeepSeek V4 Flash Free) | **Free, no API key** | OpenCode | `opencode.json` (workspace) | SSE | ✅ Verified — full setup and a masked two-layer script at zero cost. Quota-limited, so good for proving it works rather than a working session |
+| 9 | Any local model | Free | Ollama / LM Studio | — | none | ❌ No MCP client — not viable |
 
 ### Settled — Affinity is SSE-only
 
@@ -216,12 +222,14 @@ transport it speaks, and how much of it is proven.
 | **Claude Code** | Claude; anything on an Anthropic-compatible endpoint (DeepSeek) | `.mcp.json` in the project | SSE native | ✅ Proven, extensively |
 | **Codex CLI / desktop environment** | GPT-5.x via ChatGPT login or OpenAI API key | `~/.codex/config.toml` | custom stdio bridge → SSE | ✅ Automatically discovers the tools, reads `preamble`, runs scripts |
 | **Antigravity** (`agy`) | Gemini, plus its other models | `~/.gemini/config/mcp_config.json` — global | SSE (`serverUrl` field) | ✅ Verified — live round-trip and script execution passed |
+| **OpenCode** (CLI / TUI) | Almost anything — Claude, GPT, DeepSeek, Gemini, local, plus free models | `opencode.json` in the project — **workspace** | SSE native (`url` field) | ✅ Verified from a clean install — setup, restart and a masked two-layer script |
 
 ### Recommended combinations
 
 | If you want… | Use |
 |---|---|
 | **The most reliable setup** | Claude Code + Claude |
+| **Zero-cost proof it works** | OpenCode + a free model — no API key at all. Quota-limited, so use it to prove the connection rather than as a working setup |
 | **Cheap, on the proven connection** | Claude Code + DeepSeek, via the redirect below — verified end-to-end, and a whole session costs cents |
 | **You already pay for ChatGPT** | The ChatGPT app's **Codex** tab + the custom bridge — no terminal needed. Same capability in a terminal via the `codex` CLI. (`Chat` cannot reach Affinity at all.) |
 
