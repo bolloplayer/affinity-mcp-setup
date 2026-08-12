@@ -14,12 +14,34 @@ here ships to `bolloplayer/affinity-mcp-setup`.
    there is no protocol-version problem of the kind Codex has.
 
    ```
-   opencode mcp add affinity --url "http://[::1]:6767/sse"
+   opencode mcp add affinity --url "http://[::1]:6767/sse"   # ⚠️ see below — may no longer exist
    opencode mcp list          # reported: connected
    ```
 
-   Config lives at `~/.config/opencode/opencode.jsonc` (the `remote` server type). The one-line
-   CLI form above writes it for you.
+   > **⚠️ Both of these are suspect as of 12 Aug 2026 (OpenCode 1.18.x).** Checked against
+   > `opencode.ai/docs/mcp-servers`:
+   >
+   > - **`opencode mcp add` is not in the current command list.** The documented commands are
+   >   `auth`, `list`, `logout` and `debug`. Write the config file directly instead.
+   > - **The docs now put config in `opencode.json` at the *workspace root*,** not the global
+   >   `~/.config/opencode/opencode.jsonc` recorded here. Which one is actually read is **unresolved**
+   >   — and this is exactly the failure that bit Antigravity, where a workspace file was written and
+   >   silently never read. Resolve it deliberately: try the workspace file, and if `opencode mcp
+   >   list` does not see the server, try the global one.
+   >
+   > Documented remote-server shape:
+   >
+   > ```json
+   > {
+   >   "$schema": "https://opencode.ai/config.json",
+   >   "mcp": {
+   >     "affinity": { "type": "remote", "url": "http://[::1]:6767/sse", "enabled": true }
+   >   }
+   > }
+   > ```
+   >
+   > The field is **`url`**, not `serverUrl` — `serverUrl` is Antigravity's, and confusing the two
+   > fails silently.
 
 2. **It is the cheapest verified path, including a genuinely free one.**
    `opencode/deepseek-v4-flash-free` completed a full round-trip with **no API key and no
