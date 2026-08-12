@@ -160,7 +160,8 @@
     <div class="needs-col needs-yes">
       <h3>Bring this</h3>
       <ul>
-        <li>Part I completed <small>Affinity 3.2+ with its MCP server on, and Claude Code's <code>.mcp.json</code> already talking to Affinity</small></li>
+        <li>Affinity 3.2+ with its MCP server switched on <small>step 1 of <a href="index.html">part I</a> — that part you do need</small></li>
+        <li>Claude Code installed <small><code>npm install -g @anthropic-ai/claude-code</code>. You do <b>not</b> need a Claude account or to have finished part I: verified August 2026, Claude Code starts on a DeepSeek key alone, and a DeepSeek-backed session writes its own <code>.mcp.json</code></small></li>
         <li>A <a href="https://platform.deepseek.com/api_keys">DeepSeek account</a> <small>pay-as-you-go, not a subscription — a few dollars covers extensive testing</small></li>
         <li>A DeepSeek API key <small>created in the platform dashboard, with a small prepaid balance</small></li>
         <li>A separate terminal <small>so the redirect touches only this one session, not your normal Claude</small></li>
@@ -204,11 +205,12 @@
     <tr><td><code>ANTHROPIC_DEFAULT_HAIKU_MODEL</code></td><td><code>deepseek-v4-flash</code></td></tr>
     <tr><td><code>CLAUDE_CODE_SUBAGENT_MODEL</code></td><td><code>deepseek-v4-flash</code></td></tr>
     <tr><td><code>CLAUDE_CODE_EFFORT_LEVEL</code></td><td><code>max</code></td></tr>
+    <tr><td><code>CLAUDE_CODE_AUTO_COMPACT_WINDOW</code></td><td><code>786432</code></td></tr>
   </table>
   </div>
 
   <p class="term-label">PowerShell — in the test terminal only</p>
-  <div class="term"><button class="copy-btn" type="button" aria-label="Copy commands to clipboard" data-copy='$env:ANTHROPIC_BASE_URL             = "https://api.deepseek.com/anthropic"&#10;$env:ANTHROPIC_AUTH_TOKEN           = "<your DeepSeek key>"&#10;$env:ANTHROPIC_MODEL                = "deepseek-v4-flash"&#10;$env:ANTHROPIC_DEFAULT_OPUS_MODEL   = "deepseek-v4-pro"&#10;$env:ANTHROPIC_DEFAULT_SONNET_MODEL = "deepseek-v4-pro"&#10;$env:ANTHROPIC_DEFAULT_HAIKU_MODEL  = "deepseek-v4-flash"&#10;$env:CLAUDE_CODE_SUBAGENT_MODEL     = "deepseek-v4-flash"&#10;$env:CLAUDE_CODE_EFFORT_LEVEL       = "max"&#10;claude&#10;'><svg class="ic-copy" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="ic-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></button><pre><span class="dim">&gt;</span> $env:ANTHROPIC_BASE_URL             = "https://api.deepseek.com/anthropic"
+  <div class="term"><button class="copy-btn" type="button" aria-label="Copy commands to clipboard" data-copy='$env:ANTHROPIC_BASE_URL             = "https://api.deepseek.com/anthropic"&#10;$env:ANTHROPIC_AUTH_TOKEN           = "<your DeepSeek key>"&#10;$env:ANTHROPIC_MODEL                = "deepseek-v4-flash"&#10;$env:ANTHROPIC_DEFAULT_OPUS_MODEL   = "deepseek-v4-pro"&#10;$env:ANTHROPIC_DEFAULT_SONNET_MODEL = "deepseek-v4-pro"&#10;$env:ANTHROPIC_DEFAULT_HAIKU_MODEL  = "deepseek-v4-flash"&#10;$env:CLAUDE_CODE_SUBAGENT_MODEL     = "deepseek-v4-flash"&#10;$env:CLAUDE_CODE_EFFORT_LEVEL       = "max"&#10;$env:CLAUDE_CODE_AUTO_COMPACT_WINDOW = "786432"&#10;claude&#10;'><svg class="ic-copy" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="ic-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></button><pre><span class="dim">&gt;</span> $env:ANTHROPIC_BASE_URL             = "https://api.deepseek.com/anthropic"
 <span class="dim">&gt;</span> $env:ANTHROPIC_AUTH_TOKEN           = "&lt;your DeepSeek key&gt;"
 <span class="dim">&gt;</span> $env:ANTHROPIC_MODEL                = "deepseek-v4-flash"
 <span class="dim">&gt;</span> $env:ANTHROPIC_DEFAULT_OPUS_MODEL   = "deepseek-v4-pro"
@@ -216,6 +218,7 @@
 <span class="dim">&gt;</span> $env:ANTHROPIC_DEFAULT_HAIKU_MODEL  = "deepseek-v4-flash"
 <span class="dim">&gt;</span> $env:CLAUDE_CODE_SUBAGENT_MODEL     = "deepseek-v4-flash"
 <span class="dim">&gt;</span> $env:CLAUDE_CODE_EFFORT_LEVEL       = "max"
+<span class="dim">&gt;</span> $env:CLAUDE_CODE_AUTO_COMPACT_WINDOW = "786432"
 <span class="dim">&gt;</span> claude</pre></div>
 
   <p>Now launch Claude. You will get the Claude CLI, but in the background, DeepSeek is giving the

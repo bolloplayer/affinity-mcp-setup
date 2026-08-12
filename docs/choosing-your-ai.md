@@ -41,6 +41,8 @@ about which one to pick, not how to wire it up.
 | | | | | |
 | **Gemini** (Google) | ❌ **Gemini Web** (`gemini.google.com`) | ✅\* **Antigravity 2.0 / IDE** | ✅ **`agy` CLI** (Antigravity) | `~/.gemini/config/mcp_config.json` — global (`serverUrl` field) |
 | | | | | |
+| **DeepSeek** | ❌ **DeepSeek Web** (`chat.deepseek.com`) | ✅ **Claude Code in VS Code**, redirected | ✅ **`claude` CLI**, redirected | `.mcp.json` — same as Claude, plus env-var redirect † |
+| | | | | |
 
 <br>
 
@@ -49,6 +51,14 @@ about which one to pick, not how to wire it up.
 *\* Expected to work by config inheritance — the desktop/IDE surface reads the same config file as the
 CLI that was tested — but not individually verified in its own right. The corresponding CLI in the same row **was**
 verified.*
+
+*† **DeepSeek has no harness of its own — it borrows Claude's.** DeepSeek publishes an
+Anthropic-API-compatible endpoint, so Claude Code can be pointed at it with a handful of environment
+variables. The MCP connection, `.mcp.json` and every script stay exactly as they are; only the model
+answering changes. **[Setting up DeepSeek in Claude Code — step-by-step guide](deepseek.html)**
+covers the environment variables, the separate-terminal warning and how to check the swap worked.
+Both `deepseek-v4-flash` and `deepseek-v4-pro` are verified end-to-end. You do **not** need a Claude
+subscription: Claude Code runs on a DeepSeek key alone.*
 
 <br>
 
@@ -222,18 +232,16 @@ That middle row is a useful trick: DeepSeek publishes an **Anthropic-API-compati
 Claude Code can be pointed at DeepSeek instead of Anthropic. The harness, the MCP connection, and
 every config file stay exactly as they were — only the model changes.
 
-**Use a separate terminal window for the redirect** — the environment variables involved redirect
-*all* traffic, including auth and billing, away from Anthropic:
+### ▸ [Setting up DeepSeek in Claude Code — the guide](deepseek.html)
 
-```powershell
-$env:ANTHROPIC_BASE_URL  = "https://api.deepseek.com/anthropic"
-$env:ANTHROPIC_AUTH_TOKEN = "<your DeepSeek API key>"
-$env:ANTHROPIC_MODEL      = "deepseek-v4-flash"
-claude
-```
+**Follow that page for the setup.** It has the environment variables, why the terminal has to be a
+separate one, and how to confirm the swap actually took. It is the single source for this — the
+steps aren't repeated here, so they can't drift apart.
 
-Claude Code's web-search tool triggers extra LLM calls under the hood, which costs extra tokens
-against your DeepSeek balance when running this way.
+Two things worth knowing before you go: the redirect sends *all* Claude Code traffic including
+billing away from Anthropic, so it belongs in a throwaway terminal rather than the one you normally
+work in. And Claude Code's web-search tool makes extra LLM calls under the hood, which costs extra
+tokens against your DeepSeek balance when running this way.
 
 ---
 
