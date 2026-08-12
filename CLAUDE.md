@@ -76,20 +76,37 @@ optional handshake probe, Claude Code present). If scripts are blocked:
 - Confirmed API shapes and known dead-ends live in `docs/sdk-notes.md`; example scripts in
   `examples/` (see `examples/README.md`).
 
-## Three-leg re-test — done
+## Leg status — four legs plus the OpenCode ecosystem
 
-All three harnesses verified against **`bolloplayer/affinity-mcp-setup`**: Claude Code, Codex
-(ChatGPT app), and Antigravity (Gemini) connect, survive the restart/handoff-note, and reach the
-two-option menu.
+A "leg" is one end-to-end path from a harness to a running script in Affinity. Three are done; the
+fourth and the OpenCode ecosystem are queued for a clean test.
 
-**A single harness-agnostic prompt works for all three** — good for a public post, since it means
-one instruction rather than three:
+| Leg | What it is | Status |
+|---|---|---|
+| **Claude Code** | `.mcp.json`, SSE native | ✅ Done |
+| **Codex** | `~/.codex/config.toml` + the stdio bridge | ✅ Done |
+| **Antigravity** | global `~/.gemini/config/mcp_config.json`, SSE native | ✅ Done |
+| **DeepSeek** | Claude Code redirected at DeepSeek's Anthropic-compatible endpoint | ⬜ To test |
+| **OpenCode** *(ecosystem, not a vendor leg)* | multi-model harness, SSE native | ⬜ To test |
+
+The two queued ones have had their prior findings pulled out of the docs and parked in
+`archive/deepseek-leg.md` and `archive/opencode-leg.md`, so each test starts from a clean slate
+rather than from half-remembered results. **Read the relevant archive file before starting a leg** —
+it lists exactly which claims need re-verifying and which were never run at all.
+
+Keep the two straight when testing: DeepSeek's leg runs *through Claude Code*, while OpenCode is a
+harness in its own right. Some of the old model numbers were measured on OpenCode and then quoted as
+DeepSeek results; that conflation is what the split is meant to fix.
+
+**A single harness-agnostic prompt works for all three finished legs** — good for a public post,
+since it means one instruction rather than three:
 
 > Set up the Affinity MCP connection following https://github.com/bolloplayer/affinity-mcp-setup's
 > SETUP.md.
 
 It self-identifies which harness it's in from the table in `SETUP.md` §2 and writes only that
-harness's config, without being told which one it's running in.
+harness's config, without being told which one it's running in. Note that §2's table no longer has
+an OpenCode row — restore one only when that leg passes.
 
 **Antigravity's config location is global, not per-workspace — `SETUP.md` now reflects that.**
 Antigravity has no per-workspace MCP config file; only a global one,

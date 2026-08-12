@@ -32,9 +32,11 @@ here ships to `bolloplayer/affinity-mcp-setup`.
 
 ## Model results measured on this leg
 
-These are model findings, not harness findings, and they still hold — but they were measured
-*through* OpenCode, so re-confirm them if the re-test changes anything about how scripts are fed
-to the model.
+These are model findings, not harness findings. They were measured *through* OpenCode, so re-confirm
+them if the re-test changes anything about how scripts are fed to the model. **The same table also
+sits in `archive/deepseek-leg.md`** — DeepSeek is now its own leg, and the two must be separated in
+the re-test: a number measured on OpenCode is not automatically a number for
+DeepSeek-via-Claude-Code.
 
 | Model | Cost | SDK accuracy | Verdict |
 |---|---|---|---|
