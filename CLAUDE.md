@@ -102,7 +102,7 @@ read, and `inspect-document.js` ran successfully against a real open document.
 
 ## Publishing to the public repo
 
-This repo (`affinity-photo-claude-code-windows-private`) is the private/working one — it's where
+This repo (`affinity-mcp-setup-private`) is the private/working one — it's where
 testing, debugging narrative, and this file live. **`bolloplayer/affinity-mcp-setup`** (remote
 `public`) is what Reddit/tutorial readers actually clone. Never push this repo's branch there
 wholesale — it pulls in `CLAUDE.md` and whatever else this repo happens to be carrying.

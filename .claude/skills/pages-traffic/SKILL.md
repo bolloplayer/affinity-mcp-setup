@@ -5,7 +5,7 @@ description: Check whether the public tutorial site is getting visitors. Pulls G
 
 # Public repo / Pages traffic check
 
-This repo (`affinity-photo-claude-code-windows-private`) is private. The tutorial content is
+This repo (`affinity-mcp-setup-private`) is private. The tutorial content is
 published from a public sibling repo.
 
 **The public repo moved on 4 August 2026.** There are two, and both still receive traffic:
