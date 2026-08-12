@@ -85,7 +85,7 @@ eyes. If a plan would add a leg, merge one, restructure the docs around a differ
 
 Five moving parts:
 
-1. **Four legs plus an OpenCode section** — see the status table below. Two are untested.
+1. **Four legs plus an OpenCode section** — see the status table below. **All five now verified.**
 2. **Two tutorial webpages, `docs/index.html` and `docs/deepseek.html`.** These are **relics**,
    kept deliberately as an extra route for readers who'd rather install by hand than point an agent
    at `SETUP.md`. **They are not maintained in step with the docs, and that is intentional** — a
@@ -102,7 +102,7 @@ Five moving parts:
 What *does* change within this structure: leg statuses as tests are run, cell contents in the
 tables, and the archive files as findings are re-verified. The shape itself doesn't.
 
-## Leg status — four legs plus the OpenCode ecosystem
+## Leg status — all five done
 
 A "leg" is one end-to-end path from a harness to a running script in Affinity. **All five are now
 done** — DeepSeek and OpenCode were both re-tested from clean slates on 12 Aug 2026.
@@ -115,14 +115,32 @@ done** — DeepSeek and OpenCode were both re-tested from clean slates on 12 Aug
 | **DeepSeek** | Claude Code redirected at DeepSeek's Anthropic-compatible endpoint | ✅ Done — **both `v4-flash` and `v4-pro` verified** end-to-end, 12 Aug 2026. The old "Flash beats Pro" claim did not survive testing and has been retired |
 | **OpenCode** *(ecosystem, not a vendor leg)* | multi-model harness, SSE native | ✅ Done — re-tested from a clean machine 12 Aug 2026, manual **and** agent-driven |
 
-The two queued ones have had their prior findings pulled out of the docs and parked in
-`archive/deepseek-leg.md` and `archive/opencode-leg.md`, so each test starts from a clean slate
-rather than from half-remembered results. **Read the relevant archive file before starting a leg** —
-it lists exactly which claims need re-verifying and which were never run at all.
+`archive/deepseek-leg.md` and `archive/opencode-leg.md` hold the full run records — protocols,
+results, costs and the claims that did *not* survive. **Read the relevant archive before touching a
+leg**, and before quoting any number about it.
 
-Keep the two straight when testing: DeepSeek's leg runs *through Claude Code*, while OpenCode is a
-harness in its own right. Some of the old model numbers were measured on OpenCode and then quoted as
-DeepSeek results; that conflation is what the split is meant to fix.
+Keep the two straight: DeepSeek's leg runs *through Claude Code*, while OpenCode is a harness in its
+own right. Old numbers measured on OpenCode were once quoted as facts about DeepSeek; separating them
+is what the split achieved, and it changed the answer.
+
+**What the 12 Aug 2026 re-tests overturned** — do not reinstate any of these from older notes:
+
+- ❌ *"Flash beats Pro on SDK accuracy"* — not supported. Pro wrote a 169-line masked script first
+  try with zero hallucinated calls.
+- ❌ *"Pro hallucinates 3–4 calls per complex script"* — contradicted directly.
+- ❌ *"OpenCode degrades model accuracy"* — not supported. Same model family, same task, same
+  preamble; the harness made no difference.
+- ❌ *"OpenCode is a free $0 path"* — true but incomplete. The allowance covers about **two**
+  complete setups.
+- ✅ *Cost is negligible* — measured, not extrapolated: a full DeepSeek setup plus two scripts came
+  to a few cents.
+
+**Two config traps that are exact opposites** — never generalise one harness's answer to another:
+
+| Harness | Config scope | Field |
+|---|---|---|
+| **Antigravity** | **Global only** — a workspace file is silently never read | `serverUrl` |
+| **OpenCode** | **Workspace** works (global also supported for machine-wide) | `url` |
 
 **The end-of-setup menu is three options on the Claude Code path and §3, but two on Antigravity.**
 Option 3 ("use Affinity from every folder") is meaningless for Antigravity, whose config is already
