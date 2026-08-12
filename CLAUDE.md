@@ -104,8 +104,8 @@ tables, and the archive files as findings are re-verified. The shape itself does
 
 ## Leg status — four legs plus the OpenCode ecosystem
 
-A "leg" is one end-to-end path from a harness to a running script in Affinity. Three are done; the
-fourth and the OpenCode ecosystem are queued for a clean test.
+A "leg" is one end-to-end path from a harness to a running script in Affinity. **All five are now
+done** — DeepSeek and OpenCode were both re-tested from clean slates on 12 Aug 2026.
 
 | Leg | What it is | Status |
 |---|---|---|
@@ -113,7 +113,7 @@ fourth and the OpenCode ecosystem are queued for a clean test.
 | **Codex** | `~/.codex/config.toml` + the stdio bridge | ✅ Done |
 | **Antigravity** | global `~/.gemini/config/mcp_config.json`, SSE native | ✅ Done |
 | **DeepSeek** | Claude Code redirected at DeepSeek's Anthropic-compatible endpoint | ✅ Done — **both `v4-flash` and `v4-pro` verified** end-to-end, 12 Aug 2026. The old "Flash beats Pro" claim did not survive testing and has been retired |
-| **OpenCode** *(ecosystem, not a vendor leg)* | multi-model harness, SSE native | ⬜ To test |
+| **OpenCode** *(ecosystem, not a vendor leg)* | multi-model harness, SSE native | ✅ Done — re-tested from a clean machine 12 Aug 2026, manual **and** agent-driven |
 
 The two queued ones have had their prior findings pulled out of the docs and parked in
 `archive/deepseek-leg.md` and `archive/opencode-leg.md`, so each test starts from a clean slate

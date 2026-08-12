@@ -206,6 +206,38 @@ masked task consumed **~100K tokens, roughly half the free allowance**. So the f
 about two tasks of that size — ample to prove the connection works, not enough for a working
 session. That nuance was missing from the original "$0 smoke test" claim.
 
+## Agent-driven run — PASSED, 12 Aug 2026
+
+Second pass, after the manual test proved the config shape and `SETUP.md`'s OpenCode row was written
+from it. Fresh empty folder, the harness-agnostic prompt only.
+
+**Part 1 — all five checks.** Self-identified as OpenCode from §2's table unprompted; wrote
+`opencode.json` in the **project folder**; used `url` and `"type": "remote"`; did **not** reach for
+the dead `opencode mcp add`; explained the restart as "expected, not a fault".
+
+**It diagnosed the IPv6 trap unaided.** Its first probe reported port 6767 not listening — the
+classic false negative — and instead of concluding Affinity was broken it re-queried by process ID,
+found `::1:6767`, and confirmed with `Test-NetConnection`. That is the single most common failure in
+this integration, caught without help. It also used `-OutFile` so fetched bytes went straight to
+disk rather than through the model, per SETUP.md's rule.
+
+**Part 2 — passed, and notably without a handoff note.** Every other harness's section instructs the
+agent to leave one, because the restart wipes context. **The OpenCode section has no such step**, and
+it did not need one: the restarted session read the directory, `SETUP.md`, `opencode.json` and
+`examples/`, then concluded *"The config file already exists, so I'm the Part 2 session"* purely by
+inference. It then read the preamble, confirmed 11 `affinity_*` tools, read
+`inspect-document.js` before running it, reported the stack correctly, and offered all three options
+verbatim without choosing.
+
+**Judgement on the missing handoff step: leave it out for now, but know it is inference, not
+instruction.** It worked here on a capable model with `SETUP.md` sitting on disk. A weaker model may
+not make the leap. If a future OpenCode run gets lost after the restart, adding an `AGENTS.md`
+handoff note — the convention OpenCode reads, already used in this repo for Antigravity — is the fix.
+
+**Harness quirk:** OpenCode's WebFetch failed outright on `github.com` with a transport error; the
+model recovered by going to `raw.githubusercontent.com`, trying both `main` and `master`. Claude Code
+fetched the GitHub HTML fine. The recovery was the model's doing, not the harness's.
+
 ## What stayed in the docs
 
 The DeepSeek-via-Claude-Code redirect is **not** part of this leg and was deliberately kept:
