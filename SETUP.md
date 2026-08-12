@@ -273,6 +273,21 @@ That reports a real handshake, not just a parsed file — if it says connected, 
 `affinity_read_sdk_documentation_topic`, …), where Claude Code uses `mcp__affinity__*`. There are 11
 either way.
 
+**Machine-wide instead of per-project** (the §3 menu's third option): merge the same `mcp` block into
+the global config at `~/.config/opencode/`. Look for **both** `opencode.json` and `opencode.jsonc` —
+OpenCode reads either, and a pre-existing `.jsonc` is what it picks up, so creating a second file
+leaves you guessing which one wins. Merge into whichever exists rather than replacing it.
+
+Verify with:
+
+```
+opencode debug config
+```
+
+**Run that from a folder with no project config.** Inside the project folder the local
+`opencode.json` masks the global one, so seeing `affinity` there proves nothing about global scope.
+A restart is needed for the global entry to load, exactly as for the project one.
+
 ### Antigravity (`agy`) — follow these seven steps, in order
 
 **Antigravity needs no bridge.** It speaks a protocol version Affinity accepts and connects over
