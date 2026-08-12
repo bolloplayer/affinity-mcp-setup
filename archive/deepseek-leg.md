@@ -112,6 +112,36 @@ Path B is blocked and the "no Claude subscription needed" premise fails. Neither
 
 Test it on a clean profile, not the everyday one, and record exactly what the first run demands.
 
+**Result — PASSED, 12 Aug 2026, Claude Code v2.1.228.**
+
+Isolate the profile with **`CLAUDE_CONFIG_DIR`**. It is absent from the published settings docs but
+is honoured by `claude.exe`, and it relocates the whole profile including `.credentials.json`, so
+the everyday login is untouched:
+
+```powershell
+$env:CLAUDE_CONFIG_DIR = "$env:USERPROFILE\Desktop\ds-test-profile"
+```
+
+On a profile that had **never authenticated with Anthropic**, Claude Code:
+
+- ran first-run onboarding (terminal choice, then theme choice) — confirming the profile really was
+  fresh, rather than silently reusing the everyday one;
+- **never asked for a login and never opened a browser**;
+- started with `deepseek-v4-flash · API Usage Billing` in the banner, no subscription named;
+- `/model` listed **only** DeepSeek models — Default and the Opus/Sonnet slots resolving to
+  `deepseek-v4-pro`, the Haiku slot to `deepseek-v4-flash`, which was the active model;
+- `/mcp` showed **no connections**, the correct Path B starting state. Note that none of the
+  account's claude.ai connectors appeared either, as expected with no Anthropic auth.
+
+**Consequence: DeepSeek is a standalone entry point, not a sequel to Part I.** The
+"Part I completed" prerequisite at the top of `docs/deepseek.html` is wrong for this audience and
+should be revised at the end-of-project refresh — it is what made the agent-driven setup prompt
+look redundant for this leg.
+
+**Watch out: `CLAUDE_CODE_EFFORT_LEVEL=max` did not visibly apply** — the model picker still showed
+`High effort (default)`. Set it in-session with `←/→` and keep it identical across the Flash and Pro
+runs, or the accuracy comparison is confounded.
+
 ### Steps, per model
 
 1. From an **empty folder with no `.mcp.json`**, give it the harness-agnostic prompt: *"Set up the
