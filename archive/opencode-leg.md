@@ -239,6 +239,28 @@ What it proves is that the write path, `save_script_to_library` and the handover
 OpenCode. The accuracy evidence for this leg is the masked two-layer script, which was written
 against a genuinely unhinted problem and verified numerically.
 
+**Option 3 (machine-wide registration) — PASSED, and previously untested on any harness.**
+
+- The global config is **`~/.config/opencode/opencode.jsonc`**. OpenCode supports both `.json` and
+  `.jsonc`; the docs name `opencode.json`, but a pre-existing `.jsonc` is what actually gets read.
+  Check for both before creating a new file, or you end up with two configs and no idea which wins.
+- **Verify with `opencode debug config`** — it prints the resolved configuration. Run it from a
+  folder with **no** project config, otherwise the project file masks the global one and the check
+  proves nothing. (The agent spotted this itself and re-ran from a temp folder.)
+- **A restart is required** for global scope to load, same as project scope.
+- The project `opencode.json` becomes redundant but harmless once the global entry exists.
+
+**Correction: `~/.config/opencode/node_modules` is OpenCode's own scaffolding, not a plugin
+install.** Earlier today I guessed it came from plugins. After a full delete and reinstall, OpenCode
+recreated the directory with `node_modules`, `package.json`, `package-lock.json` and `.gitignore`
+unprompted. It accounts for ~50 MB of the config directory's size and is expected.
+
+**Layer-disappearance episode, and how it was handled.** After option 3 the agent found the Boost
+and Clean layers from option 1 missing. Rather than assert a cause it walked the layer tree,
+confirmed the document UUID was unchanged, and inspected the undo history before reporting that they
+had "since been deleted or switched off". Most likely the user undid them between tests. Recorded
+because the *behaviour* is right: it investigated a surprise instead of narrating a guess.
+
 **Judgement on the missing handoff step: leave it out for now, but know it is inference, not
 instruction.** It worked here on a capable model with `SETUP.md` sitting on disk. A weaker model may
 not make the leap. If a future OpenCode run gets lost after the restart, adding an `AGENTS.md`
