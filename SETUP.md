@@ -61,6 +61,7 @@ Identify which harness you are running inside, then write **only** that row's fi
 | **Claude Code** (CLI, VS Code ext, Desktop Code tab) | `.mcp.json` in the project folder | SSE native |
 | **Codex** (CLI, ChatGPT Codex tab, IDE extension) | `~/.codex/config.toml` | stdio bridge → SSE |
 | **Antigravity** (`agy`, any model it fronts — not only Gemini) | `~/.gemini/config/mcp_config.json` — **global**, not per-workspace | SSE native |
+| **OpenCode** (CLI / TUI, any model it fronts) | `opencode.json` in the project folder — **workspace**, not global | SSE native |
 
 ### Claude Code
 
@@ -230,6 +231,47 @@ four of these, plainly:
 
 Do not end on a bare "please restart Claude Code". Users read that as the setup having failed,
 and some will start over from scratch rather than restart.
+
+### OpenCode
+
+**No bridge.** OpenCode speaks SSE natively and accepts a protocol version Affinity is happy with,
+so the endpoint goes in as-is.
+
+Write `opencode.json` in the **project folder** — this is the opposite of Antigravity, so do not
+carry an assumption across from that section:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "affinity": {
+      "type": "remote",
+      "url": "http://[::1]:6767/sse",
+      "enabled": true
+    }
+  }
+}
+```
+
+Three details that fail silently if you get them wrong:
+
+- The field is **`url`** — *not* `serverUrl`. `serverUrl` is Antigravity's, and using it here gets
+  you a server that never connects with no error worth reading.
+- **`"type": "remote"`** is required. There is no separate `sse` type.
+- **There is no `opencode mcp add` command.** Older guides show one; the current CLI has `auth`,
+  `list`, `logout` and `debug` only. Write the file.
+
+Then confirm before launching anything:
+
+```
+opencode mcp list          # expect: ✓ affinity connected
+```
+
+That reports a real handshake, not just a parsed file — if it says connected, the transport works.
+
+**Affinity's tools are namespaced `affinity_*` here** (`affinity_execute_script`,
+`affinity_read_sdk_documentation_topic`, …), where Claude Code uses `mcp__affinity__*`. There are 11
+either way.
 
 ### Antigravity (`agy`) — follow these seven steps, in order
 
