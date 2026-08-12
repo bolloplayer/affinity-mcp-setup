@@ -273,6 +273,27 @@ matters here, which is exactly what the complex-script test is for.
 
 Note the price-increase warning on DeepSeek's docs: date any cost claim published from this.
 
+### The complex task — use this wording verbatim on every model
+
+B&W is **burned as a benchmark**: Flash's `add_sdk_hint` put the factory absence, the
+read-mutate-reapply pattern and the `[-2.0, 3.0]` range into the pool, so every later session is
+handed the answer. Use this instead — nothing in the pool covers it:
+
+> Add a two-layer adjustment to my open document, with a mask so the effect applies selectively
+> rather than to the whole image. Save it to the Script View and run it.
+
+**Decline `add_sdk_hint` until every model has attempted this.** Whichever model goes first would
+otherwise deposit its solution in the pool and hand it to the next — the same one-way door that
+burned B&W, except this one is foreseeable. Once both runs are recorded, accept the hint for
+whichever solution was better.
+
+Neither run is pristine — the pool already held hints from earlier sessions. What is controllable is
+that both models get the *same* inherited help, which this achieves.
+
+**Watch for subagent leakage.** `CLAUDE_CODE_SUBAGENT_MODEL` and the Haiku slot both point at Flash,
+so anything delegated to a subagent runs on Flash even during a Pro session. If that happens, the
+run is not purely Pro and must be noted or redone.
+
 ### What to record — this is the actual deliverable
 
 | Field | Why |
