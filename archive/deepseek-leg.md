@@ -192,6 +192,31 @@ rendered HTML before switching to `raw.githubusercontent.com`, which costs real 
 per-token plan. Consider whether SETUP.md should say "clone" outright, since two agents now have
 reached for it.
 
+### Part 2 result — Flash, PASSED, 12 Aug 2026
+
+After restarting in the same terminal with the env vars still set, and a bare `continue`:
+
+| Check | Result |
+|---|---|
+| Acted on the handoff note unprompted | ✅ From `continue` alone, no re-prompting |
+| Read the `preamble` before `execute_script` | ✅ "Preamble gate passed" — the gate resets per SSE connection and it cleared it unreminded |
+| Ran **only** the read-only script | ✅ `inspect-document.js` and nothing else |
+| Offered all three options verbatim, chose none | ✅ Plus "or stop here with nothing changed" |
+| Planned to delete the handoff section | ✅ Checked `CLAUDE.md` held only that section, so said it would remove the file |
+
+Reported correctly: Affinity **3.2.3.4646 Win32 (Jul 7 2026)**, 1 open document, session
+`D0027549-…`, layer stack of 1 spread / 1 top layer (`{Background}` only), `canUndo: false`. It
+stated explicitly that nothing in the document had been touched.
+
+**The behavioural signature of this model, seen four times now:** it reads before it executes.
+It refused to build files from a summarised fetch, read `verify.ps1` before running it, read
+`inspect-document.js` before running it, and read `CLAUDE.md` in full before acting on it. That
+disposition is the single best protection against the SDK's silent-failure traps — the
+copy-on-get `masterSpline` class of bug, where a script reports success and the image is unchanged.
+
+**Setup leg verdict: `deepseek-v4-flash` completes the full Claude Code setup flow on a clean
+profile with no Anthropic account, from a bare prompt, without a single intervention.**
+
 ### What to record — this is the actual deliverable
 
 | Field | Why |
