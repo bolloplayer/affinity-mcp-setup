@@ -229,6 +229,9 @@ inference. It then read the preamble, confirmed 11 `affinity_*` tools, read
 `inspect-document.js` before running it, reported the stack correctly, and offered all three options
 verbatim without choosing.
 
+**Option 1 (supplied colour-boost script) ran and was confirmed in Affinity** — save to library, run,
+pixels changed. The transport is proven end to end on the agent-driven path, not just the manual one.
+
 **Judgement on the missing handoff step: leave it out for now, but know it is inference, not
 instruction.** It worked here on a capable model with `SETUP.md` sitting on disk. A weaker model may
 not make the leap. If a future OpenCode run gets lost after the restart, adding an `AGENTS.md`
