@@ -328,6 +328,61 @@ Why the rule exists, and so why the miss matters: the user is seconds from the d
 resolution, so a render is wasted tokens and a described result invites the model to narrate an
 outcome it cannot actually see.
 
+### Complex task — Pro, PASSED with zero hallucinations
+
+Given the locked mask prompt, Pro checked the global hint pool (**nothing on masks — the benchmark
+was clean**), read the SDK docs for `PixelBuffer` and `createReplaceBitmap` rather than guessing,
+and wrote a 169-line script that ran first try.
+
+The code was reviewed line by line. **No hallucinated API calls.** It gets several non-obvious
+things right:
+
+- Reads the mask format from **`layer.rasterInterface`**, not the document's assumed depth — forcing
+  M8 onto a 16-bit document fails with `COMMAND_FAILED`.
+- Applies the mask **last**, once the layer is in final position in the tree.
+- Detects the group-parenting case with a root-count check and moves the layer back out.
+- Idempotent: deletes only its own layers by name, leaving everything else alone.
+- Correct chain: `PixelBuffer.create` → `createCompatibleBitmap(true)` → `createReplaceBitmap`.
+
+**This contradicts the archived claim outright.** "`deepseek-v4-pro` produced 3–4 hallucinated SDK
+calls per complex script" does not survive contact with a dedicated test: this *was* the complex
+script and it produced none. The likeliest explanation is the contamination already suspected — the
+old numbers were gathered informally, partly through OpenCode, and were never a clean measurement of
+Pro on this harness.
+
+**It also rendered a third time**, and described the result again. Three renders across the run makes
+this systematic rather than a slip.
+
+## Verdict — 12 Aug 2026
+
+**Both models work. The difference is minor and does not favour either strongly.**
+
+| | `deepseek-v4-flash` | `deepseek-v4-pro` |
+|---|---|---|
+| Setup flow, clean profile | ✅ | ✅ |
+| Following fetch instructions | Cloned the repo (deviation) | ✅ Fetched the listed files |
+| Fetch efficiency | Wasted 270KB on rendered HTML | ✅ Straight to raw |
+| No-renders rule | ✅ Obeyed | ❌ Broke it 3× and described results |
+| Novel script, first try | ✅ (B&W) | ✅ (B&W, but hint-contaminated) |
+| Complex masked script | **not run** | ✅ Zero hallucinations |
+| Cost, full run | ~$0.03 | **~$0.05**, and it did *more* — the complex task too |
+
+**Claims now settled:**
+
+- ❌ **"Flash beats Pro on accuracy"** — not supported. Pro handled the hardest task cleanly. Retire
+  this claim rather than republish it.
+- ❌ **"Pro hallucinates 3–4 calls per complex script"** — contradicted directly.
+- ✅ **Cost is negligible either way** — measured, not extrapolated: Flash's full run **$0.03**
+  ($9.63 → $9.60), Pro's full run **$0.05** ($9.60 → $9.55) *including the complex mask task Flash
+  never attempted*. Eight cents for the entire day's testing. Price is not a deciding factor at this
+  workload, which is what the old docs framing got most wrong: Pro's 3× per-token premium turns out
+  to be two cents in practice.
+
+**Known gap, stated plainly:** Flash was never given the complex mask task, so the accuracy
+comparison rests on Pro succeeding rather than on a head-to-head. That is enough to *retire* the old
+claim — it was that Pro fails, and Pro did not — but not enough to assert Pro is better. If the
+question ever matters, run the same locked prompt on Flash.
+
 ### What to record — this is the actual deliverable
 
 | Field | Why |

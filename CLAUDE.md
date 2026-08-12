@@ -112,7 +112,7 @@ fourth and the OpenCode ecosystem are queued for a clean test.
 | **Claude Code** | `.mcp.json`, SSE native | ✅ Done |
 | **Codex** | `~/.codex/config.toml` + the stdio bridge | ✅ Done |
 | **Antigravity** | global `~/.gemini/config/mcp_config.json`, SSE native | ✅ Done |
-| **DeepSeek** | Claude Code redirected at DeepSeek's Anthropic-compatible endpoint | 🟡 **Flash passed** (setup + both scripts, zero hallucinations, 12 Aug 2026). Pro unrun; the complex two-layer-with-mask task unrun |
+| **DeepSeek** | Claude Code redirected at DeepSeek's Anthropic-compatible endpoint | ✅ Done — **both `v4-flash` and `v4-pro` verified** end-to-end, 12 Aug 2026. The old "Flash beats Pro" claim did not survive testing and has been retired |
 | **OpenCode** *(ecosystem, not a vendor leg)* | multi-model harness, SSE native | ⬜ To test |
 
 The two queued ones have had their prior findings pulled out of the docs and parked in
