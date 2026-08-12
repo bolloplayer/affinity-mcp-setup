@@ -70,41 +70,45 @@ reaches Affinity at all.
 | App | Model | MCP | Transport | Status |
 |---|---|---|---|---|
 | Claude Desktop — **Home** tab (chat) | Sonnet / Opus | Official **Affinity connector** — install once via Claude Desktop's own Settings → Connectors → Browse connectors → "Affinity". No project `.mcp.json`, no manual URL. | SSE, local (`[::1]:6767`), wrapped by the connector — you never see the URL | ✅ Documented by Affinity's own Help Center article, "AI Automation with Claude" |
-| Claude Desktop — **Code** tab (Cowork) | Sonnet / Opus | Inherits the same official app-level connector — a brand-new session with only an empty, `.mcp.json`-free folder still reaches the Affinity MCP server, reads the preamble, and runs a script. No project `.mcp.json` required. | SSE | ✅ Confirmed |
+| Claude Desktop — **Code** tab (Cowork) | Sonnet / Opus | Inherits the same official app-level connector. No project `.mcp.json` required. | SSE | ✅ Confirmed |
 | Claude Code (terminal / VS Code extension) | Opus / Sonnet | Needs `.mcp.json` in the project folder — no app-level connector | SSE native | ✅ Verified, documented in `SETUP.md` |
 | ChatGPT app — **Chat** tab | GPT-5.x | Cloud connectors only; no Affinity connector exists and the local loopback server isn't exposed to the chat | None available | ❌ No Affinity connection possible — a missing ChatGPT connector, not an Affinity or script failure |
-| ChatGPT app — **Codex** tab | GPT-5.x | Custom stdio/SSE protocol bridge in `bridge/affinity-codex-bridge.mjs`, read from `~/.codex/config.toml` | stdio bridge → SSE, translating `2025-06-18` to `2025-11-25` | ✅ Verified — connects to Affinity and runs scripts. No terminal needed — the easiest OpenAI path |
-| **`codex` CLI** in a terminal | GPT-5.x | Same `~/.codex/config.toml`, same custom bridge | stdio bridge → SSE, same version translation | ✅ Verified — auto-loads the tools, reads `preamble`, runs scripts |
+| ChatGPT app — **Codex** tab | GPT-5.x | Custom stdio/SSE protocol bridge in `bridge/affinity-codex-bridge.mjs`, read from `~/.codex/config.toml` | stdio bridge → SSE, translating `2025-06-18` to `2025-11-25` | ✅ Verified — no terminal needed, the easiest OpenAI path |
+| **`codex` CLI** in a terminal | GPT-5.x | Same `~/.codex/config.toml`, same custom bridge | stdio bridge → SSE, same version translation | ✅ Verified |
 | Codex **IDE extension** (VS Code / Cursor / JetBrains) | GPT-5.x | Expected to inherit the same `~/.codex/config.toml` and bridge | stdio bridge → SSE | ❓ Not yet run — config inheritance is an assumption |
-| Antigravity CLI / IDE (`agy`) | Gemini, plus other models Antigravity fronts — don't assume Gemini | Native SSE via `~/.gemini/config/mcp_config.json` — **global**, `serverUrl` field | SSE native | ✅ Verified — connects to Affinity, reads preamble, executes scripts |
+| Antigravity CLI / IDE (`agy`) | Gemini, plus other models Antigravity fronts — don't assume Gemini | Native SSE via `~/.gemini/config/mcp_config.json` — **global**, `serverUrl` field | SSE native | ✅ Verified |
 
-### OpenAI — only two of the three surfaces reach Affinity
+### What actually matters per harness
 
-| Surface | Result |
-|---|---|
-| **ChatGPT Chat** | ❌ No Affinity entry exists in the plug-in directory, and a local loopback server is not exposed to chat. No tool schema reaches the model at all — a connector-availability gap, not something to fix at the config or script level |
-| **ChatGPT app, Codex tab** | ✅ Reads the same `~/.codex/config.toml` as the CLI, so the bridge serves it too. The easiest OpenAI path — no terminal — but the bridge still has to be installed locally; this is not a managed connector like Claude Desktop's |
-| **`codex` CLI** | ✅ Full round-trip verified: tools discovered from a fresh process, preamble read, colour-boost script executed and safely re-run |
+Three findings each — the ones that decide whether your setup works.
 
-Both working surfaces need the bridge for one reason: **Codex initializes with MCP protocol
-`2025-06-18` and Affinity accepts only `2025-11-25`.** A generic `mcp-remote` establishes the SSE
-transport and then passes that initialization through unchanged, so it fails with `-32602` after
-appearing to connect. `bridge/affinity-codex-bridge.mjs` translates the version; see `SETUP.md`'s
-Codex section for the config. Affinity identifies itself as server `Affinity` `1.0.0`.
+**Claude Code / Claude Desktop**
 
-### Claude Desktop — both tabs work through the official connector
+1. Claude Desktop needs no config at all: install the **Affinity connector** from its connector
+   directory (Settings → Connectors → Browse). Both the Home and Code tabs inherit it, so a project
+   `.mcp.json` is redundant there. Requires Affinity April '26 or later.
+2. Claude Code (terminal / VS Code) is the opposite — it has no app-level connector and **needs a
+   `.mcp.json` in the project folder**.
+3. That file is read **at startup only**, so writing it mid-session registers nothing. Expect one
+   restart; it isn't a failure.
 
-**Source:** Affinity's Help Center (Automation → *AI Automation with Claude*) describes the
-Home-tab flow — install the Affinity connector from Claude's connector directory, enable
-`Edit ▸ Settings ▸ Model Context Protocol ▸ Enable MCP server` in Affinity, then verify with the
-prompt *"Can you see the Affinity MCP server?"*. Requires **Affinity April '26 or later** and
-**Claude Desktop**; free during the current beta. It does not use your Claude plan's monthly AI
-allowance unless you also enable Canva AI Studio features in the MCP privacy settings, in which case
-premium/ultra Canva AI tools draw on your Canva plan's allowance. Only Claude is supported today;
-MCP isn't available in Affinity China or on mobile.
+**Codex (CLI and the ChatGPT app's Codex tab)**
 
-**The "Code" tab (Cowork) needs no project `.mcp.json`.** It inherits the same app-level connector
-as the Home tab, which makes a project `.mcp.json` redundant there, though harmless.
+1. **The Chat tab cannot reach Affinity at all** — no Affinity connector exists, and a local
+   loopback server isn't exposed to chat. Nothing to fix at the config level; use the Codex tab.
+2. `config.toml` accepts only **stdio** or **Streamable HTTP** servers. SSE isn't in the list, so
+   Affinity's `/sse` URL dropped into `url = …` will not work.
+3. A generic `mcp-remote` is not enough either: **Codex initializes with MCP protocol `2025-06-18`
+   and Affinity accepts only `2025-11-25`**, so it fails with `-32602` *after* appearing to connect.
+   `bridge/affinity-codex-bridge.mjs` translates both the transport and the version.
+
+**Antigravity (`agy`)**
+
+1. **The config is global, not per-workspace** — `~/.gemini/config/mcp_config.json`. A workspace
+   file is silently never read, so the tools never appear no matter how correct it looks.
+2. It speaks native SSE, and the field is **`serverUrl`**, not `url`.
+3. Antigravity fronts several models, not just Gemini. Pick one deliberately with `agy models`
+   rather than taking the default.
 
 ---
 
@@ -123,28 +127,15 @@ unverified.
 | 6 | GPT-5.x | ChatGPT subscription | Codex CLI | `~/.codex/config.toml` | custom stdio bridge | ✅ Verified |
 | 7 | GPT-5.x | OpenAI API key | Codex CLI | `~/.codex/config.toml` | stdio bridge | ✅ Same local transport verified; API-key authentication itself not separately tested |
 | 8 | GPT-5.x | OpenAI API key | OpenCode | `opencode.jsonc` | SSE | ❓ Untested — should just work |
-| 9 | Gemini | Google subscription | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ✅ Verified end-to-end: 11 tools loaded, preamble read, script executed against a real open document |
-| 10 | Antigravity's other models | Via Antigravity | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ❓ Not separately verified since the config-location fix (row 9). Pick a model in Antigravity deliberately (`agy models`) rather than taking the default |
+| 9 | Gemini | Google subscription | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ✅ Verified end-to-end |
+| 10 | Antigravity's other models | Via Antigravity | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ❓ Harness proven, model not separately verified |
 | 11 | Gemini | Google API key | Gemini CLI | `~/.gemini/settings.json` | ❓ | ❓ Not looked at yet |
 | 12 | Any local model | Free | Ollama / LM Studio | — | none | ❌ No MCP client — not viable |
 
-### Settled — Affinity is SSE-only, there is no Streamable HTTP endpoint
+### Settled — Affinity is SSE-only
 
-Probed exhaustively: a JSON-RPC `initialize` POST against `/mcp`, `/`, `/message`, `/streamable`,
-`/http` and `/sse` — every path but `/sse` returned `404`. `mcp-remote` reaches the same conclusion
-independently: it attempts Streamable HTTP first, takes the 404, and falls back to SSE.
-
-Consequence: rows 6–7 keep a bridge **permanently**. There is no one-line `url = …` form to collapse
-to.
-
-### Open questions
-
-- **Row 8** — OpenCode + an OpenAI key is the path of least resistance for ChatGPT owners, but
-  nobody has run it here yet.
-- **Row 11** — Gemini CLI's config shape and transport are unconfirmed; the row is a placeholder.
-- **Rows 9–10** — the **harness** is settled: Antigravity connects over native SSE, loads the
-  preamble, and executes scripts. What is *not* settled is the **model** — a run needs to both name
-  its model and successfully execute a script before either row moves.
+There is no Streamable HTTP endpoint; every path but `/sse` returns `404`. Consequence: rows 6–7
+keep a bridge **permanently**. There is no one-line `url = …` form to collapse to.
 
 ---
 
@@ -166,8 +157,8 @@ produced cleaner SDK code than the expensive one. Don't assume the flagship is t
 | Model | Reach it via | Status |
 |---|---|---|
 | **GPT-5.x / GPT-5.x-Codex** (ChatGPT subscription or OpenAI API key) | Codex CLI, OpenCode | Automatic loading, SDK reads, script execution and a generated two-layer variant are all verified |
-| **Gemini** | Antigravity, Gemini CLI | Verified end-to-end through Antigravity with the config in its correct global location (`~/.gemini/config/mcp_config.json`) — tools loaded, preamble read, script executed |
-| **Antigravity's other models** | Antigravity | Not separately verified since the config-location fix above. Choose a model in Antigravity with `agy models` rather than taking the default |
+| **Gemini** | Antigravity, Gemini CLI | Verified end-to-end through Antigravity, with the config in its global location (`~/.gemini/config/mcp_config.json`) |
+| **Antigravity's other models** | Antigravity | Not separately verified. Choose a model with `agy models` rather than taking the default |
 
 #### On the OpenAI side specifically
 
@@ -221,20 +212,9 @@ transport it speaks, and how much of it is proven.
 | **Codex CLI / desktop environment** | GPT-5.x via ChatGPT login or OpenAI API key | `~/.codex/config.toml` | custom stdio bridge → SSE | ✅ Automatically discovers the tools, reads `preamble`, runs scripts |
 | **Antigravity** (`agy`) | Gemini, plus its other models | `~/.gemini/config/mcp_config.json` — global | SSE (`serverUrl` field) | ✅ Verified — live round-trip and script execution passed |
 
-### The Codex caveat, in full
-
-Codex CLI's `config.toml` accepts exactly two kinds of MCP server: a **stdio** server (`command` +
-`args`) or a **Streamable HTTP** server (`url`). SSE isn't in the list. So dropping Affinity's
-`/sse` URL straight into `url = …` doesn't work — the client tries to speak Streamable HTTP to an
-SSE endpoint.
-
-The workaround is the repository's **custom stdio bridge** — see `SETUP.md`'s Codex section for the
-config. A generic `mcp-remote` subprocess is not enough, because Codex requests MCP `2025-06-18`
-while Affinity accepts only `2025-11-25`; the custom bridge translates that in addition to the
-stdio-to-SSE transport.
-
 If you only have a ChatGPT subscription and no interest in installing a bridge, the cleaner path is
-**OpenCode with an OpenAI API key** — native SSE, no bridge, same models.
+**OpenCode with an OpenAI API key** — native SSE, no bridge, same models. (The bridge and why it's
+needed are covered above.)
 
 ### Recommended combinations
 
