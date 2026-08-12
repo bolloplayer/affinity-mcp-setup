@@ -83,14 +83,48 @@ claude
 Opus/Sonnet/Haiku aliases map to different DeepSeek models, so a mid-session switch leaves it
 ambiguous which model produced which script — exactly the ambiguity that spoiled the last results.
 
+### Test Path B — no Claude subscription — not Path A
+
+There are two ways to arrive at a DeepSeek session, and only one is worth testing:
+
+- **Path A, sequential:** Part I with Claude writes `.mcp.json`, then the user redirects to DeepSeek.
+  The agent has nothing left to configure, so the setup prompt is trivially satisfied. **Don't test
+  this.** It proves nothing beyond "an existing file still exists".
+- **Path B, DeepSeek-first:** the user has **no Claude subscription and has never logged into
+  Anthropic**. They install Claude Code, set the env vars, and launch into an empty folder with no
+  `.mcp.json`. **This is the test**, and it is the primary DeepSeek audience — the whole selling
+  point is not needing a Claude subscription.
+
+Path A is an artifact of our docs presenting this as Part I → Part II. A DeepSeek-only user never
+follows that sequence.
+
+**The env vars are this leg's login step, not extra setup.** Every leg has one thing the agent
+cannot do, because it is the step that brings the agent into existence: `claude login`, a ChatGPT
+login, a Google login — here, `ANTHROPIC_AUTH_TOKEN`. The human/agent boundary is the same on all
+four legs: human does auth and harness install, agent does the MCP wiring.
+
+### Step 0 — the unknown that gates everything
+
+**Does Claude Code start on DeepSeek credentials alone, in a profile that has never authenticated
+with Anthropic?** If first-run onboarding demands a login before it honours `ANTHROPIC_AUTH_TOKEN`,
+Path B is blocked and the "no Claude subscription needed" premise fails. Neither our
+`docs/deepseek.html` nor DeepSeek's own guide covers this — both assume a working Claude Code.
+
+Test it on a clean profile, not the everyday one, and record exactly what the first run demands.
+
 ### Steps, per model
 
-1. `/mcp` — `affinity` connected, same tool list. Proves the swap touched the model only.
-2. `/model` — DeepSeek models listed, no Claude models. Screenshot for the record.
-3. Read the `preamble` doc. Note whether the model does it unprompted or needs telling.
-4. Run `examples/inspect-document.js` — read-only, proves the round trip.
-5. Run `examples/color-boost.js` — proves writes and the history.
-6. Ask for something **not** in `examples/`, complex enough to need real SDK knowledge (a two-layer
+1. From an **empty folder with no `.mcp.json`**, give it the harness-agnostic prompt: *"Set up the
+   Affinity MCP connection following https://github.com/bolloplayer/affinity-mcp-setup's SETUP.md."*
+   Does it identify itself as Claude Code, write the right file, produce the handoff note, and reach
+   the menu after the restart? This is instruction-following on a fiddly multi-step task — the model
+   capability the whole comparison turns on.
+2. `/mcp` — `affinity` connected, same tool list. Proves the swap touched the model only.
+3. `/model` — DeepSeek models listed, no Claude models. Screenshot for the record.
+4. Read the `preamble` doc. Note whether the model does it unprompted or needs telling.
+5. Run `examples/inspect-document.js` — read-only, proves the round trip.
+6. Run `examples/color-boost.js` — proves writes and the history.
+7. Ask for something **not** in `examples/`, complex enough to need real SDK knowledge (a two-layer
    adjustment with a mask is the established bar). This is where hallucinated API calls surface.
 
 ### What to record — this is the actual deliverable
@@ -99,8 +133,10 @@ ambiguous which model produced which script — exactly the ambiguity that spoil
 |---|---|
 | Model + date | Pricing and model versions both move |
 | Did it read the preamble unprompted? | The single biggest driver of SDK accuracy |
-| Hallucinated SDK calls in step 6, counted | The claim being re-verified. Count calls, not attempts |
-| Did steps 4–5 pass first try? | Separates "harness works" from "model is accurate" |
+| Did step 0 work — no Anthropic login needed? | Gates the whole "no subscription" premise |
+| Did it self-configure in step 1? | Instruction-following, and whether the setup prompt holds up under this model |
+| Hallucinated SDK calls in step 7, counted | The claim being re-verified. Count calls, not attempts |
+| Did steps 5–6 pass first try? | Separates "harness works" from "model is accurate" |
 | Token spend for the session | The cost half of the comparison, from DeepSeek's dashboard |
 | Anything the harness did differently | e.g. compaction behaviour at this context size |
 
