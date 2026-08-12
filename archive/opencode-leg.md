@@ -185,9 +185,26 @@ tried five separate query formulations against `search_sdk_hints` before conclud
 empty — then reported the global-versus-local distinction honestly instead of glossing it. The
 read-before-execute disposition survives the harness change.
 
-**Cost: $0.** `DeepSeek V4 Flash Free` needs no API key, which re-verifies the archived claim that
-OpenCode offers a genuinely free path — still true, and still the cheapest way to prove the Affinity
-connection works before spending anything.
+**It verified the mask numerically — the best behaviour observed on any leg.** Rather than trusting
+the script's success line or reaching for a render it cannot see, it measured the composite-vs-base
+pixel difference in bands and reported the gradient working: **18.7 at the top, 0.9 at the bottom.**
+It also stated plainly that the render succeeded but it could not view images, so the numeric check
+was the confirmation.
+
+This is a direct answer to the silent-no-op problem that has shadowed every leg — the copy-on-get
+`masterSpline` class of bug, where a script reports success and the document is unchanged. **A model
+can prove its own work by measuring pixels.** Compare Pro on Claude Code, which called
+`render_spread` to "confirm" an image it equally could not see. Worth pushing into `SETUP.md` as the
+recommended way to verify a script, since it does not depend on the user looking.
+
+It correctly used **M8** to match the 8-bit document — the format rule from the preamble, applied
+rather than merely recited.
+
+**Cost: $0, but the free tier is quota-limited.** `DeepSeek V4 Flash Free` needs no API key, which
+re-verifies the archived claim that OpenCode offers a genuinely free path. New detail: the complex
+masked task consumed **~100K tokens, roughly half the free allowance**. So the free tier is good for
+about two tasks of that size — ample to prove the connection works, not enough for a working
+session. That nuance was missing from the original "$0 smoke test" claim.
 
 ## What stayed in the docs
 
