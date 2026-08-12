@@ -13,7 +13,7 @@ published from a public sibling repo.
 | Repo | Pages site | Role |
 |---|---|---|
 | **`bolloplayer/affinity-mcp-setup`** | `https://bolloplayer.github.io/affinity-mcp-setup/` | **Live.** The one that matters — report its numbers first |
-| `bolloplayer/affinity-photo-claude-code-windows` | `https://bolloplayer.github.io/affinity-photo-claude-code-windows/` | **Archived**, but its Pages site still serves and its README points at the new home. Old Reddit links land here, so its traffic is the residual-interest signal |
+| `bolloplayer/affinity-photo-claude-code-windows` | `https://bolloplayer.github.io/affinity-photo-claude-code-windows/` | **Tombstone.** Archived, but its Pages site still serves and its README points at the new home. Stale links land here, so its traffic measures how much old-link residue is still arriving |
 
 Query **both**. Traffic arriving at the archived repo is real interest that the live repo's own
 numbers do not capture, and the split between them shows how well the old links are forwarding.
