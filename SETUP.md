@@ -47,8 +47,8 @@ should fix, and none of them is.
 | **Put the connection in the config file — never write ad-hoc connection code** | A config entry is read at startup, every session, forever. If the user has to reconnect manually each time, the config step was skipped. |
 
 **Node.js is not required** for the connection itself — with exactly one exception, the Codex
-bridge below. Never tell a user to install Node to fix a Claude Code, OpenCode or Antigravity
-connection problem; it is never the fix.
+bridge below. Never tell a user to install Node to fix a Claude Code or Antigravity connection
+problem; it is never the fix.
 
 ---
 
@@ -61,7 +61,6 @@ Identify which harness you are running inside, then write **only** that row's fi
 | **Claude Code** (CLI, VS Code ext, Desktop Code tab) | `.mcp.json` in the project folder | SSE native |
 | **Codex** (CLI, ChatGPT Codex tab, IDE extension) | `~/.codex/config.toml` | stdio bridge → SSE |
 | **Antigravity** (`agy`, any model it fronts — not only Gemini) | `~/.gemini/config/mcp_config.json` — **global**, not per-workspace | SSE native |
-| **OpenCode** (any model) | `opencode.jsonc`, or one CLI command | SSE native |
 
 ### Claude Code
 
@@ -231,15 +230,6 @@ four of these, plainly:
 
 Do not end on a bare "please restart Claude Code". Users read that as the setup having failed,
 and some will start over from scratch rather than restart.
-
-### OpenCode
-
-One command, no file editing:
-
-```
-opencode mcp add affinity --url "http://[::1]:6767/sse"
-opencode mcp list          # should report: connected
-```
 
 ### Antigravity (`agy`) — follow these seven steps, in order
 

@@ -1,7 +1,7 @@
 # Connect your AI to Affinity Photo
 
 **Affinity Photo v3 has a built-in MCP server.** That means an AI agent — Claude Code, Codex,
-Antigravity, OpenCode — can write and run real scripts inside the app: adjustment layers, filters,
+Antigravity — can write and run real scripts inside the app: adjustment layers, filters,
 batch work, all through Affinity's own JavaScript SDK. No extra software, no UI automation, no
 macOS requirement.
 
@@ -55,7 +55,6 @@ http://[::1]:6767/sse
 | **Claude Code** — CLI, VS Code, Desktop Code tab | `.mcp.json` in the project | SSE native |
 | **Codex** — CLI, ChatGPT Codex tab | `~/.codex/config.toml` | stdio [bridge](bridge/) → SSE |
 | **Antigravity** (`agy`) — Gemini | `~/.gemini/config/mcp_config.json` — global (`serverUrl`) | SSE native |
-| **OpenCode** — any model | `opencode.jsonc` or one CLI command | SSE native |
 
 Three things that look like bugs and aren't: it's **`[::1]`, never `localhost` or `127.0.0.1`**
 (Affinity binds IPv6 loopback only); it's **SSE only** (there is no Streamable HTTP endpoint); and
@@ -88,8 +87,8 @@ assumed, and what each one costs.
 ## Status
 
 Verified on Windows 11 with Affinity Photo 3.2.x: Claude Code (CLI and VS Code), Codex CLI and the
-ChatGPT Codex tab, Antigravity, and OpenCode all connect, read the SDK preamble, and execute
-scripts. Affinity exposes the same server on macOS, but only Windows is verified here.
+ChatGPT Codex tab, and Antigravity all connect, read the SDK preamble, and execute scripts.
+Affinity exposes the same server on macOS, but only Windows is verified here.
 
 Affinity's AI Connector is a free beta and Canva-owned; its APIs and the scripting SDK may change
 without notice.
