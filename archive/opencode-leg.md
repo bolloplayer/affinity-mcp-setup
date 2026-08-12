@@ -116,8 +116,15 @@ comparison task for every model afterwards.
 - **B&W is burned.** Do not use it to measure anything here.
 - **Decline `add_sdk_hint` while a benchmark is in progress**, then accept it once every model has
   attempted the task.
-- **Unknown:** whether the mask-task hint was accepted at the end of the Pro run. Check what
-  `preamble` returns before assuming the mask task is still clean.
+- **RESOLVED 12 Aug 2026: the mask task is burned too.** The preamble now carries the mask knowledge
+  — `createReplaceBitmap` must be applied after the node reaches its final tree position, and mask
+  format must match the layer's own `rasterInterface.format`, with M8 on a 16-bit document failing as
+  `COMMAND_FAILED`. Exactly what Pro worked out. Do not use masks to measure a model.
+
+- **Correction: `add_sdk_hint` and `search_sdk_hints` are different stores.** `search_sdk_hints`
+  queries a **global** pool that returned **empty** on five separate queries, while added hints come
+  back through the **`preamble`**. An empty search is therefore *not* evidence a task is clean —
+  read the preamble itself. This was mis-stated earlier in this file's history.
 
 ### 3. Check the canvas, never the transcript
 

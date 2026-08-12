@@ -101,3 +101,13 @@ against your version. The `preamble` doc (read it every session) is always the s
 When a script solves a non-obvious SDK problem through experimentation, call `add_sdk_hint` so the
 next session (yours or someone else's) inherits it. That shared hint pool is one of the nicer parts
 of this setup.
+
+**`add_sdk_hint` and `search_sdk_hints` are two different stores.** Verified 12 Aug 2026: hints you
+add come back in the **`preamble`**, while `search_sdk_hints` queries a separate **global** pool
+that returned empty for every query tried. Don't assume a hint you added is findable via
+`search_sdk_hints`, and don't take an empty search as proof the knowledge isn't already in your
+preamble — read the preamble itself.
+
+**Consequence when benchmarking models:** anything solved once and recorded with `add_sdk_hint` is
+handed to every later session through the preamble, so it stops being a fair test of whether a model
+can work the API out. Check the preamble's contents before choosing a task to measure a model on.
