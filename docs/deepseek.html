@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Script Affinity from VS Code, part II. Using DeepSeek</title>
+<meta name="description" content="After you've scripted Affinity through Claude Code, cut the costs with DeepSeek. Same MCP connection, same scripts—just a cheaper model backend. What we found testing it on real Affinity documents.">
+<style>
+  :root {
+    --paper: #FAF9F6;
+    --ink: #20242A;
+    --ink-soft: #5A6070;
+    --line: #E3E0D8;
+    --cyan: #0797B4;
+    --magenta: #C42B62;
+    --yellow: #D99A17;
+    --term-bg: #14181D;
+    --term-fg: #D8DEE6;
+    --term-dim: #7C8695;
+    --card: #FFFFFF;
+    --note-bg: color-mix(in srgb, var(--magenta) 7%, var(--card));
+    --measure: 720px;
+    --mono: "Cascadia Code", Consolas, "Courier New", monospace;
+    --sans: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #14181D; --ink: #E7E5DF; --ink-soft: #9AA3B0; --line: #2A3038;
+      --cyan: #2FB8D3; --magenta: #E05587; --yellow: #E5AE3D;
+      --term-bg: #0D1013; --card: #1B2027;
+      --note-bg: color-mix(in srgb, var(--card) 80%, #FFFFFF);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #14181D; --ink: #E7E5DF; --ink-soft: #9AA3B0; --line: #2A3038;
+    --cyan: #2FB8D3; --magenta: #E05587; --yellow: #E5AE3D;
+    --term-bg: #0D1013; --card: #1B2027;
+    --note-bg: color-mix(in srgb, var(--card) 80%, #FFFFFF);
+  }
+  :root[data-theme="light"] {
+    --paper: #FAF9F6; --ink: #20242A; --ink-soft: #5A6070; --line: #E3E0D8;
+    --cyan: #0797B4; --magenta: #C42B62; --yellow: #D99A17;
+    --term-bg: #14181D; --card: #FFFFFF;
+    --note-bg: color-mix(in srgb, var(--magenta) 7%, var(--card));
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body { background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 1.06rem; line-height: 1.65; }
+  a { color: var(--cyan); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:hover { color: var(--magenta); }
+  :focus-visible { outline: 2px solid var(--magenta); outline-offset: 2px; }
+  .wrap { max-width: 768px; margin: 0 auto; padding: 0 24px; }
+
+  .hero { padding: 64px 24px 48px; }
+  .eyebrow { font-family: var(--mono); font-size: .78rem; letter-spacing: .14em; color: var(--ink-soft); text-transform: uppercase; margin-bottom: 20px; }
+  .eyebrow b { font-weight: 600; }
+  .eyebrow .c { color: var(--cyan); }
+  .eyebrow .m { color: var(--magenta); }
+  .eyebrow .y { color: var(--yellow); }
+  h1 { font-size: clamp(2.1rem, 4.6vw, 2.75rem); line-height: 1.08; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 20px; max-width: var(--measure); }
+  .lede { color: var(--ink-soft); max-width: var(--measure); }
+  .lede + .lede { margin-top: 14px; }
+  .lede b { color: var(--ink); font-weight: 600; }
+
+  .copy-btn { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 28px; height: 28px; background: transparent; border: 1px solid color-mix(in srgb, var(--term-dim) 45%, transparent); border-radius: 6px; color: var(--term-dim); cursor: pointer; padding: 0; }
+  .copy-btn:hover { color: var(--term-fg); border-color: var(--term-dim); }
+  .copy-btn .ic-check { display: none; }
+  .copy-btn.copied .ic-copy { display: none; }
+  .copy-btn.copied .ic-check { display: block; color: #5BC98C; }
+
+  section { border-top: 1px solid var(--line); }
+  section.wrap { padding: 76px 24px 52px; }
+  .kicker { font-family: var(--mono); font-size: .86rem; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 18px; text-align: right; max-width: var(--measure); }
+  .kicker::before { content: "◆ "; color: var(--yellow); font-size: .85em; }
+  h2 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.015em; margin-bottom: 24px; text-wrap: balance; }
+  h2 .stepnum { font-family: var(--mono); font-weight: 400; font-size: 1rem; color: var(--paper); display: inline-grid; place-items: center; width: 2em; height: 2em; border-radius: 50%; margin-right: 14px; vertical-align: .14em; }
+  .s1 .stepnum { background: var(--cyan); }
+  .s2 .stepnum { background: var(--magenta); }
+  .s3 .stepnum { background: var(--yellow); }
+  .s4 .stepnum { background: var(--cyan); }
+  section p { max-width: var(--measure); margin-bottom: 16px; }
+  section p:last-child { margin-bottom: 0; }
+  section.wrap.aux { padding: 56px 24px 40px; }
+  .aux { font-size: .97rem; }
+  .aux h2 { font-size: 1.25rem; }
+  .kbd-path { font-family: var(--mono); font-size: .9em; background: var(--card); border: 1px solid var(--line); border-radius: 5px; padding: 1px 7px; white-space: nowrap; }
+
+  .term { position: relative; background: var(--term-bg); color: var(--term-fg); font-family: var(--mono); font-size: .88rem; line-height: 1.6; border-radius: 10px; padding: 18px 22px; overflow-x: auto; margin: 18px 0; max-width: var(--measure); }
+  .term .dim { color: var(--term-dim); }
+  .term .ok { color: #6BCB77; }
+  .term .bad { color: #E36B6B; }
+  .term .cy { color: #62CFE6; }
+  .term-label { font-family: var(--mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); margin: 18px 0 -12px; }
+  .shot-img { border-radius: 10px; max-width: var(--measure); width: 100%; height: auto; display: block; margin: 20px 0 8px; border: 1px solid var(--line); }
+
+  .note { background: var(--note-bg); border: 1px solid var(--line); border-radius: 12px; padding: 24px 28px; max-width: var(--measure); margin: 20px 0; }
+  .note h3 { font-size: 1.05rem; margin-bottom: 10px; }
+  .note p { font-size: .95rem; }
+
+  .tip { border: 1px solid var(--cyan); border-left-width: 5px; border-radius: 10px; padding: 20px 26px; margin: 20px 0; max-width: var(--measure); background: color-mix(in srgb, var(--cyan) 6%, var(--paper)); }
+  .tip h3 { font-size: 1.05rem; margin-bottom: 10px; }
+  .tip h3 code { font-family: var(--mono); color: var(--cyan); }
+  .tip p { font-size: .95rem; }
+  .warn .sub { margin-top: 16px; padding-top: 14px; border-top: 1px solid color-mix(in srgb, var(--magenta) 30%, var(--line)); }
+  .warn .sub h3 { font-size: .82rem; font-style: italic; }
+  .warn .sub p { font-size: .82rem; font-style: italic; line-height: 1.55; }
+
+  .warn { border: 1px solid var(--magenta); border-left-width: 5px; border-radius: 10px; padding: 20px 26px; margin: 20px 0; max-width: var(--measure); background: color-mix(in srgb, var(--magenta) 7%, var(--paper)); }
+  .warn h3 { font-size: 1.05rem; margin-bottom: 10px; }
+  .warn h3 code { font-family: var(--mono); color: var(--magenta); }
+  .warn p { font-size: .95rem; }
+
+  section.wrap.checklist { padding: 48px 24px 36px; }
+  .checklist h2 { font-size: 1.15rem; }
+  .needs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: var(--measure); font-size: .92rem; }
+  .needs-col { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px; }
+  .needs-col h3 { font-family: var(--mono); font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; margin-bottom: 12px; }
+  .needs-yes h3 { color: var(--cyan); }
+  .needs-no h3 { color: var(--magenta); }
+  .needs ul { list-style: none; }
+  .needs li { padding: 4px 0 4px 24px; position: relative; }
+  .needs-yes li::before { content: "✓"; position: absolute; left: 2px; color: var(--cyan); }
+  .needs-no li::before { content: "✕"; position: absolute; left: 2px; color: var(--magenta); }
+  .needs li small { display: block; color: var(--ink-soft); font-size: .85rem; line-height: 1.45; }
+  @media (max-width: 640px) { .needs { grid-template-columns: 1fr; } }
+
+  .tbl-scroll { overflow-x: auto; margin-top: 8px; max-width: var(--measure); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .93rem; }
+  th, td { text-align: left; padding: 13px 16px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.55; }
+  th { font-family: var(--mono); font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+  td code { font-family: var(--mono); font-size: .88em; }
+
+  footer { border-top: 1px solid var(--line); padding: 36px 0 56px; color: var(--ink-soft); font-size: .9rem; }
+  footer .links { display: flex; flex-wrap: wrap; gap: 10px 26px; margin-bottom: 16px; }
+
+  .theme-btn { position: fixed; top: 18px; right: 18px; z-index: 10; width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--ink); font-size: 1.15rem; line-height: 1; cursor: pointer; display: grid; place-items: center; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+  .theme-btn:hover { border-color: var(--yellow); }
+
+  @media (max-width: 800px) { .hero { padding: 40px 24px 32px; } body { font-size: 1rem; } }
+</style>
+</head>
+<body>
+
+<button class="theme-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme">☾</button>
+
+<header class="hero wrap">
+  <p class="eyebrow"><b>Part II</b> &nbsp;|&nbsp; <b>Affinity</b> · <b>Claude Code</b> · <b>DeepSeek</b> &nbsp;|&nbsp; <span class="m">−C</span> <span class="c">+M</span> <span class="y">+Y</span></p>
+  <h1>Script Affinity from VS Code, part II. Using DeepSeek</h1>
+  <p class="lede">In <a href="index.html">part I</a>, we chose Claude Code instead of Claude Desktop. Start VS Code, add the Claude Code extension and keep all your notes, MD, scripts and result images in your folder. Much better workflow.<a href="#why-vscode" style="text-decoration:none"> *</a></p>
+  <p class="lede">This <b>part II</b> guide shows how to point Claude Code to the DeepSeek model.</p>
+  <p class="lede"><b>Why:</b> (Potentially) cheaper. DeepSeek charges per token instead of a monthly subscription, so you can set a token ceiling (e.g., $10) and only pay for what you use—no need to maintain a Claude subscription just to run occasional Affinity scripts.</p>
+  <p class="lede"><b>How:</b> DeepSeek exposes an Anthropic-API-compatible endpoint, so you can redirect Claude Code to DeepSeek instead of Anthropic—same MCP connection to Affinity, same scripts, same folder workflow, only the model backend and billing change.</p>
+</header>
+
+<section class="wrap checklist">
+  <p class="kicker">Checklist</p>
+  <h2>What you need</h2>
+  <div class="needs">
+    <div class="needs-col needs-yes">
+      <h3>Bring this</h3>
+      <ul>
+        <li>Part I completed <small>Affinity 3.2+ with its MCP server on, and Claude Code's <code>.mcp.json</code> already talking to Affinity</small></li>
+        <li>A <a href="https://platform.deepseek.com/api_keys">DeepSeek account</a> <small>pay-as-you-go, not a subscription — a few dollars covers extensive testing</small></li>
+        <li>A DeepSeek API key <small>created in the platform dashboard, with a small prepaid balance</small></li>
+        <li>A separate terminal <small>so the redirect touches only this one session, not your normal Claude</small></li>
+      </ul>
+    </div>
+    <div class="needs-col needs-no">
+      <h3>Skip this</h3>
+      <ul>
+        <li>A Claude subscription <small>DeepSeek billing stands in for it in this session</small></li>
+        <li>Any change to <code>.mcp.json</code> <small>the Affinity connection stays exactly as in part I</small></li>
+        <li>New scripts or plugins <small>the same scripts run unchanged — only the model backend swaps</small></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="wrap s1">
+  <p class="kicker">The key idea</p>
+  <h2><span class="stepnum">0</span>Why it works</h2>
+  <p>By pointing Claude Code at a different Anthropic-API-compatible backend, Claude Code gets its
+  answers from — in this case — DeepSeek. Those answers then get sent into Affinity's server via the
+  MCP client, the same way we did with Sonnet / Opus.</p>
+</section>
+
+<section class="wrap s2">
+  <p class="kicker">In a new terminal</p>
+  <h2><span class="stepnum">1</span>Redirect Claude Code to DeepSeek</h2>
+  <p>Open a new terminal. Before typing <span class="kbd-path">claude</span>, set these environment
+  variables — the eight below, taken from <a href="https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code">DeepSeek's
+  own Claude Code integration guide</a>. Read in the guide also how to install Claude Code in your
+  terminal if not already done (<code>npm install -g @anthropic-ai/claude-code</code>).</p>
+
+  <div class="tbl-scroll">
+  <table>
+    <tr><th>Variable</th><th>Value</th></tr>
+    <tr><td><code>ANTHROPIC_BASE_URL</code></td><td><code>https://api.deepseek.com/anthropic</code></td></tr>
+    <tr><td><code>ANTHROPIC_AUTH_TOKEN</code></td><td>your DeepSeek API key</td></tr>
+    <tr><td><code>ANTHROPIC_MODEL</code></td><td><code>deepseek-v4-flash</code></td></tr>
+    <tr><td><code>ANTHROPIC_DEFAULT_OPUS_MODEL</code></td><td><code>deepseek-v4-pro</code></td></tr>
+    <tr><td><code>ANTHROPIC_DEFAULT_SONNET_MODEL</code></td><td><code>deepseek-v4-pro</code></td></tr>
+    <tr><td><code>ANTHROPIC_DEFAULT_HAIKU_MODEL</code></td><td><code>deepseek-v4-flash</code></td></tr>
+    <tr><td><code>CLAUDE_CODE_SUBAGENT_MODEL</code></td><td><code>deepseek-v4-flash</code></td></tr>
+    <tr><td><code>CLAUDE_CODE_EFFORT_LEVEL</code></td><td><code>max</code></td></tr>
+  </table>
+  </div>
+
+  <p class="term-label">PowerShell — in the test terminal only</p>
+  <div class="term"><button class="copy-btn" type="button" aria-label="Copy commands to clipboard" data-copy='$env:ANTHROPIC_BASE_URL             = "https://api.deepseek.com/anthropic"&#10;$env:ANTHROPIC_AUTH_TOKEN           = "<your DeepSeek key>"&#10;$env:ANTHROPIC_MODEL                = "deepseek-v4-flash"&#10;$env:ANTHROPIC_DEFAULT_OPUS_MODEL   = "deepseek-v4-pro"&#10;$env:ANTHROPIC_DEFAULT_SONNET_MODEL = "deepseek-v4-pro"&#10;$env:ANTHROPIC_DEFAULT_HAIKU_MODEL  = "deepseek-v4-flash"&#10;$env:CLAUDE_CODE_SUBAGENT_MODEL     = "deepseek-v4-flash"&#10;$env:CLAUDE_CODE_EFFORT_LEVEL       = "max"&#10;claude&#10;'><svg class="ic-copy" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="ic-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></button><pre><span class="dim">&gt;</span> $env:ANTHROPIC_BASE_URL             = "https://api.deepseek.com/anthropic"
+<span class="dim">&gt;</span> $env:ANTHROPIC_AUTH_TOKEN           = "&lt;your DeepSeek key&gt;"
+<span class="dim">&gt;</span> $env:ANTHROPIC_MODEL                = "deepseek-v4-flash"
+<span class="dim">&gt;</span> $env:ANTHROPIC_DEFAULT_OPUS_MODEL   = "deepseek-v4-pro"
+<span class="dim">&gt;</span> $env:ANTHROPIC_DEFAULT_SONNET_MODEL = "deepseek-v4-pro"
+<span class="dim">&gt;</span> $env:ANTHROPIC_DEFAULT_HAIKU_MODEL  = "deepseek-v4-flash"
+<span class="dim">&gt;</span> $env:CLAUDE_CODE_SUBAGENT_MODEL     = "deepseek-v4-flash"
+<span class="dim">&gt;</span> $env:CLAUDE_CODE_EFFORT_LEVEL       = "max"
+<span class="dim">&gt;</span> claude</pre></div>
+
+  <p>Now launch Claude. You will get the Claude CLI, but in the background, DeepSeek is giving the
+  answers.</p>
+
+  <img class="shot-img" src="img/claude-welcome-deepseek.png" style="width:70%;margin:20px auto" alt="Claude Code welcome screen showing a DeepSeek model with API Usage Billing instead of a Claude subscription">
+
+  <div class="warn">
+    <h3>Do this in a separate terminal window</h3>
+    <p>These variables redirect <em>all</em> Claude Code traffic — billing included — away from
+    Anthropic to DeepSeek. Set them only in a fresh terminal you open for this test, not in a
+    session you're already using with your normal Claude subscription.</p>
+
+    <div class="sub">
+      <h3>Use the Claude extension?</h3>
+      <p>The variables are just Claude Code's environment, so you can set the same ones in Claude Code's
+      <code>settings.json</code> (the <code>env</code> block) and the VS Code extension will use DeepSeek
+      too — no terminal needed. We use a terminal here because it's temporary and touches nothing
+      permanent: close the window and you're back to normal. If you'd rather make DeepSeek a lasting
+      default in the extension, put the variables in a project <code>.claude/settings.json</code> — but
+      keep <code>ANTHROPIC_AUTH_TOKEN</code> in the gitignored <code>settings.local.json</code>, never a
+      committed file, or you'll leak your API key.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap s3">
+  <p class="kicker">Verify</p>
+  <h2><span class="stepnum">2</span>Checking</h2>
+  <p>With Affinity running and the project folder open, type <span class="kbd-path">/mcp</span> —
+  you should still see the <b>affinity</b> server connected with the same tool list as always. That
+  confirms the swap only touched which model is answering, not the tool connection itself. From
+  here you talk to it exactly as you would to Claude.</p>
+  <p>Type <span class="kbd-path">/model</span> to check there are DeepSeek models and no Claude
+  models.</p>
+
+  <div class="tip">
+    <h3>Which DeepSeek model to pick</h3>
+    <p><code>v4-flash</code> was the standout: roughly a third the cost of <code>v4-pro</code> per
+    output token, and it made <em>fewer</em> mistakes in our tests, not more — the better default for
+    this class of work.</p>
+  </div>
+</section>
+
+<section class="wrap aux">
+  <div class="note" id="why-vscode">
+    <h3>* Why VS Code instead of Claude Desktop</h3>
+    <p><a href="index.html">Part I</a> chose Claude Code in VS Code (or the CLI in your terminal) over Claude Desktop. This means Claude Code reads and saves automatically from your project folder—your plans, notes, markdown files, and scripts all live in one place. You can archive everything to GitHub and keep result images in the folder alongside your work.</p>
+    <p>In this guide, we take the same workflow and swap the model backend: instead of Claude Opus or Sonnet, we point Claude Code at DeepSeek's compatible API. Everything else stays the same—same folder, same MCP connection to Affinity, same scripts, just cheaper inference.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a href="index.html">← Back to part I: Script Affinity from VS Code</a>
+      <a href="https://github.com/bolloplayer/affinity-mcp-setup">Companion repo</a>
+      <a href="https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code">DeepSeek's Claude Code integration guide</a>
+    </div>
+    <p>Independent community guide. Part I covers the base setup; this guide assumes you've completed it. Not affiliated with Serif, Canva, Anthropic, or DeepSeek. MIT licensed, like the repo.</p>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    Array.prototype.forEach.call(document.querySelectorAll('.copy-btn'), function (b) {
+      b.addEventListener('click', function () {
+        var pre = b.parentNode.querySelector('pre');
+        var text = b.getAttribute('data-copy') || (pre ? pre.textContent : '');
+        navigator.clipboard.writeText(text).then(function () {
+          b.classList.add('copied');
+          setTimeout(function () { b.classList.remove('copied'); }, 1500);
+        });
+      });
+    });
+
+    var btn = document.getElementById('themeBtn');
+    var root = document.documentElement;
+    function effective() {
+      return root.dataset.theme ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    }
+    function paint() { btn.textContent = effective() === 'dark' ? '☀' : '☾'; }
+    try {
+      var saved = localStorage.getItem('theme');
+      if (saved === 'dark' || saved === 'light') root.dataset.theme = saved;
+    } catch (e) {}
+    paint();
+    btn.addEventListener('click', function () {
+      var next = effective() === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = next;
+      try { localStorage.setItem('theme', next); } catch (e) {}
+      paint();
+    });
+  })();
+</script>
+
+</body>
+</html>
