@@ -57,14 +57,6 @@ after you restart. That's normal — it isn't a sign anything went wrong.
 Less than you'd think. A complete setup plus two working scripts came to **a few cents** on
 DeepSeek, and **nothing at all** on OpenCode's free tier.
 
-The bigger cost is your time reviewing the code. Every model gets the *shape* right — which
-adjustment layers, how to structure the loop — and then invents plausible-looking API calls, because
-Affinity's SDK is new and barely represented in training data. Simple scripts work first try.
-Complex ones need a look over.
-
-The fix is context, not a bigger model: have your agent read Affinity's SDK preamble at the start of
-each session. [`SETUP.md`](../SETUP.md) tells it to.
-
 ---
 
 ## Won't work
