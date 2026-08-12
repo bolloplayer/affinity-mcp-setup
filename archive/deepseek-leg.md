@@ -217,6 +217,39 @@ copy-on-get `masterSpline` class of bug, where a script reports success and the 
 **Setup leg verdict: `deepseek-v4-flash` completes the full Claude Code setup flow on a clean
 profile with no Anthropic account, from a bare prompt, without a single intervention.**
 
+### Steps 6–7 result — Flash, PASSED, zero hallucinated SDK calls
+
+**Option 1 (supplied colour-boost script):** ran clean first try. Two layers added — Boost
+(strength 0.6, opacity 40%) over Clean (strength 0.25, opacity 30%). Followed Part B's pattern
+correctly: save → confirm via `list_library_scripts` → run, and handed over **without calling
+`render_spread`**, as SETUP.md requires.
+
+**Option 2 (black-and-white conversion written from scratch):** ran clean first try, **no
+hallucinated API calls at all.** How it got there matters more than the result:
+
+1. Found the node and setter by probing — `addBlackAndWhiteAdjustmentRasterNode`,
+   `createSetBlackAndWhiteAdjustmentParameters`.
+2. Discovered `BlackAndWhiteAdjustmentParameters` has **no factory**, and inferred the params must
+   come from the layer — independently reaching what `docs/sdk-notes.md` records.
+3. Needed the value range, hit a **broken doc topic**, diagnosed it rather than guessing, and found
+   `struct_ranges.min.json`, reading out `[-2.0, 3.0]` from the SDK itself.
+
+Step 3 is the important one. The obvious guesses are `0–1` or `0–100`; both are wrong, and neither
+errors — the value clamps silently and the conversion comes out weak or unchanged. **It refused to
+guess a number it could look up.** That is the specific discipline the whole SDK punishes people
+for lacking.
+
+It then called `add_sdk_hint` unprompted, per the preamble's rule, with an accurate and detailed
+hint covering the factory absence, the read-mutate-reapply pattern, the range, and the broken topic.
+
+**New SDK finding, now in `docs/sdk-notes.md`:** `adjustment_ranges` is listed by
+`list_sdk_documentation` but `read_sdk_documentation_topic` returns `ERROR: File not found`. Dead
+name in the listing; use `param_ranges.min.json` / `struct_ranges.min.json`.
+
+**Caveat on this result:** B&W is a single-layer adjustment — moderate, not the two-layer-with-mask
+bar in step 7. The harder task is still unrun, and the old Pro-vs-Flash claim was specifically about
+*complex* scripts. Do not conclude Flash beats Pro from this alone.
+
 ### What to record — this is the actual deliverable
 
 | Field | Why |
