@@ -112,7 +112,7 @@ fourth and the OpenCode ecosystem are queued for a clean test.
 | **Claude Code** | `.mcp.json`, SSE native | ✅ Done |
 | **Codex** | `~/.codex/config.toml` + the stdio bridge | ✅ Done |
 | **Antigravity** | global `~/.gemini/config/mcp_config.json`, SSE native | ✅ Done |
-| **DeepSeek** | Claude Code redirected at DeepSeek's Anthropic-compatible endpoint | ⬜ To test |
+| **DeepSeek** | Claude Code redirected at DeepSeek's Anthropic-compatible endpoint | 🟡 **Flash passed** (setup + both scripts, zero hallucinations, 12 Aug 2026). Pro unrun; the complex two-layer-with-mask task unrun |
 | **OpenCode** *(ecosystem, not a vendor leg)* | multi-model harness, SSE native | ⬜ To test |
 
 The two queued ones have had their prior findings pulled out of the docs and parked in
