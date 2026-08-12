@@ -9,6 +9,10 @@ Desktop.ini
 # Claude Code local settings (per-machine)
 .claude/settings.local.json
 
+# Generated MCP configs — users create these themselves per SETUP.md
+.mcp.json
+.agents/mcp_config.json
+
 # Image binaries — keep sample assets small or out of git
 *.afphoto
 *.afmacro
