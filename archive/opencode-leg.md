@@ -153,6 +153,42 @@ The DeepSeek leg's most publishable finding was a measured number: a full setup 
 scripts cost **a few cents**. Per-token rates are abstract; a measured session total is not. Note the
 balance before and after.
 
+## Re-test result — 12 Aug 2026, OpenCode CLI 1.18.7, DeepSeek V4 Flash Free
+
+Run from a **fully clean machine**: OpenCode uninstalled, all four data directories deleted
+(`.config`, `.cache`, `.local/share`, `.local/state`), then reinstalled. No stored credentials, no
+prior config, empty project folder.
+
+**Setup — manual, and it worked first time.**
+
+- Workspace-root `opencode.json` with `{"mcp": {"affinity": {"type": "remote", "url":
+  "http://[::1]:6767/sse", "enabled": true}}}`.
+- `opencode mcp list` → `✓ affinity connected`. A live handshake, not just a parsed file.
+- All **11 tools** reached the model, namespaced **`affinity_*`** (Claude Code uses
+  `mcp__affinity__*`). Same 11 as every other harness — nothing added by the Script Manager app.
+
+**Complex masked task — PASSED.** Given the same verbatim prompt Pro got on Claude Code, it produced
+two adjustment layers each carrying a **real pixel mask**, confirmed visually in Affinity's Layers
+panel as mask thumbnails with visible gradients.
+
+Interpretation differed from Pro's, both valid: Flash chose **Vibrance + Brightness/Contrast and
+masked both**; Pro chose **two Selective Colour layers and masked only the top one**.
+
+**This answers the question the leg exists for.** The old results conflated harness and model. Here
+the *same model family* on the *same task* with the *same preamble knowledge* differed only by
+harness — and OpenCode delivered SDK context to the model just as effectively as Claude Code did.
+**There is no evidence OpenCode degrades the model's SDK accuracy.** The original suspicion behind
+the archived numbers is not supported.
+
+**Behaviour matched Claude Code's, too.** It read the documentation list, read the `preamble`, and
+tried five separate query formulations against `search_sdk_hints` before concluding the pool was
+empty — then reported the global-versus-local distinction honestly instead of glossing it. The
+read-before-execute disposition survives the harness change.
+
+**Cost: $0.** `DeepSeek V4 Flash Free` needs no API key, which re-verifies the archived claim that
+OpenCode offers a genuinely free path — still true, and still the cheapest way to prove the Affinity
+connection works before spending anything.
+
 ## What stayed in the docs
 
 The DeepSeek-via-Claude-Code redirect is **not** part of this leg and was deliberately kept:
