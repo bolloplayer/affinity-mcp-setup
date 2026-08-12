@@ -165,55 +165,46 @@ handoff channel. Before you tell the user to restart, write one:
 - **If the folder has no `CLAUDE.md`** (a fresh project), create it.
 - **If one already exists**, append a section — never overwrite the user's own instructions.
 
-Keep it short and imperative, so the next session acts instead of summarising:
+Keep it short and imperative, so the next session acts instead of summarising. **Point at §3 rather
+than restating it** — the steps and the menu live there, and a note that copies them goes stale the
+moment `SETUP.md` changes:
 
 ```markdown
 ## Affinity MCP setup — continue here
 
-State: the `affinity` MCP server was registered (user scope via `claude mcp add`,
-or `.mcp.json` in this folder) and `verify.ps1` passed. The connection could not be
-used in the session that registered it, because Claude Code loads MCP configuration
-only at startup. This session is the restart.
+You are **Part 2**. Part 1 is done: the `affinity` MCP server is registered and
+`verify.ps1` passed. The connection could not be used in the session that registered
+it, because MCP configuration is read only at startup. This session is the restart.
 
-You are Part 2. Part 1 (config, scripts, verify.ps1) is done. Do this now, without
-waiting to be asked — but only Part A of §3. It is read-only.
+Do this now, without waiting to be asked: follow **§3 Part A** of `SETUP.md` in this
+folder — it is read-only — then offer the menu at the end of it and let the user pick.
+Don't choose for them and don't run anything that writes to their document until they
+ask.
 
-1. Confirm the `affinity` MCP tools are present (11 of them).
-2. `read_sdk_documentation_topic({ filename: "preamble" })` — the gate is per connection.
-3. Run `examples/inspect-document.js` and report the Affinity version, the open
-   document and its layer stack.
-
-Then hand over — report what step 3 established, then offer these three, verbatim,
-and let them pick. Don't choose one for them, don't run one ahead of time, and say
-they can also stop here with nothing changed:
-
-> 1 — Run the colour boost script. I add it to Affinity's Script View and run it on
-> your open image, then tell you the name it's listed under. Switch to Affinity and
-> see the result yourself.
->
-> 2 — Have me write one from scratch. I write a black-and-white conversion against
-> the SDK, add it to your Script View and run it. Switch to Affinity and see the
-> result yourself.
->
-> 3 — Use Affinity from every folder, not just this one. Registers the connection
-> machine-wide instead of just here.
-
-`SETUP.md` should be in this folder (Part 1 fetches it) — read its §3 for the exact
-run steps once they pick 1 or 2. If it isn't here for any reason, fetch it from
+If `SETUP.md` isn't in this folder, fetch it from
 `https://raw.githubusercontent.com/bolloplayer/affinity-mcp-setup/main/SETUP.md`
-rather than inventing steps; do not run the colour-boost script, or anything else
-that writes to their document, until they ask.
+rather than inventing the steps.
 
-Delete this section once you have offered the choices; the file too if nothing else
-is left in it. Do not state what has or hasn't been done to the document — check the
-layer stack yourself, because this note may be out of date.
+Delete this section once you have offered the choices; the file too if nothing else is
+left in it. Don't state what has or hasn't been done to the document — check the layer
+stack yourself, because this note may be out of date.
 ```
 
+**Why it points at §3 instead of repeating it.** Everything the old, longer note spelled out — the
+three Part A steps, the menu wording, the don't-choose rule — is already in §3, and Part 2 re-verifies
+the state anyway. Duplicating it bought nothing and created a second copy to keep in sync.
+
+**What the note is actually for is delivery, not content.** `CLAUDE.md` is loaded automatically at
+startup; noticing a config file and reasoning "so I must be Part 2" is a choice the model has to
+make. Capable models do make it — an OpenCode session reconstructed its role from files on disk with
+no note at all — but the whole point of this repo is that it works on any harness and any model,
+including free tiers. The note costs one file write and removes that variance.
+
 **The note is disposable, and it has to say so.** It exists to survive one restart. Left behind, it
-tells every future session to re-run a verification the user already watched, and it re-adds the
-`Boost` and `Clean` layers to whatever document happens to be open. That is the failure mode: a
-stale instruction that keeps executing. Make the deletion step part of the note itself, as above —
-the session that acts on it is the one that must remove it.
+tells every future session to re-run a verification the user already watched, and it re-adds layers
+to whatever document happens to be open. That is the failure mode: a stale instruction that keeps
+executing. Make the deletion step part of the note itself, as above — the session that acts on it is
+the one that must remove it.
 
 #### What to tell the user before they restart
 
@@ -272,6 +263,36 @@ That reports a real handshake, not just a parsed file — if it says connected, 
 **Affinity's tools are namespaced `affinity_*` here** (`affinity_execute_script`,
 `affinity_read_sdk_documentation_topic`, …), where Claude Code uses `mcp__affinity__*`. There are 11
 either way.
+
+**Leave a handoff note before the restart.** OpenCode reads **`AGENTS.md` from the project folder at
+startup**, so that is the channel here. Write this into it — creating the file, or appending if one
+exists:
+
+```markdown
+## Affinity MCP setup — continue here
+
+You are **Part 2**. Part 1 is done: `opencode.json` is written and `opencode mcp list`
+reported the server connected. The connection could not be used in the session that wrote
+it, because OpenCode reads MCP configuration at startup. This session is the restart.
+
+Do this now, without waiting to be asked: follow **§3 Part A** of `SETUP.md` in this folder
+— it is read-only — then offer the menu at the end of it and let the user pick. Don't choose
+for them and don't run anything that writes to their document until they ask.
+
+Affinity's tools are named `affinity_*` here.
+
+If `SETUP.md` isn't in this folder, fetch it from
+`https://raw.githubusercontent.com/bolloplayer/affinity-mcp-setup/main/SETUP.md` rather than
+inventing the steps.
+
+Delete this section once you have offered the choices; the file too if nothing else is left
+in it. Don't state what has or hasn't been done to the document — check the layer stack
+yourself, because this note may be out of date.
+```
+
+A capable model can get there without the note — a tested OpenCode session reconstructed its role
+from the files on disk alone. Write it anyway: it costs one file write, and it removes the
+variance on smaller or free models.
 
 **Machine-wide instead of per-project** (the §3 menu's third option): merge the same `mcp` block into
 the global config at `~/.config/opencode/`. Look for **both** `opencode.json` and `opencode.jsonc` —
@@ -399,36 +420,26 @@ unavailable):
 ```markdown
 ## Affinity MCP setup — continue here
 
-State: the `affinity` entry is merged into `~/.gemini/config/mcp_config.json`, and the repo is
-cloned into this workspace. The connection could not be used in the session that wrote the
-config, because MCP configuration loads at startup. This session is the restart.
+You are **Part 2**. Part 1 is done: the `affinity` entry is merged into
+`~/.gemini/config/mcp_config.json` and the scripts are in `examples/`. The connection could
+not be used in the session that wrote the config, because MCP configuration loads at startup.
+This session is the restart.
 
-Do this now, without waiting to be asked. It is read-only:
+Do this now, without waiting to be asked: follow the **Antigravity section** of `SETUP.md` in
+this folder — steps 5 to 7. Step 5 is read-only; then offer the two options in step 6 and let
+the user pick. Don't choose for them and don't run anything that writes to their document
+until they ask.
 
-1. Confirm the `affinity` MCP tools are present (11 of them).
-2. `read_sdk_documentation_topic({ filename: "preamble" })` — the gate is per connection.
-3. Run `examples/inspect-document.js` via `execute_script` and report the Affinity
-   version, the open document and its layer stack.
+Two Antigravity-specific guards: **do not run `verify.ps1`, and do not create a `.mcp.json`.**
+Neither applies to this harness.
 
-Then hand over — report what step 3 established, then offer these two, verbatim,
-and let them pick:
+If `SETUP.md` isn't in this folder, fetch it from
+https://raw.githubusercontent.com/bolloplayer/affinity-mcp-setup/main/SETUP.md rather than
+inventing the steps.
 
-1 — Run the colour boost script. Add examples/color-boost-two-layer.js to Affinity's
-script library, run it on the open image, tell them the name it's saved under and how
-to undo it. Don't render or describe the result — they'll look in Affinity.
-
-2 — Have me write one from scratch. Write a black-and-white conversion against the
-SDK docs (don't guess at API calls), save it to the library, run it, same ending as
-option 1.
-
-SETUP.md should be in this folder (fetched earlier) — read its Antigravity section
-for the exact run steps once they pick 1 or 2. If it isn't here, fetch it from
-https://raw.githubusercontent.com/bolloplayer/affinity-mcp-setup/main/SETUP.md rather
-than inventing steps. Do not run anything that writes to their document until they
-ask. Do not run verify.ps1 and do not create a .mcp.json.
-
-Delete this section once you have offered the choices; the file too if nothing else is
-left in it.
+Delete this section once you have offered the choices; the file too if nothing else is left in
+it. Don't state what has or hasn't been done to the document — check the layer stack yourself,
+because this note may be out of date.
 ```
 
 Two things about that note:
@@ -626,9 +637,11 @@ was already working. **A successful smoke test plus no visible tools is the sign
 it means restart — not diagnose.**
 
 The handoff channel is **`AGENTS.md` in the workspace root**, which Codex reads at startup, exactly
-as Claude Code reads `CLAUDE.md`. Write it before you ask for the restart, using the same shape as
-the handoff note above — current state, the three Part A steps, offer the three choices, touch
-nothing until the user picks, and delete yourself when done.
+as Claude Code reads `CLAUDE.md`. Write it before you ask for the restart, using the same **thin**
+shape as the handoff note above: say the session is Part 2 and Part 1 is done, point it at §3 Part A
+rather than restating the steps, tell it not to choose an option or touch the document until the
+user picks, and tell it to delete the note when done. Note the Codex exception below — option 3 does
+not apply — so say so in the note rather than letting it offer an upgrade the user already has.
 
 Put it in the folder the user will run `codex` from. If they cloned this repo into a subfolder,
 that is the **parent**, not the clone.
@@ -880,8 +893,11 @@ calls.
   every config file unchanged while swapping the model underneath.
 - **[`docs/choosing-your-ai.md`](docs/choosing-your-ai.md)** — which model, which harness, what
   each combination costs, and what has actually been verified versus assumed.
-- **[`CLAUDE.md`](CLAUDE.md)** — connection internals (IPv6 binding, the SSE handshake, stale
-  session causes) in a form an agent can diagnose from.
+- **[`docs/sdk-notes.md`](docs/sdk-notes.md)** — confirmed SDK behaviours and the dead ends that
+  cost time: the adjustment-layer traps that fail silently, what isn't scriptable, and how the hint
+  pool works.
+- **§1 and §4 above** — connection internals in a form an agent can diagnose from: why the URL is
+  `[::1]`, what the SSE handshake looks like, and the stale-session causes.
 
 ---
 
