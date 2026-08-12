@@ -80,8 +80,8 @@ Claude Code at **DeepSeek** instead without changing a single config file:
 **→ [bolloplayer.github.io/affinity-mcp-setup](https://bolloplayer.github.io/affinity-mcp-setup/)**
 
 And if you haven't picked a model or a harness yet,
-[`docs/choosing-your-ai.md`](docs/choosing-your-ai.md) compares them — what's verified, what's
-assumed, and what each one costs.
+[`docs/tips-choose-your-ai.md`](docs/tips-choose-your-ai.md) is the short version — which one to
+pick, what each costs, and what won't work.
 
 ![Before and after a Color Boost adjustment layer](docs/img/before-after.jpg)
 
