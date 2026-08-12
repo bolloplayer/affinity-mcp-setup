@@ -200,11 +200,18 @@ recommended way to verify a script, since it does not depend on the user looking
 It correctly used **M8** to match the 8-bit document — the format rule from the preamble, applied
 rather than merely recited.
 
-**Cost: $0, but the free tier is quota-limited.** `DeepSeek V4 Flash Free` needs no API key, which
-re-verifies the archived claim that OpenCode offers a genuinely free path. New detail: the complex
-masked task consumed **~100K tokens, roughly half the free allowance**. So the free tier is good for
-about two tasks of that size — ample to prove the connection works, not enough for a working
-session. That nuance was missing from the original "$0 smoke test" claim.
+**Cost: $0, but the free tier is quota-limited — measured twice.** `DeepSeek V4 Flash Free` needs no
+API key, re-verifying the archived claim that OpenCode offers a genuinely free path.
+
+The allowance is **roughly 200K tokens**, and each of the two sessions run today consumed **~100K,
+taking the meter 0% → 50%**:
+
+- the manual session (config, tool listing, hint searches, the complex masked script), and
+- the agent-driven session (full setup from the prompt, restart, then all three menu options).
+
+**So the free tier covers about two complete setups.** Ample to prove the connection works and to
+run the example scripts once; not a working session. That nuance was missing from the original
+"$0 smoke test" claim, which implied unlimited free use.
 
 ## Agent-driven run — PASSED, 12 Aug 2026
 

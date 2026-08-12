@@ -137,7 +137,7 @@ unverified.
 | 5 | Gemini | Google subscription | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ✅ Verified end-to-end |
 | 6 | Antigravity's other models | Via Antigravity | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ❓ Harness proven, model not separately verified |
 | 7 | Gemini | Google API key | Gemini CLI | `~/.gemini/settings.json` | ❓ | ❓ Not looked at yet |
-| 8 | Free models (e.g. DeepSeek V4 Flash Free) | **Free, no API key** | OpenCode | `opencode.json` (workspace) | SSE | ✅ Verified — full setup and a masked two-layer script at zero cost. Quota-limited, so good for proving it works rather than a working session |
+| 8 | Free models (e.g. DeepSeek V4 Flash Free) | **Free, no API key** | OpenCode | `opencode.json` (workspace) | SSE | ✅ Verified — full setup and a masked two-layer script at zero cost. The allowance covers roughly two complete setups, so it proves the connection rather than being a working session |
 | 9 | Any local model | Free | Ollama / LM Studio | — | none | ❌ No MCP client — not viable |
 
 ### Settled — Affinity is SSE-only
@@ -229,7 +229,7 @@ transport it speaks, and how much of it is proven.
 | If you want… | Use |
 |---|---|
 | **The most reliable setup** | Claude Code + Claude |
-| **Zero-cost proof it works** | OpenCode + a free model — no API key at all. Quota-limited, so use it to prove the connection rather than as a working setup |
+| **Zero-cost proof it works** | OpenCode + a free model — no API key at all. The free allowance covers roughly two complete setups, so use it to prove the connection rather than as a working setup |
 | **Cheap, on the proven connection** | Claude Code + DeepSeek, via the redirect below — verified end-to-end, and a whole session costs cents |
 | **You already pay for ChatGPT** | The ChatGPT app's **Codex** tab + the custom bridge — no terminal needed. Same capability in a terminal via the `codex` CLI. (`Chat` cannot reach Affinity at all.) |
 
