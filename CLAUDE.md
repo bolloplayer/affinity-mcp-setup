@@ -124,8 +124,12 @@ Keep the two straight when testing: DeepSeek's leg runs *through Claude Code*, w
 harness in its own right. Some of the old model numbers were measured on OpenCode and then quoted as
 DeepSeek results; that conflation is what the split is meant to fix.
 
-**A single harness-agnostic prompt works for all three finished legs** — good for a public post,
-since it means one instruction rather than three:
+**The end-of-setup menu is three options on the Claude Code path and §3, but two on Antigravity.**
+Option 3 ("use Affinity from every folder") is meaningless for Antigravity, whose config is already
+global. That difference is deliberate — don't "fix" either section to match the other.
+
+**A single harness-agnostic prompt works for all the finished legs** — good for a public post,
+since it means one instruction rather than several:
 
 > Set up the Affinity MCP connection following https://github.com/bolloplayer/affinity-mcp-setup's
 > SETUP.md.

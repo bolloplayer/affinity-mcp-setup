@@ -157,6 +157,41 @@ runs, or the accuracy comparison is confounded.
 7. Ask for something **not** in `examples/`, complex enough to need real SDK knowledge (a two-layer
    adjustment with a mask is the established bar). This is where hallucinated API calls surface.
 
+### Step 1 result — Flash, PASSED all five checks, 12 Aug 2026
+
+`deepseek-v4-flash`, clean profile, empty folder, given only the harness-agnostic prompt.
+
+| Check | Result |
+|---|---|
+| Self-identified as Claude Code, unprompted | ✅ "I'm running in Claude Code, so this is the Claude Code path" |
+| Wrote `.mcp.json` — not `config.toml` or `mcp_config.json` | ✅ |
+| Preserved `[::1]` — no "correction" to `localhost`/`127.0.0.1` | ✅ `{"type":"sse","url":"http://[::1]:6767/sse"}` |
+| Produced the handoff note | ✅ In `CLAUDE.md`, with the three options reproduced **verbatim** |
+| Explained the restart rather than a bare "please restart" | ✅ "That's the design, not a failure", numbered steps, said it happens once |
+
+`verify.ps1` passed every check: Affinity running, `[::1]:6767` listening, handshake OK on protocol
+`2025-11-25`, 11 tools, preamble readable, document open.
+
+**Behaviours worth noting that the checklist doesn't cover:**
+
+- **Refused to build files from a summarised fetch.** `WebFetch` returned a summary rather than the
+  verbatim SETUP.md; it noticed, said so, and went to the repo for real bytes instead of
+  reconstructing. This is the failure mode SETUP.md's "the bytes must never pass through you" rule
+  exists to prevent, and it caught it unprompted.
+- **Read `verify.ps1` before executing it**, confirming it was read-only. Not demanded by the
+  instructions.
+- **Recalled the Desktop-sandboxing prerequisite** and checked the folder satisfied it.
+- **Recovered cleanly from a real error.** `git clone .` failed because Claude Code's own `.claude/`
+  directory made the folder non-empty; it diagnosed the cause correctly and cloned to a
+  subdirectory.
+
+**Deviation:** it **cloned the whole repo** rather than fetching the specific files SETUP.md lists.
+Not harmful — it then copied what it needed into the root — but it cost a failed clone, an extra
+copy step, and leaves a nested repo in the project folder. Also spent a 270KB fetch on GitHub's
+rendered HTML before switching to `raw.githubusercontent.com`, which costs real tokens on a
+per-token plan. Consider whether SETUP.md should say "clone" outright, since two agents now have
+reached for it.
+
 ### What to record — this is the actual deliverable
 
 | Field | Why |
