@@ -109,7 +109,9 @@ wholesale — it pulls in `CLAUDE.md` and whatever else this repo happens to be 
 
 Only these paths belong in the public repo: `SETUP.md`, `README.md`, `docs/`, `examples/`,
 `bridge/`, `handoff/`, `verify.ps1`, `LICENSE`. **Never push `CLAUDE.md`** — it's private working
-context, not user-facing setup content. **Never commit a real `.mcp.json` or
+context, not user-facing setup content. **`archive/` is private-only too** — it holds the retired
+findings for legs being re-tested from scratch (see `archive/opencode-leg.md`), which is working
+history rather than setup content. **Never commit a real `.mcp.json` or
 `.agents/mcp_config.json`** (or any other generated config) — the setup instructions tell users to
 create these themselves, so a pre-existing copy in the repo contradicts that and can go stale
 (both are now gitignored in the public repo to catch this).

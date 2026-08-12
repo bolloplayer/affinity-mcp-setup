@@ -41,10 +41,6 @@ about which one to pick, not how to wire it up.
 | | | | | |
 | **Gemini** (Google) | ❌ **Gemini Web** (`gemini.google.com`) | ✅\* **Antigravity 2.0 / IDE** | ✅ **`agy` CLI** (Antigravity) | `~/.gemini/config/mcp_config.json` — global (`serverUrl` field) |
 | | | | | |
-| | | | | |
-| ⎯⎯⎯ *Not a vendor ecosystem — a multi-model harness that can drive any of the models above* ⎯⎯⎯ | | | | |
-| | | | | |
-| **OpenCode** (Multi-model) | — *(N/A — Local harness)* | ✅\* **OpenCode Desktop App** | ✅ **`opencode` CLI / TUI** | Native SSE (`opencode.jsonc` or CLI) |
 
 <br>
 
@@ -120,21 +116,17 @@ unverified.
 | # | Model | How you pay | CLI | Config file | Transport | Status |
 |---|---|---|---|---|---|---|
 | 1 | Claude (Opus / Sonnet) | Claude subscription | Claude Code | `.mcp.json` | SSE | ✅ Verified |
-| 2 | deepseek-v4-flash | Prepaid credits | OpenCode | `opencode.jsonc` | SSE | ✅ Verified |
-| 3 | deepseek-v4-pro | Prepaid credits | OpenCode | `opencode.jsonc` | SSE | ✅ Verified — worse than Flash |
-| 4 | deepseek-v4-flash | Prepaid credits | Claude Code (redirected) | `.mcp.json` | SSE | ✅ Verified |
-| 5 | `opencode/deepseek-v4-flash-free` | Free | OpenCode | `opencode.jsonc` | SSE | ✅ Verified — $0 smoke test |
-| 6 | GPT-5.x | ChatGPT subscription | Codex CLI | `~/.codex/config.toml` | custom stdio bridge | ✅ Verified |
-| 7 | GPT-5.x | OpenAI API key | Codex CLI | `~/.codex/config.toml` | stdio bridge | ✅ Same local transport verified; API-key authentication itself not separately tested |
-| 8 | GPT-5.x | OpenAI API key | OpenCode | `opencode.jsonc` | SSE | ❓ Untested — should just work |
-| 9 | Gemini | Google subscription | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ✅ Verified end-to-end |
-| 10 | Antigravity's other models | Via Antigravity | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ❓ Harness proven, model not separately verified |
-| 11 | Gemini | Google API key | Gemini CLI | `~/.gemini/settings.json` | ❓ | ❓ Not looked at yet |
-| 12 | Any local model | Free | Ollama / LM Studio | — | none | ❌ No MCP client — not viable |
+| 2 | deepseek-v4-flash | Prepaid credits | Claude Code (redirected) | `.mcp.json` | SSE | ✅ Verified |
+| 3 | GPT-5.x | ChatGPT subscription | Codex CLI | `~/.codex/config.toml` | custom stdio bridge | ✅ Verified |
+| 4 | GPT-5.x | OpenAI API key | Codex CLI | `~/.codex/config.toml` | stdio bridge | ✅ Same local transport verified; API-key authentication itself not separately tested |
+| 5 | Gemini | Google subscription | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ✅ Verified end-to-end |
+| 6 | Antigravity's other models | Via Antigravity | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ❓ Harness proven, model not separately verified |
+| 7 | Gemini | Google API key | Gemini CLI | `~/.gemini/settings.json` | ❓ | ❓ Not looked at yet |
+| 8 | Any local model | Free | Ollama / LM Studio | — | none | ❌ No MCP client — not viable |
 
 ### Settled — Affinity is SSE-only
 
-There is no Streamable HTTP endpoint; every path but `/sse` returns `404`. Consequence: rows 6–7
+There is no Streamable HTTP endpoint; every path but `/sse` returns `404`. Consequence: rows 3–4
 keep a bridge **permanently**. There is no one-line `url = …` form to collapse to.
 
 ---
@@ -156,7 +148,7 @@ produced cleaner SDK code than the expensive one. Don't assume the flagship is t
 
 | Model | Reach it via | Status |
 |---|---|---|
-| **GPT-5.x / GPT-5.x-Codex** (ChatGPT subscription or OpenAI API key) | Codex CLI, OpenCode | Automatic loading, SDK reads, script execution and a generated two-layer variant are all verified |
+| **GPT-5.x / GPT-5.x-Codex** (ChatGPT subscription or OpenAI API key) | Codex CLI | Automatic loading, SDK reads, script execution and a generated two-layer variant are all verified |
 | **Gemini** | Antigravity, Gemini CLI | Verified end-to-end through Antigravity, with the config in its global location (`~/.gemini/config/mcp_config.json`) |
 | **Antigravity's other models** | Antigravity | Not separately verified. Choose a model with `agy models` rather than taking the default |
 
@@ -166,8 +158,7 @@ OpenAI's coding models sit behind two different doors, and it matters which one 
 
 - **ChatGPT Plus / Pro subscription** — sign into Codex CLI with your ChatGPT account. No API key,
   no per-token billing; you get the Codex model tiers included in your plan.
-- **OpenAI API key** — pay per token, billed separately from ChatGPT. Works with Codex CLI and with
-  third-party harnesses like OpenCode.
+- **OpenAI API key** — pay per token, billed separately from ChatGPT. Works with Codex CLI.
 
 Model names on this side churn fast. **Don't trust any list, including this one, to still be
 current.** Run `/model` inside Codex CLI — it shows exactly what your install and your plan can
@@ -208,25 +199,18 @@ transport it speaks, and how much of it is proven.
 | CLI | Models it reaches | Where MCP config goes | Transport | Status |
 |---|---|---|---|---|
 | **Claude Code** | Claude; anything on an Anthropic-compatible endpoint (DeepSeek) | `.mcp.json` in the project | SSE native | ✅ Proven, extensively |
-| **OpenCode** | Almost anything — Claude, GPT, DeepSeek, Gemini, local | `~/.config/opencode/opencode.jsonc` | SSE native (`remote`) | ✅ Full round-trip passed |
 | **Codex CLI / desktop environment** | GPT-5.x via ChatGPT login or OpenAI API key | `~/.codex/config.toml` | custom stdio bridge → SSE | ✅ Automatically discovers the tools, reads `preamble`, runs scripts |
 | **Antigravity** (`agy`) | Gemini, plus its other models | `~/.gemini/config/mcp_config.json` — global | SSE (`serverUrl` field) | ✅ Verified — live round-trip and script execution passed |
-
-If you only have a ChatGPT subscription and no interest in installing a bridge, the cleaner path is
-**OpenCode with an OpenAI API key** — native SSE, no bridge, same models. (The bridge and why it's
-needed are covered above.)
 
 ### Recommended combinations
 
 | If you want… | Use |
 |---|---|
 | **The most reliable setup** | Claude Code + Claude |
-| **The cheapest verified setup** | OpenCode + `deepseek-v4-flash` |
 | **Cheap, on the proven connection** | Claude Code + DeepSeek, via the redirect below |
-| **Zero-cost smoke test** | OpenCode + `opencode/deepseek-v4-flash-free` — works with no API key at all |
 | **You already pay for ChatGPT** | The ChatGPT app's **Codex** tab + the custom bridge — no terminal needed. Same capability in a terminal via the `codex` CLI. (`Chat` cannot reach Affinity at all.) |
 
-That third row is a useful trick: DeepSeek publishes an **Anthropic-API-compatible endpoint**, so
+That middle row is a useful trick: DeepSeek publishes an **Anthropic-API-compatible endpoint**, so
 Claude Code can be pointed at DeepSeek instead of Anthropic. The harness, the MCP connection, and
 every config file stay exactly as they were — only the model changes.
 
@@ -256,7 +240,6 @@ Rough shape, so you can budget:
 - **OpenAI API key** — pay per token, meaningfully pricier than DeepSeek for the same work.
 - **DeepSeek prepaid credits** — no subscription, no monthly fee, pay per token. A few dollars goes
   a long way at Flash's rates; a whole session of script writing and testing is cents, not dollars.
-- **OpenCode free tier** — genuinely $0 for a smoke test, no credentials.
 
 For per-token setups, the models above are cheap enough that the real cost of this workflow is your
 time reviewing hallucinated SDK calls — which is why the accuracy column in step 1 matters more than

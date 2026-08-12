@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Script Affinity from VS Code — Claude Code + Affinity MCP on Windows</title>
-<meta name="description" content="Connect Claude Code to Affinity's built-in MCP server on Windows and apply your first AI-scripted adjustment layer in about ten minutes. No Claude Desktop, no Node. Codex, Antigravity and OpenCode covered too.">
+<meta name="description" content="Connect Claude Code to Affinity's built-in MCP server on Windows and apply your first AI-scripted adjustment layer in about ten minutes. No Claude Desktop, no Node. Codex and Antigravity covered too.">
 <style>
   :root {
     --paper: #FAF9F6;
@@ -420,7 +420,7 @@
   rest is: open the folder → check the connection → run the script. All in all, about ten minutes to your
   first AI-written adjustment layer.</p>
   <p class="lede"><b>Not a Claude user?</b> Affinity's server is open to any AI that speaks MCP — Codex,
-  Antigravity, OpenCode. You don't have to follow a guide for those: point your own agent at
+  Antigravity. You don't have to follow a guide for those: point your own agent at
   <a href="https://github.com/bolloplayer/affinity-mcp-setup/blob/main/SETUP.md">the
   repo's <code>SETUP.md</code></a> and it will set the connection up itself.
   <a href="#other-ai">The short version is further down.</a></p>
@@ -650,11 +650,6 @@
       <tr>
         <td><b>Antigravity</b> (<code>agy</code>) — Gemini</td>
         <td><code>~/.gemini/config/mcp_config.json</code> — global, not per-workspace; the field is <code>serverUrl</code>, not <code>url</code></td>
-        <td>SSE, native</td>
-      </tr>
-      <tr>
-        <td><b>OpenCode</b> — any model you like</td>
-        <td><code>opencode mcp add affinity --url …</code></td>
         <td>SSE, native</td>
       </tr>
     </table>

@@ -1,7 +1,7 @@
 # Examples
 
 Small, self-contained SDK scripts you run via the `execute_script` MCP tool — from any harness that
-reaches Affinity (Claude Code, Codex, Antigravity, OpenCode). Read the `preamble` doc once per
+reaches Affinity (Claude Code, Codex, Antigravity). Read the `preamble` doc once per
 session first; the server requires it.
 
 `inspect-document.js` and `color-boost-two-layer.js` are the connection test in
