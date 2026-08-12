@@ -37,15 +37,43 @@ the workflow.
 
 ## What we tested
 
-Five setups, each taken from nothing to a working script inside Affinity.
+Each of these was taken from nothing to a working script inside Affinity.
 
-| Setup | What it needs | Notes |
-|---|---|---|
-| **Claude Code** | `.mcp.json` in your project folder | The baseline. Terminal, VS Code, or Claude Desktop's Code tab |
-| **Claude Desktop** | Nothing — install the Affinity connector | Easiest of all if you have Claude Desktop |
-| **Codex** (ChatGPT) | `~/.codex/config.toml` + a small bridge | Codex can't speak Affinity's protocol directly, so the bridge translates. The ChatGPT app's Codex tab needs no terminal |
-| **Antigravity** (Gemini) | `~/.gemini/config/mcp_config.json` — **global** | A per-project file is silently ignored here |
-| **OpenCode** | `opencode.json` in your project folder | The opposite of Antigravity: this one *is* per-project. Fronts almost any model, including free ones |
+<br>
+
+### Three-Surface Ecosystem Comparison Table
+
+<br>
+
+| Ecosystem | 1. Home / Chat Surface | 2. Code / Codex Surface | 3. CLI / Terminal Harness | Local MCP Config / Connection |
+| :--- | :--- | :--- | :--- | :--- |
+| **Claude** (Anthropic) | ✅ **Claude Desktop (Home tab)** | ✅ **Claude Desktop (Code / Cowork)** | ✅ **`claude` CLI** (Claude Code) | Official connector or `.mcp.json` |
+| | | | | |
+| **GPT** (OpenAI) | ❌ **ChatGPT App (Chat tab)** / Web | ✅ **ChatGPT App (Codex tab)** | ✅ **`codex` CLI** | `~/.codex/config.toml` & custom stdio bridge |
+| | | | | |
+| **Gemini** (Google) | ❌ **Gemini Web** (`gemini.google.com`) | ✅ **Antigravity 2.0 / IDE** | ✅ **`agy` CLI** (Antigravity) | `~/.gemini/config/mcp_config.json` — global (`serverUrl` field) |
+| | | | | |
+| **DeepSeek** | ❌ **DeepSeek Web** (`chat.deepseek.com`) | ✅ **Claude Code in VS Code**, redirected | ✅ **`claude` CLI**, redirected | `.mcp.json` — same as Claude, plus env-var redirect † |
+| | | | | |
+| | | | | |
+| ⎯⎯⎯ *Not a vendor ecosystem — a multi-model harness that can drive any of the models above* ⎯⎯⎯ | | | | |
+| | | | | |
+| **OpenCode** (Multi-model) | — *(N/A — local harness)* | ✅ **OpenCode Desktop App** (beta) | ✅ **`opencode` CLI / TUI** | `opencode.json` in the project — **workspace**, `url` field |
+| | | | | |
+
+<br>
+
+*† **DeepSeek has no harness of its own — it borrows Claude's.** It publishes an
+Anthropic-API-compatible endpoint, so Claude Code can be pointed at it with a handful of environment
+variables. The MCP connection, `.mcp.json` and every script stay exactly as they are; only the model
+answering changes. **[Setting up DeepSeek in Claude Code — step-by-step guide](deepseek.html)** has
+the details. You do **not** need a Claude subscription: Claude Code runs on a DeepSeek key alone.*
+
+<br>
+
+**Two config traps worth knowing.** Antigravity's config is **global** — a per-project file is
+silently ignored. OpenCode is the exact opposite: it reads the **per-project** file. Don't carry an
+assumption from one to the other.
 
 **Expect one restart.** Every one of these reads its config when it starts, so the tools appear only
 after you restart. That's normal — it isn't a sign anything went wrong.
