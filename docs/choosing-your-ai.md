@@ -116,7 +116,7 @@ unverified.
 | # | Model | How you pay | CLI | Config file | Transport | Status |
 |---|---|---|---|---|---|---|
 | 1 | Claude (Opus / Sonnet) | Claude subscription | Claude Code | `.mcp.json` | SSE | ✅ Verified |
-| 2 | deepseek-v4-flash | Prepaid credits | Claude Code (redirected) | `.mcp.json` | SSE | ✅ Verified |
+| 2 | DeepSeek (`v4-flash` / `v4-pro`) | Prepaid credits | Claude Code (redirected) | `.mcp.json` | SSE | ❓ Transport is Claude Code's, so it connects; the model results are being re-tested |
 | 3 | GPT-5.x | ChatGPT subscription | Codex CLI | `~/.codex/config.toml` | custom stdio bridge | ✅ Verified |
 | 4 | GPT-5.x | OpenAI API key | Codex CLI | `~/.codex/config.toml` | stdio bridge | ✅ Same local transport verified; API-key authentication itself not separately tested |
 | 5 | Gemini | Google subscription | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ✅ Verified end-to-end |
@@ -138,11 +138,7 @@ keep a bridge **permanently**. There is no one-line `url = …` form to collapse
 | Model | Cost | SDK accuracy | Verdict |
 |---|---|---|---|
 | **Claude** (Opus / Sonnet) | Claude subscription | Best — this project's whole SDK knowledge base was built with it | The baseline. Best choice for complex, exploratory work |
-| **deepseek-v4-flash** | $0.14/M in, $0.28/M out | **Zero SDK hallucinations** on the script we tested | **Best value.** Recommended if you'd rather pay per token than subscribe |
-| **deepseek-v4-pro** | $0.435/M in, $0.87/M out | 3–4 hallucinated SDK calls per complex script | Not worth the 3× premium for this work — Flash was cheaper *and* more accurate |
-
-That Flash-beats-Pro result is worth pausing on: on identical-complexity tasks, the cheap model
-produced cleaner SDK code than the expensive one. Don't assume the flagship is the right pick here.
+| **DeepSeek** (`v4-flash` / `v4-pro`) | Prepaid credits, cheapest of the options here | ❓ Being re-tested | Reachable through Claude Code's own connection — see the redirect in step 2. Accuracy numbers are pending a proper test |
 
 ### Additional model notes
 
@@ -207,7 +203,7 @@ transport it speaks, and how much of it is proven.
 | If you want… | Use |
 |---|---|
 | **The most reliable setup** | Claude Code + Claude |
-| **Cheap, on the proven connection** | Claude Code + DeepSeek, via the redirect below |
+| **Cheap, on the proven connection** | Claude Code + DeepSeek, via the redirect below — the connection is Claude Code's and is solid; the model's SDK accuracy is being re-tested |
 | **You already pay for ChatGPT** | The ChatGPT app's **Codex** tab + the custom bridge — no terminal needed. Same capability in a terminal via the `codex` CLI. (`Chat` cannot reach Affinity at all.) |
 
 That middle row is a useful trick: DeepSeek publishes an **Anthropic-API-compatible endpoint**, so
@@ -238,8 +234,8 @@ Rough shape, so you can budget:
 - **ChatGPT Plus / Pro** — flat monthly, and Codex CLI is included in it. Same shape as above if
   you're already paying for it; not worth subscribing to *just* for this.
 - **OpenAI API key** — pay per token, meaningfully pricier than DeepSeek for the same work.
-- **DeepSeek prepaid credits** — no subscription, no monthly fee, pay per token. A few dollars goes
-  a long way at Flash's rates; a whole session of script writing and testing is cents, not dollars.
+- **DeepSeek prepaid credits** — no subscription, no monthly fee, pay per token. The cheapest of
+  these by some distance; check current rates, they move.
 
 For per-token setups, the models above are cheap enough that the real cost of this workflow is your
 time reviewing hallucinated SDK calls — which is why the accuracy column in step 1 matters more than
