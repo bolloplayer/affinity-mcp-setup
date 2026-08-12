@@ -246,6 +246,11 @@ hint covering the factory absence, the read-mutate-reapply pattern, the range, a
 `list_sdk_documentation` but `read_sdk_documentation_topic` returns `ERROR: File not found`. Dead
 name in the listing; use `param_ranges.min.json` / `struct_ranges.min.json`.
 
+**Visually confirmed in Affinity, not just in the transcript:** the image is actually black and
+white. This matters because the SDK's signature failure — the copy-on-get `masterSpline` class — is
+a script that reports success while the document is unchanged. A transcript alone cannot
+distinguish the two, so **every future leg must check the canvas before recording a pass.**
+
 **Caveat on this result:** B&W is a single-layer adjustment — moderate, not the two-layer-with-mask
 bar in step 7. The harder task is still unrun, and the old Pro-vs-Flash claim was specifically about
 *complex* scripts. Do not conclude Flash beats Pro from this alone.
