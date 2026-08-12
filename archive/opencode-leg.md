@@ -24,10 +24,18 @@ here ships to `bolloplayer/affinity-mcp-setup`.
    > - **`opencode mcp add` is not in the current command list.** The documented commands are
    >   `auth`, `list`, `logout` and `debug`. Write the config file directly instead.
    > - **The docs now put config in `opencode.json` at the *workspace root*,** not the global
-   >   `~/.config/opencode/opencode.jsonc` recorded here. Which one is actually read is **unresolved**
-   >   — and this is exactly the failure that bit Antigravity, where a workspace file was written and
-   >   silently never read. Resolve it deliberately: try the workspace file, and if `opencode mcp
-   >   list` does not see the server, try the global one.
+   >   `~/.config/opencode/opencode.jsonc` recorded here. **RESOLVED 12 Aug 2026: the workspace file
+   >   works.** From a clean machine — OpenCode fully uninstalled, all four data directories deleted —
+   >   a fresh `opencode.json` in an empty project folder produced:
+   >
+   >   ```
+   >   ✓ affinity connected
+   >       http://[::1]:6767/sse
+   >   ```
+   >
+   >   That is a live SSE handshake, not merely a parsed file. **Unlike Antigravity, OpenCode really
+   >   does read a workspace-scoped config.** The two harnesses are opposites on this point, which is
+   >   worth stating plainly in SETUP.md so nobody generalises from one to the other.
    >
    > Documented remote-server shape:
    >
