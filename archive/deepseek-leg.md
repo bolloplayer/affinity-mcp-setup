@@ -294,6 +294,40 @@ that both models get the *same* inherited help, which this achieves.
 so anything delegated to a subagent runs on Flash even during a Pro session. If that happens, the
 run is not purely Pro and must be noted or redone.
 
+### Pro run — 12 Aug 2026, `deepseek-v4-pro`, effort max, fresh profile and folder
+
+**Setup (Part 1 + Part 2): PASSED, and cleaner than Flash on two points.**
+
+| | Flash | Pro |
+|---|---|---|
+| Fetching SETUP.md | 270KB of GitHub HTML first, then raw | **Straight to raw** |
+| Getting helper files | **Cloned the whole repo** — a deviation, plus a failed `clone .` and a copy step | **Downloaded the four listed files** — as SETUP.md instructs |
+| `.mcp.json`, `[::1]` preserved | ✅ | ✅ |
+| Handoff note, restart explained | ✅ | ✅ |
+| Part 2 checks | ✅ all five | ✅ all five |
+
+Both models share the **read-before-execute** disposition, so that is a DeepSeek family trait rather
+than a Flash-specific one.
+
+**Then Pro broke the no-renders rule — twice.**
+
+SETUP.md states it in six places, e.g. *"No renders, and no describing the result. `render_spread`
+exists, but do not reach for it here — including to diagnose a script that threw."* Pro called
+`render_spread` after option 1 and again "to confirm the final state", **and** described the result
+in detail ("Boost saturates the six colour ranges… Clean lifts whites, opens midtones, keeps blacks
+solid"). Both halves of the rule.
+
+Flash followed it correctly, handing over with "switch to Affinity and take a look" and no render.
+
+**This is the first real quality separation between the models, and it runs opposite to the
+archived Flash-beats-Pro framing** — but note the axis: it is *instruction-following*, not SDK
+accuracy. The old claim was about hallucinated API calls on complex scripts. On that axis nothing is
+settled yet.
+
+Why the rule exists, and so why the miss matters: the user is seconds from the document at full
+resolution, so a render is wasted tokens and a described result invites the model to narrate an
+outcome it cannot actually see.
+
 ### What to record — this is the actual deliverable
 
 | Field | Why |
