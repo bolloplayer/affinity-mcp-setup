@@ -116,17 +116,18 @@ unverified.
 | # | Model | How you pay | CLI | Config file | Transport | Status |
 |---|---|---|---|---|---|---|
 | 1 | Claude (Opus / Sonnet) | Claude subscription | Claude Code | `.mcp.json` | SSE | ✅ Verified |
-| 2 | DeepSeek (`v4-flash` / `v4-pro`) | Prepaid credits | Claude Code (redirected) | `.mcp.json` | SSE | ❓ Transport is Claude Code's, so it connects; the model results are being re-tested |
-| 3 | GPT-5.x | ChatGPT subscription | Codex CLI | `~/.codex/config.toml` | custom stdio bridge | ✅ Verified |
-| 4 | GPT-5.x | OpenAI API key | Codex CLI | `~/.codex/config.toml` | stdio bridge | ✅ Same local transport verified; API-key authentication itself not separately tested |
-| 5 | Gemini | Google subscription | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ✅ Verified end-to-end |
-| 6 | Antigravity's other models | Via Antigravity | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ❓ Harness proven, model not separately verified |
-| 7 | Gemini | Google API key | Gemini CLI | `~/.gemini/settings.json` | ❓ | ❓ Not looked at yet |
-| 8 | Any local model | Free | Ollama / LM Studio | — | none | ❌ No MCP client — not viable |
+| 2 | `deepseek-v4-flash` | Prepaid credits | Claude Code (redirected) | `.mcp.json` | SSE | ✅ Verified end-to-end — setup, restart, supplied script and a script written from scratch, all first try |
+| 3 | `deepseek-v4-pro` | Prepaid credits | Claude Code (redirected) | `.mcp.json` | SSE | ✅ Verified end-to-end, including a masked two-layer script written from scratch |
+| 4 | GPT-5.x | ChatGPT subscription | Codex CLI | `~/.codex/config.toml` | custom stdio bridge | ✅ Verified |
+| 5 | GPT-5.x | OpenAI API key | Codex CLI | `~/.codex/config.toml` | stdio bridge | ✅ Same local transport verified; API-key authentication itself not separately tested |
+| 6 | Gemini | Google subscription | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ✅ Verified end-to-end |
+| 7 | Antigravity's other models | Via Antigravity | Antigravity | `~/.gemini/config/mcp_config.json` (global) | SSE | ❓ Harness proven, model not separately verified |
+| 8 | Gemini | Google API key | Gemini CLI | `~/.gemini/settings.json` | ❓ | ❓ Not looked at yet |
+| 9 | Any local model | Free | Ollama / LM Studio | — | none | ❌ No MCP client — not viable |
 
 ### Settled — Affinity is SSE-only
 
-There is no Streamable HTTP endpoint; every path but `/sse` returns `404`. Consequence: rows 3–4
+There is no Streamable HTTP endpoint; every path but `/sse` returns `404`. Consequence: rows 4–5
 keep a bridge **permanently**. There is no one-line `url = …` form to collapse to.
 
 ---
@@ -138,7 +139,18 @@ keep a bridge **permanently**. There is no one-line `url = …` form to collapse
 | Model | Cost | SDK accuracy | Verdict |
 |---|---|---|---|
 | **Claude** (Opus / Sonnet) | Claude subscription | Best — this project's whole SDK knowledge base was built with it | The baseline. Best choice for complex, exploratory work |
-| **DeepSeek** (`v4-flash` / `v4-pro`) | Prepaid credits, cheapest of the options here | ❓ Being re-tested | Reachable through Claude Code's own connection — see the redirect in step 2. Accuracy numbers are pending a proper test |
+| **DeepSeek** `v4-flash` | Prepaid credits | No hallucinated SDK calls on the scripts tested | **Both DeepSeek models work.** Reachable through Claude Code's own connection — see the redirect in step 2 |
+| **DeepSeek** `v4-pro` | Prepaid credits, ~3× Flash per token | No hallucinated SDK calls, including a masked two-layer script written from scratch | Pick either. The cost difference is cents, so choose on nothing much at all |
+
+**What a run actually costs, measured rather than extrapolated** (12 Aug 2026, prepaid tokens): a
+complete setup from an empty folder — config written, connection verified, restart, plus a supplied
+script and one written from scratch — came to **about 3 cents on Flash**. The same on Pro, *plus* a
+masked two-layer script, came to **about 5 cents**. Per-token rates make Pro look 3× dearer; in
+practice the whole day's testing cost eight cents.
+
+So the honest advice is: **don't agonise over which DeepSeek model.** Both wrote correct SDK code
+first try, including the hard case. Note that DeepSeek has announced a significant price rise, so
+re-check before relying on these figures.
 
 ### Additional model notes
 
@@ -203,7 +215,7 @@ transport it speaks, and how much of it is proven.
 | If you want… | Use |
 |---|---|
 | **The most reliable setup** | Claude Code + Claude |
-| **Cheap, on the proven connection** | Claude Code + DeepSeek, via the redirect below — the connection is Claude Code's and is solid; the model's SDK accuracy is being re-tested |
+| **Cheap, on the proven connection** | Claude Code + DeepSeek, via the redirect below — verified end-to-end on both `v4-flash` and `v4-pro`, and a whole session costs cents |
 | **You already pay for ChatGPT** | The ChatGPT app's **Codex** tab + the custom bridge — no terminal needed. Same capability in a terminal via the `codex` CLI. (`Chat` cannot reach Affinity at all.) |
 
 That middle row is a useful trick: DeepSeek publishes an **Anthropic-API-compatible endpoint**, so

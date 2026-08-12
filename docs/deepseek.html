@@ -254,10 +254,13 @@
 
   <div class="tip">
     <h3>Which DeepSeek model to pick</h3>
-    <p><code>v4-flash</code> is roughly a third the cost of <code>v4-pro</code> per output token, and
-    in early runs it made <em>fewer</em> SDK mistakes, not more. That result is being re-tested
-    properly before we lean on it, so treat it as a promising starting point rather than settled —
-    but Flash is the cheaper place to start either way.</p>
+    <p>Either works. We tested both end-to-end against Affinity in August 2026 and each wrote correct
+    SDK code first try, including a masked two-layer adjustment written from scratch. An earlier
+    impression that Flash made fewer mistakes than <code>v4-pro</code> did not hold up.</p>
+    <p><code>v4-flash</code> is roughly a third the cost of <code>v4-pro</code> per output token, but
+    the amounts are so small it barely matters — a full setup plus two scripts came to about 3 cents
+    on Flash and 5 on Pro. Start with <code>v4-flash</code> if you want the cheaper default; switch
+    if you ever feel it struggling.</p>
   </div>
 </section>
 
