@@ -232,6 +232,13 @@ verbatim without choosing.
 **Option 1 (supplied colour-boost script) ran and was confirmed in Affinity** — save to library, run,
 pixels changed. The transport is proven end to end on the agent-driven path, not just the manual one.
 
+**Option 2 (black-and-white written from scratch) also ran**, confirmed as a B&W layer on the canvas.
+**Read this as a flow check, not as accuracy evidence:** B&W is burned as a benchmark because the
+preamble hands over the factory absence, the read-mutate-reapply pattern and the `[-2.0, 3.0]` range.
+What it proves is that the write path, `save_script_to_library` and the handover all work on
+OpenCode. The accuracy evidence for this leg is the masked two-layer script, which was written
+against a genuinely unhinted problem and verified numerically.
+
 **Judgement on the missing handoff step: leave it out for now, but know it is inference, not
 instruction.** It worked here on a capable model with `SETUP.md` sitting on disk. A weaker model may
 not make the leap. If a future OpenCode run gets lost after the restart, adding an `AGENTS.md`
