@@ -76,9 +76,14 @@ optional handshake probe, Claude Code present). If scripts are blocked:
 - Confirmed API shapes and known dead-ends live in `docs/sdk-notes.md`; example scripts in
   `examples/` (see `examples/README.md`).
 
-## Project shape — read this before deciding anything is stale
+## Project shape — settled, do not deviate
 
-Five moving parts, and it's easy to mistake a deliberate one for neglect:
+**This structure is fixed. Treat it as a constraint on any plan, not a snapshot to be improved on.**
+Every part below is a deliberate decision, and several of them look like neglect to a fresh pair of
+eyes. If a plan would add a leg, merge one, restructure the docs around a different spine, or
+"tidy" any of the five items, that plan is wrong — raise it with the user instead of acting.
+
+Five moving parts:
 
 1. **Four legs plus an OpenCode section** — see the status table below. Two are untested.
 2. **Two tutorial webpages, `docs/index.html` and `docs/deepseek.html`.** These are **relics**,
@@ -93,6 +98,9 @@ Five moving parts, and it's easy to mistake a deliberate one for neglect:
 5. **The old Reddit posts are no longer relevant.** Don't treat referrer traffic from them as a
    signal worth chasing, and don't reintroduce Reddit-correlation reporting — it was retired
    deliberately in `035d2be`.
+
+What *does* change within this structure: leg statuses as tests are run, cell contents in the
+tables, and the archive files as findings are re-verified. The shape itself doesn't.
 
 ## Leg status — four legs plus the OpenCode ecosystem
 
