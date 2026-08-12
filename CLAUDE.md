@@ -90,7 +90,7 @@ Five moving parts:
    kept deliberately as an extra route for readers who'd rather install by hand than point an agent
    at `SETUP.md`. **They are not maintained in step with the docs, and that is intentional** — a
    refresh pass is planned for the end of the project, not now. Do not "fix" their drift from
-   `SETUP.md` or from `docs/choosing-your-ai.md` unless asked.
+   `SETUP.md` or from `docs/tips-choose-your-ai.md` unless asked.
 3. **The archived repo `bolloplayer/affinity-photo-claude-code-windows` is a tombstone.** It exists
    only so old links resolve and its README points at the live repo. Never publish content there.
 4. **`.claude/skills/pages-traffic/`** measures whether anyone is reading the site. It targets the
@@ -173,7 +173,10 @@ testing, debugging narrative, and this file live. **`bolloplayer/affinity-mcp-se
 wholesale — it pulls in `CLAUDE.md` and whatever else this repo happens to be carrying.
 
 Only these paths belong in the public repo: `SETUP.md`, `README.md`, `docs/`, `examples/`,
-`bridge/`, `handoff/`, `verify.ps1`, `LICENSE`. **Never push `CLAUDE.md`** — it's private working
+`bridge/`, `handoff/`, `verify.ps1`, `LICENSE`. **One exception inside `docs/`:
+`docs/bookkeeping-choosing-your-ai.md` is private** — it is the project's own record of what has and
+hasn't been tested. Its public counterpart is `docs/tips-choose-your-ai.md`, the short reader-facing
+version. Never link from a public file to the bookkeeping one; that link would 404. **Never push `CLAUDE.md`** — it's private working
 context, not user-facing setup content. **`archive/` is private-only too** — it holds the retired
 findings for legs being re-tested from scratch (see `archive/opencode-leg.md`), which is working
 history rather than setup content. **Never commit a real `.mcp.json` or

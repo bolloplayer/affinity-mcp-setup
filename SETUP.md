@@ -891,7 +891,7 @@ calls.
   human-facing walkthrough of the Claude Code path, with screenshots. Also covers pointing Claude
   Code at **DeepSeek** via its Anthropic-compatible endpoint, which keeps this exact connection and
   every config file unchanged while swapping the model underneath.
-- **[`docs/choosing-your-ai.md`](docs/choosing-your-ai.md)** — which model, which harness, what
+- **[`docs/tips-choose-your-ai.md`](docs/tips-choose-your-ai.md)** — which model, which harness, what
   each combination costs, and what has actually been verified versus assumed.
 - **[`docs/sdk-notes.md`](docs/sdk-notes.md)** — confirmed SDK behaviours and the dead ends that
   cost time: the adjustment-layer traps that fail silently, what isn't scriptable, and how the hint
