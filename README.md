@@ -1,7 +1,7 @@
-# Connect your AI to Affinity Photo
+# Affinity Photo MCP setup — connect Claude Code, Codex, Antigravity, OpenCode & DeepSeek Harness to Affinity Photo v3's built-in MCP server (Windows)
 
 **Affinity Photo v3 has a built-in MCP server.** That means an AI agent — Claude Code, Codex,
-Antigravity — can write and run real scripts inside the app: adjustment layers, filters,
+Antigravity, OpenCode, or DeepSeek Harness — can write and run real scripts inside the app: adjustment layers, filters,
 batch work, all through Affinity's own JavaScript SDK. No extra software, no UI automation, no
 macOS requirement.
 
