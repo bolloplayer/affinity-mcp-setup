@@ -45,6 +45,8 @@ Before you start, confirm:
    Get-NetTCPConnection -LocalAddress '::1' -LocalPort 6767 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "✓ Affinity MCP listening on [$($_.LocalAddress)]:$($_.LocalPort)" }
    ```
 
+5. **For real work: move your project under `C:\Users\<you>\Desktop\`** — The MCP connection works from anywhere, but Affinity sandboxes **script file I/O** (exports, saves, batch work) to the Desktop tree. A script that tries to write outside it returns `NOT_ALLOWED`. The verification sequence only reads, so it works from any folder, but move your actual project under Desktop before the first export.
+
 ---
 
 ## Configuration
@@ -82,46 +84,43 @@ New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.dsh\profiles\web" |
 
 ### Step 3: Add the MCP client plugin entry
 
-The patch file uses `- insert: patch` format to inject entries into the plugin array. **Use an absolute path** to the bridge.
+The patch file uses `- insert:` at the top level with an array of plugin entries. **Use absolute paths** for both Node.js and the bridge.
 
 Add this to `cordis.patch.yml`:
 
 ```yaml
-- insert: patch
-  path: /plugins/0
-  value:
-    id: mcp-affinity
-    name: '@deepseek-ai/dsh-mcp-client'
-    config:
-      serverName: affinity
-      transport: stdio
-      command: 'node.exe'
-      args:
-        - 'C:\absolute\path\to\affinity-codex-bridge.mjs'
-      toolCallTimeoutMs: 30000
+# Your patch layer for this dsh profile, applied after every bundle layer:
+# a top-level YAML array of loader patch entries (id-targeted config
+# overrides, disables, and insert lists; `!!js` expressions allowed).
+- insert:
+    - id: mcp-affinity
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: affinity
+        transport: stdio
+        command: 'C:\Program Files\nodejs\node.exe'
+        args:
+          - 'C:\absolute\path\to\affinity-mcp-setup\bridge\affinity-codex-bridge.mjs'
+        toolCallTimeoutMs: 30000
 ```
 
-Replace `C:\absolute\path\to\affinity-codex-bridge.mjs` with the actual path. For example:
-```yaml
-args:
-  - 'C:\Users\YourName\projects\affinity-mcp-setup\bridge\affinity-codex-bridge.mjs'
-```
+**Replace both absolute paths:**
+- `command`: `C:\Program Files\nodejs\node.exe` (or wherever your Node.js is installed — verify with `node --version`)
+- `args[0]`: Path to `affinity-codex-bridge.mjs` on your machine
 
-**Complete example `$DSH_HOME/profiles/web/cordis.patch.yml`:**
-
+For example:
 ```yaml
-- insert: patch
-  path: /plugins/0
-  value:
-    id: mcp-affinity
-    name: '@deepseek-ai/dsh-mcp-client'
-    config:
-      serverName: affinity
-      transport: stdio
-      command: 'node.exe'
-      args:
-        - 'C:\absolute\path\to\affinity-codex-bridge.mjs'
-      toolCallTimeoutMs: 30000
+# Your patch layer for this dsh profile, applied after every bundle layer:
+- insert:
+    - id: mcp-affinity
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: affinity
+        transport: stdio
+        command: 'C:\Program Files\nodejs\node.exe'
+        args:
+          - 'C:\Users\YourName\Documents\affinity-mcp-setup\bridge\affinity-codex-bridge.mjs'
+        toolCallTimeoutMs: 30000
 ```
 
 ### Step 4: Verify the connection (no restart needed)
