@@ -687,7 +687,7 @@ DeepSeek Harness uses **stdio** transport for its MCP client plugin. SSE direct 
 Configuration goes in **`$DSH_HOME/profiles/web/cordis.patch.yml`** (profile-scoped, not project-scoped):
 
 1. Install Node.js LTS and confirm `node --version`.
-2. Get the bridge via `git clone https://github.com/bolloplayer/affinity-mcp-setup.git`.
+2. Clone this repo. If standard `git clone` fails with `SEC_E_NO_CREDENTIALS` or schannel errors, use one of the **TLS workarounds at the top of this file** (git with OpenSSL backend, or Node one-liner).
 3. Add the patch entry to `$DSH_HOME/profiles/web/cordis.patch.yml` with an **absolute** bridge path. See **[Leg 6: DeepSeek Harness](docs/dsh-leg.md)** for the full config and troubleshooting — the detailed section is authoritative.
 
 **No restart needed** — the web profile supports config HMR. The connection loads on page refresh.
