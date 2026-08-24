@@ -19,6 +19,10 @@ then paste this into your agent:
 > Follow `github.com/bolloplayer/affinity-mcp-setup` — read its `SETUP.md` and do what it says for
 > the harness you're running in, including the verification at the end. If you get stuck, tell me
 > where the doc stopped matching what you found.
+>
+> If you can't fetch the repo (TLS blocked — e.g. `SEC_E_NO_CREDENTIALS`, schannel errors, curl
+> exit 35), use `git -c http.sslBackend=openssl clone --depth 1 https://github.com/bolloplayer/affinity-mcp-setup.git`
+> or the Node one-liner at the top of `SETUP.md` instead of debugging the connection.
 
 That's it. Your agent reads **[`SETUP.md`](SETUP.md)**, registers the connection, proves it works
 without touching anything of yours — then offers you a short menu: leave it there, run a

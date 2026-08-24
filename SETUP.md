@@ -4,8 +4,23 @@
 Work through it in order — identify the harness you are running in, write that harness's config
 file, then run the verification sequence at the end and show the user the result.
 
-**Having trouble fetching this file from GitHub?** If your sandbox blocks TLS (SEC_E_NO_CREDENTIALS or similar),
-run `node bootstrap.mjs` from the repo root to download this file and supporting files reliably using Node.js fetch.
+**Can't fetch this file from GitHub?** Some sandboxes break the platform TLS stack — `Invoke-WebRequest`,
+`curl` and plain `git clone` fail with `schannel: AcquireCredentialsHandle failed: SEC_E_NO_CREDENTIALS`
+or "the underlying connection was closed". That is the sandbox, not the network. Use one of these instead:
+
+1. **git with the OpenSSL backend** (one command, whole repo — works where schannel fails):
+   ```powershell
+   git -c http.sslBackend=openssl clone --depth 1 https://github.com/bolloplayer/affinity-mcp-setup.git
+   ```
+
+2. **Node one-liner** — fetches bootstrap.mjs and runs it in one go (no git needed; Node ≥18). Downloads this file and every supporting file to the current folder:
+   ```powershell
+   node -e "fetch('https://raw.githubusercontent.com/bolloplayer/affinity-mcp-setup/main/bootstrap.mjs').then(r=>r.text()).then(t=>{require('fs').writeFileSync('bootstrap.mjs',t);import('./bootstrap.mjs')})"
+   ```
+
+3. **Plain `node bootstrap.mjs`** — only if you already have a copy of the repo by another means.
+
+4. **ZIP download** — if none of the above work, download the repo as ZIP from GitHub (`Code ▸ Download ZIP`) and unzip it locally. A ZIP needs no TLS at all.
 
 Affinity Photo v3 ships a **built-in MCP server**. There is nothing to install server-side: the
 user enables a toggle, and your harness connects to a local socket. You then drive Affinity
