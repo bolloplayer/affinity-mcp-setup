@@ -62,6 +62,7 @@ Identify which harness you are running inside, then write **only** that row's fi
 | **Codex** (CLI, ChatGPT Codex tab, IDE extension) | `~/.codex/config.toml` | stdio bridge → SSE |
 | **Antigravity** (`agy`, any model it fronts — not only Gemini) | `~/.gemini/config/mcp_config.json` — **global**, not per-workspace | SSE native |
 | **OpenCode** (CLI / TUI, any model it fronts) | `opencode.json` in the project folder — **workspace**, not global | SSE native |
+| **DeepSeek Harness** (DSH, web UI at `localhost:3080`) | `cordis.yml` in the project folder — **workspace** | streamable-http → SSE |
 
 ### Claude Code
 
