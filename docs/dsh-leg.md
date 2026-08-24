@@ -53,23 +53,32 @@ Before you start, confirm:
 
 DSH requires the bridge because it uses stdio transport. The classic SSE approach (POST to `/sse`) does not work — it returns `404 Not Found` because the `@deepseek-ai/dsh-mcp-client` plugin has no native SSE transport, only stdio.
 
-### Step 1: Clone the repo to a known location
+### Step 1: Download the bridge file to your project
 
-The config points to an absolute bridge path. **This path must exist** before you write the config, or the plugin will silently fail to spawn the bridge.
+The config points to an absolute bridge path. **This file must exist** before you write the config, or the plugin will silently fail to spawn the bridge.
 
-Clone the repo to a persistent location you won't move or delete:
+Download just the bridge file to your project folder (or keep it in a permanent location you control):
 
-```sh
-git clone https://github.com/bolloplayer/affinity-mcp-setup.git C:\Users\YourName\Documents\affinity-mcp-setup
-# or to another location of your choice — just note the full path
+**Option A: From PowerShell (recommended — no git needed)**
+```powershell
+# Create a bridge folder in your project (or use project root)
+New-Item -ItemType Directory -Force -Path bridge | Out-Null
+
+# Download the single bridge file
+$url = "https://raw.githubusercontent.com/bolloplayer/affinity-mcp-setup/main/bridge/affinity-codex-bridge.mjs"
+Invoke-WebRequest -Uri $url -OutFile bridge/affinity-codex-bridge.mjs -UseBasicParsing
 ```
 
-If the network is sandboxed (Codex, DSH, etc.), you may need to specify the TLS backend:
+**Option B: If sandboxed (Codex, DSH), use git with OpenSSL backend**
 ```sh
-git clone -c http.sslBackend=openssl https://github.com/bolloplayer/affinity-mcp-setup.git
+# In your project folder:
+mkdir bridge
+git clone -c http.sslBackend=openssl --depth 1 https://github.com/bolloplayer/affinity-mcp-setup.git _temp
+cp _temp/bridge/affinity-codex-bridge.mjs bridge/
+rm -r _temp
 ```
 
-Once cloned, the bridge is at: `<your-clone-path>\bridge\affinity-codex-bridge.mjs`
+Once downloaded, the bridge is at: `<your-project>\bridge\affinity-codex-bridge.mjs` (or wherever you saved it)
 
 ### Step 2: Locate or create the DSH profile config
 
@@ -114,9 +123,9 @@ Add this to `cordis.patch.yml`:
 
 **Replace these absolute paths — they MUST match your actual system:**
 - `command`: `C:\Program Files\nodejs\node.exe` (or wherever your Node.js is installed — verify with `node --version`)
-- `args[0]`: The full path to `affinity-codex-bridge.mjs` from Step 1. For example, if you cloned to `C:\Users\YourName\Documents\affinity-mcp-setup`, this is: `C:\Users\YourName\Documents\affinity-mcp-setup\bridge\affinity-codex-bridge.mjs`
+- `args[0]`: The full path to `affinity-codex-bridge.mjs` from Step 1. For example, if you saved it to your project's `bridge/` folder at `C:\Users\YourName\Desktop\my-project\bridge\affinity-codex-bridge.mjs`, use that full path.
 
-**Real example:**
+**Real example** (bridge in project folder):
 ```yaml
 # Your patch layer for this dsh profile, applied after every bundle layer:
 - insert:
@@ -127,11 +136,13 @@ Add this to `cordis.patch.yml`:
         transport: stdio
         command: 'C:\Program Files\nodejs\node.exe'
         args:
-          - 'C:\Users\fons\Documents\affinity-mcp-setup\bridge\affinity-codex-bridge.mjs'
+          - 'C:\Users\fons\Desktop\my-project\bridge\affinity-codex-bridge.mjs'
         toolCallTimeoutMs: 30000
 ```
 
-⚠️ **If the bridge path doesn't exist:** the config will parse correctly, but the plugin will silently fail to spawn the bridge when a task starts. If tools don't appear after page refresh, double-check that the path in `args[0]` exists and matches your cloned repo location exactly.
+⚠️ **If the bridge path doesn't exist:** the config will parse correctly, but the plugin will silently fail to spawn the bridge when a task starts. If tools don't appear after page refresh, double-check that:
+1. The file exists: `Test-Path 'C:\your\path\bridge\affinity-codex-bridge.mjs'`
+2. The path in `args[0]` is absolute and matches exactly
 
 ### Step 4: Verify the connection (no restart needed)
 
@@ -201,14 +212,14 @@ node --version
 
 **Symptom:** "New Task" starts with no Affinity tools listed, or config shows as loaded but connection fails.
 
-**Most common cause — bridge path doesn't exist:**
-Check that the path in `args[0]` of `cordis.patch.yml` matches your cloned repo:
+**Most common cause — bridge file doesn't exist:**
+Check that the path in `args[0]` of `cordis.patch.yml` points to the bridge file you saved:
 ```powershell
-Test-Path 'C:\your\actual\path\affinity-mcp-setup\bridge\affinity-codex-bridge.mjs'
+Test-Path 'C:\your\actual\path\bridge\affinity-codex-bridge.mjs'
 ```
 If this returns `$false`, either:
-- Clone the repo to that location if it doesn't exist
-- Update the path in `cordis.patch.yml` to where you did clone it
+- Download the bridge file to that location (Step 1, Option A)
+- Update the path in `cordis.patch.yml` to where you did save it
 - Then refresh the page
 
 **Other causes:**
