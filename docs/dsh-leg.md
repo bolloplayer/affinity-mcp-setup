@@ -40,10 +40,12 @@ Before you start, confirm:
    `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable Affinity MCP`
 
 4. **Affinity's MCP server is listening on `[::1]:6767`**
-   To verify from PowerShell:
+   
+   ⚠️ **Run this from PowerShell in your project folder — NOT from inside DSH** (DSH is sandboxed and may not be able to check the port):
    ```powershell
    Get-NetTCPConnection -LocalAddress '::1' -LocalPort 6767 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "✓ Affinity MCP listening on [$($_.LocalAddress)]:$($_.LocalPort)" }
    ```
+   If nothing prints, Affinity is not running or the MCP toggle is off.
 
 5. **For real work: move your project under `C:\Users\<you>\Desktop\`** — The MCP connection works from anywhere, but Affinity sandboxes **script file I/O** (exports, saves, batch work) to the Desktop tree. A script that tries to write outside it returns `NOT_ALLOWED`. The verification sequence only reads, so it works from any folder, but move your actual project under Desktop before the first export.
 
