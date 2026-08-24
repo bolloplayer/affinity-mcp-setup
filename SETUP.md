@@ -46,9 +46,9 @@ should fix, and none of them is.
 | **Read the `preamble` doc before your first `execute_script`** | The server requires it, and the gate is **per connection**, not per machine or per day: a new SSE session starts un-gated and `execute_script` returns `The preamble documentation topic has not yet been read` until you call it again. The response also carries accumulated SDK hints that materially reduce hallucinated API calls. Call `read_sdk_documentation_topic` with `filename: "preamble"`. |
 | **Put the connection in the config file — never write ad-hoc connection code** | A config entry is read at startup, every session, forever. If the user has to reconnect manually each time, the config step was skipped. |
 
-**Node.js is not required** for the connection itself — with exactly one exception, the Codex
-bridge below. Never tell a user to install Node to fix a Claude Code or Antigravity connection
-problem; it is never the fix.
+**Node.js is not required** for the connection itself — with two exceptions: the Codex bridge and
+the DeepSeek Harness bridge below. Never tell a user to install Node to fix a Claude Code or
+Antigravity connection problem; it is never the fix.
 
 ---
 
@@ -62,7 +62,7 @@ Identify which harness you are running inside, then write **only** that row's fi
 | **Codex** (CLI, ChatGPT Codex tab, IDE extension) | `~/.codex/config.toml` | stdio bridge → SSE |
 | **Antigravity** (`agy`, any model it fronts — not only Gemini) | `~/.gemini/config/mcp_config.json` — **global**, not per-workspace | SSE native |
 | **OpenCode** (CLI / TUI, any model it fronts) | `opencode.json` in the project folder — **workspace**, not global | SSE native |
-| **DeepSeek Harness** (DSH, web UI at `localhost:3080`) | `cordis.yml` in the project folder — **workspace** | stdio bridge → SSE |
+| **DeepSeek Harness** (DSH, web UI at `localhost:3080`) | `$DSH_HOME/profiles/web/cordis.patch.yml` — **profile-scoped** | stdio bridge → SSE |
 
 ### Claude Code
 
@@ -664,31 +664,17 @@ If the user asks how to check the connection themselves, `/mcp` is a Claude Code
 
 ### DeepSeek Harness (DSH) — also needs the bridge
 
-DeepSeek Harness uses **stdio** transport for its MCP client plugin, just like Codex. SSE direct connections do not work with DSH. Use this repo's bridge, [`bridge/affinity-codex-bridge.mjs`](bridge/affinity-codex-bridge.mjs), exactly as you would for Codex.
+DeepSeek Harness uses **stdio** transport for its MCP client plugin. SSE direct connections return `404` — the plugin has no native SSE transport. Use this repo's bridge, [`bridge/affinity-codex-bridge.mjs`](bridge/affinity-codex-bridge.mjs), exactly as you would for Codex.
 
-The configuration goes in **`cordis.yml` in your project folder** — the workspace-level MCP config for DSH:
+Configuration goes in **`$DSH_HOME/profiles/web/cordis.patch.yml`** (profile-scoped, not project-scoped):
 
-1. Install Node.js LTS (if not already done for something else) and confirm `node --version`.
-2. Get the bridge via `git clone https://github.com/bolloplayer/affinity-mcp-setup.git` or fetch it directly with `curl` or `Invoke-WebRequest`.
-3. Add to `cordis.yml`, with an **absolute** path to the bridge:
+1. Install Node.js LTS and confirm `node --version`.
+2. Get the bridge via `git clone https://github.com/bolloplayer/affinity-mcp-setup.git`.
+3. Add the patch entry to `$DSH_HOME/profiles/web/cordis.patch.yml` with an **absolute** bridge path. See **[Leg 6: DeepSeek Harness](docs/dsh-leg.md)** for the full config and troubleshooting — the detailed section is authoritative.
 
-   ```yaml
-   version: '1'
-   plugins:
-     - id: mcp-affinity
-       name: '@deepseek-ai/dsh-mcp-client'
-       config:
-         serverName: affinity
-         transport: stdio
-         command: 'node.exe'
-         args:
-           - 'C:\absolute\path\to\bridge\affinity-codex-bridge.mjs'
-         toolCallTimeoutMs: 30000
-   ```
+**No restart needed** — the web profile supports config HMR. The connection loads on page refresh.
 
-4. Restart DSH — it reads `cordis.yml` at startup.
-
-**Everything else is the same as Codex:** the bridge handles the protocol translation, the same handoff note pattern applies, and there is no restart-within-this-session unlike Claude Code — the harness that wrote the config cannot see the tools it just registered because MCP configuration loads at startup.
+**Tool names are server-qualified** — the tools appear as `mcp__affinity__read_sdk_documentation_topic`, `mcp__affinity__execute_script`, etc. (not bare `affinity_*`). This matches Claude Code's naming.
 
 ---
 
@@ -875,6 +861,8 @@ for them.
 | **A multi-line file writes as one line full of `\n`** | `@'…'@` is a PowerShell *literal* here-string and does not interpret escapes | Download the file instead of composing it — the handoff note lives at `handoff/AGENTS.antigravity.md`. If you must write one, use real line breaks and `Out-File -Encoding utf8` |
 | **Antigravity: `verify.ps1` reports a missing `.mcp.json`** | `verify.ps1` is a Claude Code preflight; that check is hardcoded to Claude Code's filename | Don't run it on this path at all — see the Antigravity section. Never create a `.mcp.json` to satisfy it |
 | Script runs but the layer lands inside a group | Affinity parents new layers into a topmost group | `color-boost-two-layer.js` detects and corrects this — copy its `addSelectiveColourLayer` helper |
+| **DSH: tools don't appear after refresh** | Config loaded but connection failed; affinity not running or bridge path wrong | Verify Affinity is running with MCP toggle on; check `$DSH_HOME/profiles/web/cordis.patch.yml` path and bridge absolute path. Refresh the page. |
+| **DSH: `POST /sse → 404` or "connection refused"** | Config used `transport: streamable-http` with direct SSE URL | Change to `transport: stdio` with the bridge — the plugin has no native SSE transport. See [Leg 6](docs/dsh-leg.md). |
 
 On Windows, [`verify.ps1`](verify.ps1) checks everything independently of any harness, and is the
 fastest way to tell a config problem from an Affinity problem. With Node.js present it performs the

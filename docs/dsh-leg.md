@@ -12,8 +12,8 @@
 |---|---|
 | **Web UI** | `http://localhost:3080` (default) |
 | **Transport to Affinity** | `stdio` bridge → SSE |
-| **Config format** | YAML (`cordis.yml`) |
-| **Scope** | Workspace — project-level configuration |
+| **Config format** | YAML (`cordis.patch.yml`) |
+| **Scope** | Profile-scoped — applies only to the web UI profile |
 | **Setup time** | ~5 minutes |
 
 ---
@@ -40,19 +40,16 @@ Before you start, confirm:
    `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable Affinity MCP`
 
 4. **Affinity's MCP server is listening on `[::1]:6767`**
-   To verify from PowerShell (no Node.js required):
+   To verify from PowerShell:
    ```powershell
-   # Check if the port is listening
    Get-NetTCPConnection -LocalAddress '::1' -LocalPort 6767 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "✓ Affinity MCP listening on [$($_.LocalAddress)]:$($_.LocalPort)" }
-   
-   # If nothing appears, Affinity may not have the MCP toggle enabled, or it crashed
    ```
 
 ---
 
 ## Configuration
 
-DSH requires the bridge because it uses stdio transport, just like Codex. The classic SSE approach does not work with DSH.
+DSH requires the bridge because it uses stdio transport. The classic SSE approach (POST to `/sse`) does not work — it returns `404 Not Found` because the `@deepseek-ai/dsh-mcp-client` plugin has no native SSE transport, only stdio.
 
 ### Step 1: Get the bridge
 
@@ -64,45 +61,36 @@ git clone https://github.com/bolloplayer/affinity-mcp-setup.git
 curl -L https://raw.githubusercontent.com/bolloplayer/affinity-mcp-setup/main/bridge/affinity-codex-bridge.mjs -o affinity-bridge.mjs
 ```
 
-If you are inside DSH and the network is sandboxed, ask for approval to run `git clone` or `Invoke-WebRequest`.
+### Step 2: Locate or create the DSH profile config
 
-### Step 2: Locate or create `cordis.yml` in your project
+DSH loads configuration from **profile-scoped** YAML files, not project-folder files. The web UI profile reads from:
 
-DSH loads a `cordis.yml` file from your project folder. If one doesn't exist, create it at the project root:
-
-```yaml
-version: '1'
-plugins: []
+```
+$DSH_HOME/profiles/web/cordis.patch.yml
 ```
 
-### Step 3: Add the MCP client plugin with the bridge
+**Find your `$DSH_HOME`:** it's typically one of these, in order:
+- The `DSH_HOME` environment variable (if set)
+- `~/.dsh` (the default)
 
-Add this plugin entry to your `plugins:` array. **Use an absolute path** to the bridge:
+If the file doesn't exist, create the directory structure and an empty patch file:
 
-```yaml
-- id: mcp-affinity
-  name: '@deepseek-ai/dsh-mcp-client'
-  config:
-    serverName: affinity
-    transport: stdio
-    command: 'node.exe'
-    args:
-      - 'C:\absolute\path\to\affinity-codex-bridge.mjs'
-    toolCallTimeoutMs: 30000
+```powershell
+# Example with default location
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.dsh\profiles\web" | Out-Null
 ```
 
-Replace `C:\absolute\path\to\affinity-codex-bridge.mjs` with the actual path to the bridge file on your machine. For example:
-```yaml
-args:
-  - 'C:\Users\YourName\projects\affinity-mcp-setup\bridge\affinity-codex-bridge.mjs'
-```
+### Step 3: Add the MCP client plugin entry
 
-**Complete example `cordis.yml`:**
+The patch file uses `- insert: patch` format to inject entries into the plugin array. **Use an absolute path** to the bridge.
+
+Add this to `cordis.patch.yml`:
 
 ```yaml
-version: '1'
-plugins:
-  - id: mcp-affinity
+- insert: patch
+  path: /plugins/0
+  value:
+    id: mcp-affinity
     name: '@deepseek-ai/dsh-mcp-client'
     config:
       serverName: affinity
@@ -113,113 +101,116 @@ plugins:
       toolCallTimeoutMs: 30000
 ```
 
-### Step 4: Restart DSH
-
-Stop the running DSH instance (`Ctrl+C`) and restart it:
-
-```sh
-npx @deepseek-ai/dsh web
-# or
-pnpm dsh web
+Replace `C:\absolute\path\to\affinity-codex-bridge.mjs` with the actual path. For example:
+```yaml
+args:
+  - 'C:\Users\YourName\projects\affinity-mcp-setup\bridge\affinity-codex-bridge.mjs'
 ```
 
-DSH loads `cordis.yml` at startup. When the harness starts, it will:
-1. Launch the Node.js bridge as a subprocess
-2. The bridge connects to the Affinity MCP server on `[::1]:6767`
-3. Discover available tools and register them as native DSH tools
+**Complete example `$DSH_HOME/profiles/web/cordis.patch.yml`:**
 
----
+```yaml
+- insert: patch
+  path: /plugins/0
+  value:
+    id: mcp-affinity
+    name: '@deepseek-ai/dsh-mcp-client'
+    config:
+      serverName: affinity
+      transport: stdio
+      command: 'node.exe'
+      args:
+        - 'C:\absolute\path\to\affinity-codex-bridge.mjs'
+      toolCallTimeoutMs: 30000
+```
 
-## Verification
+### Step 4: Verify the connection (no restart needed)
 
-### In the DSH web UI
+DSH's web profile supports **Hot Module Reload (HMR)** for config changes. The connection will load the next time you refresh the page — no restart required.
 
-1. **Open DSH** at `http://localhost:3080`
+1. **Open DSH** at `http://localhost:3080` (or refresh if already open)
 2. **Start a new task** — click "New Task" or similar
-3. **Check tool availability** — the Affinity tools should appear in the tools panel (11 tools including `affinity_read_sdk_documentation_topic`, `affinity_execute_script`, etc.)
-4. **Try a tool** — call `affinity_read_sdk_documentation_topic` with `filename: "preamble"` to verify the connection works
+3. **List your tools** — you should see 11 Affinity tools prefixed with `mcp__affinity__`:
+   - `mcp__affinity__read_sdk_documentation_topic`
+   - `mcp__affinity__execute_script`
+   - `mcp__affinity__render_spread`
+   - (and 8 more)
+4. **Run a preflight check** — (optional) verify the whole chain works:
+   ```sh
+   node bridge\smoke-test.mjs
+   ```
+   This initializes through the bridge, lists tools, and reads the preamble without touching your document — the DSH equivalent of `verify.ps1`.
 
-Example in a task:
+### Step 5: Verify the tools work
+
+In a task, call one of the Affinity tools to confirm the connection:
+
 ```
 You have access to Affinity Photo tools. First, read the preamble documentation.
 ```
 
-The agent should call `affinity_read_sdk_documentation_topic` and receive the preamble response.
-
-### If tools don't appear
-
-**Most common causes:**
-
-| Symptom | Cause | Fix |
-|---|---|---|
-| Tools are empty or "affinity" namespace missing | `cordis.yml` not found or malformed YAML | Check file path and syntax; restart DSH |
-| Connection refused to `[::1]:6767` | Affinity not running or MCP toggle off | Restart Affinity; confirm toggle in `Edit ▸ Settings` |
-| `node.exe` not found | Node.js not installed or not in PATH | Install Node.js LTS; verify with `node --version` |
-| Bridge path invalid | `args` points to non-existent file | Check the absolute path to `affinity-codex-bridge.mjs` exists and is correct |
-| Tools appear but hang when called | Affinity crashed or lost connection | Restart Affinity and DSH |
+The agent should call `mcp__affinity__read_sdk_documentation_topic` with `filename: "preamble"` and receive the preamble response.
 
 ---
 
 ## Key notes
 
-**The bridge handles protocol translation.** DSH uses stdio transport and the bridge converts it to SSE and handles the protocol version mismatch between DSH and Affinity, just like with Codex.
+**Tool names in DSH are server-qualified.** The `serverName: affinity` in the config makes all tools appear as `mcp__affinity__*` in the task UI (like Claude Code), not bare `affinity_*`. This is how DSH's plugin discovers and namespaces external tools.
 
-**The preamble rule still applies** — as with all harnesses, read `affinity_read_sdk_documentation_topic` with `filename: "preamble"` before your first `affinity_execute_script` call in a task. The gate is per connection, so a new task means you should read it again if a prior task ended.
+**The bridge handles protocol translation.** DSH uses stdio transport, the bridge converts it to SSE, and handles the version mismatch between DSH's initialization and Affinity's MCP protocol.
 
-**Affinity MCP toggle is already enabled** — if you see the toggle documented elsewhere, you likely already have it on. It persists across Affinity restarts, so you only need to enable it once.
+**The preamble rule still applies** — read `mcp__affinity__read_sdk_documentation_topic` with `filename: "preamble"` before your first `mcp__affinity__execute_script` call. The gate is per connection: a new task starts ungated and needs the preamble read again if a prior task ended.
+
+**Affinity MCP toggle must be on** — `Edit ▸ Settings ▸ Model Context Protocol ▸ Enable Affinity MCP`. It persists across Affinity restarts, so enable it once.
 
 ---
 
 ## Configuration reference
 
-### `cordis.yml` fields for `dsh-mcp-client` with bridge
+### `cordis.patch.yml` fields for the MCP client plugin
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `serverName` | string | ✓ | Stable local name for this server's tools (e.g., `affinity`). Must be `[A-Za-z0-9_-]{1,32}`. This becomes the prefix in tool names. |
+| `serverName` | string | ✓ | Stable local name for this server's tools. Must match `[A-Za-z0-9_-]{1,32}`. Tools appear as `mcp__<serverName>__*`. |
 | `transport` | enum | ✓ | **`stdio`** for the bridge approach (not `streamable-http`). |
 | `command` | string | ✓ | `node.exe` — the bridge runs as a Node.js subprocess. |
 | `args` | array | ✓ | Array containing the absolute path to `affinity-codex-bridge.mjs`. |
-| `toolCallTimeoutMs` | number | optional | Timeout for a single tool call. Default: `60000` (1 minute). Affinity scripts can be slow; adjust as needed. |
+| `toolCallTimeoutMs` | number | optional | Timeout for a single tool call (ms). Default: `60000`. Affinity scripts can be slow; adjust as needed. |
 
 ---
 
 ## Troubleshooting
 
-### "Port 3080 is already in use"
+### "Node.js is not installed or not in PATH"
 
-DSH is already running, or another service has claimed the port. Check for existing DSH processes:
-
-```powershell
-Get-Process | Where-Object { $_.Name -match 'node|dsh' }
-```
-
-Kill the existing process or start DSH on a different port:
-
+Install Node.js LTS from https://nodejs.org/ and verify:
 ```sh
-npx @deepseek-ai/dsh web --port 3081
+node --version
 ```
 
-### "node.exe is not recognized as an internal or external command"
+### Tools don't appear after refresh
 
-Node.js is not installed or not in your PATH. Install Node.js LTS from https://nodejs.org/ and restart your terminal.
+**Symptom:** "New Task" starts with no Affinity tools listed.
 
-### "The specified path does not exist" (bridge path error)
+**Causes and fixes:**
+- **Affinity not running or MCP toggle off** → Start Affinity; confirm the toggle in `Edit ▸ Settings`
+- **`cordis.patch.yml` path is wrong** → Check `$DSH_HOME/profiles/web/cordis.patch.yml` exists (use `$env:USERPROFILE\.dsh\profiles\web\` if unsure)
+- **YAML syntax error** → Verify indentation (2 spaces, not tabs) and valid YAML
+- **Bridge path doesn't exist** → Double-check the absolute path in `args` is correct
 
-The `args` in `cordis.yml` points to a non-existent file. Double-check:
-1. The absolute path is correct
-2. The file `affinity-codex-bridge.mjs` exists at that location
-3. Use forward slashes or escape backslashes in YAML: `C:\\Users\\...` or `C:/Users/...`
+### "Connection refused" or "404 Not Found"
+
+**Old symptom from testing:** the config used `transport: streamable-http` with `url: http://[::1]:6767/sse`.
+
+**Fix:** Change to `transport: stdio` with the bridge. The plugin has no native SSE transport — stdio + bridge is the only working approach.
 
 ### "IPv6 is disabled on this system"
 
 Affinity's MCP server only listens on IPv6 loopback (`[::1]`). If IPv6 is disabled:
 
 ```powershell
-# Check IPv6 binding status
 Get-NetAdapterBinding -ComponentID ms_tcpip6 | Format-Table Name, Enabled
-
-# Enable IPv6 (if currently Disabled)
+# Enable if needed:
 Enable-NetAdapterBinding -Name "Ethernet" -ComponentID ms_tcpip6
 # Replace "Ethernet" with your actual adapter name
 ```
@@ -228,7 +219,7 @@ Then restart Affinity and DSH.
 
 ### "The preamble documentation topic has not yet been read"
 
-The gate is per connection. If you see this error, call `affinity_read_sdk_documentation_topic` with `filename: "preamble"` again before proceeding with script execution.
+The gate is per connection. If you see this during `execute_script`, call `mcp__affinity__read_sdk_documentation_topic` with `filename: "preamble"` again before proceeding.
 
 ---
 
@@ -236,5 +227,6 @@ The gate is per connection. If you see this error, call `affinity_read_sdk_docum
 
 - **Main setup:** [SETUP.md](../SETUP.md)
 - **Bridge details:** [bridge/README.md](../bridge/README.md)
+- **Bridge smoke test:** `node bridge/smoke-test.mjs`
 - **DeepSeek Harness docs:** https://deepseek.com/harness/en/
 - **Affinity SDK tips:** [docs/sdk-notes.md](sdk-notes.md)
