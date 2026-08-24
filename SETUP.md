@@ -62,7 +62,7 @@ Identify which harness you are running inside, then write **only** that row's fi
 | **Codex** (CLI, ChatGPT Codex tab, IDE extension) | `~/.codex/config.toml` | stdio bridge → SSE |
 | **Antigravity** (`agy`, any model it fronts — not only Gemini) | `~/.gemini/config/mcp_config.json` — **global**, not per-workspace | SSE native |
 | **OpenCode** (CLI / TUI, any model it fronts) | `opencode.json` in the project folder — **workspace**, not global | SSE native |
-| **DeepSeek Harness** (DSH, web UI at `localhost:3080`) | `cordis.yml` in the project folder — **workspace** | streamable-http → SSE |
+| **DeepSeek Harness** (DSH, web UI at `localhost:3080`) | `cordis.yml` in the project folder — **workspace** | stdio bridge → SSE |
 
 ### Claude Code
 
@@ -661,6 +661,34 @@ have.
 
 If the user asks how to check the connection themselves, `/mcp` is a Claude Code command — give
 `codex mcp list` instead.
+
+### DeepSeek Harness (DSH) — also needs the bridge
+
+DeepSeek Harness uses **stdio** transport for its MCP client plugin, just like Codex. SSE direct connections do not work with DSH. Use this repo's bridge, [`bridge/affinity-codex-bridge.mjs`](bridge/affinity-codex-bridge.mjs), exactly as you would for Codex.
+
+The configuration goes in **`cordis.yml` in your project folder** — the workspace-level MCP config for DSH:
+
+1. Install Node.js LTS (if not already done for something else) and confirm `node --version`.
+2. Get the bridge via `git clone https://github.com/bolloplayer/affinity-mcp-setup.git` or fetch it directly with `curl` or `Invoke-WebRequest`.
+3. Add to `cordis.yml`, with an **absolute** path to the bridge:
+
+   ```yaml
+   version: '1'
+   plugins:
+     - id: mcp-affinity
+       name: '@deepseek-ai/dsh-mcp-client'
+       config:
+         serverName: affinity
+         transport: stdio
+         command: 'node.exe'
+         args:
+           - 'C:\absolute\path\to\bridge\affinity-codex-bridge.mjs'
+         toolCallTimeoutMs: 30000
+   ```
+
+4. Restart DSH — it reads `cordis.yml` at startup.
+
+**Everything else is the same as Codex:** the bridge handles the protocol translation, the same handoff note pattern applies, and there is no restart-within-this-session unlike Claude Code — the harness that wrote the config cannot see the tools it just registered because MCP configuration loads at startup.
 
 ---
 
